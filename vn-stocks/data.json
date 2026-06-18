@@ -1,0 +1,300 @@
+{
+  "updated": "18/06/2026 16:10",
+  "portfolio": {
+    "updated": "2026-06-18",
+    "holdings": [
+      {
+        "ticker": "VIC",
+        "quantity": 100,
+        "avg_cost": 192000,
+        "entry_date": "2026-06-18",
+        "stop_loss": 186000,
+        "targets": [
+          210000,
+          219900,
+          237700
+        ],
+        "status": "HOLDING",
+        "note": "Position trade. Chờ MACD crossover lên xác nhận."
+      },
+      {
+        "ticker": "BSR",
+        "quantity": 100,
+        "avg_cost": 26550,
+        "entry_date": "2026-06-18",
+        "stop_loss": null,
+        "targets": [],
+        "status": "HOLDING",
+        "note": "Chưa có kế hoạch SL/TP rõ ràng — cần update."
+      }
+    ],
+    "watchlist": [
+      "ACB",
+      "VRE",
+      "VTP"
+    ],
+    "summary": {
+      "total_invested": 21855000,
+      "positions": 2,
+      "note": "Cập nhật portfolio.json mỗi khi mua/bán/update SL/TP"
+    }
+  },
+  "journals": {
+    "VIC": {
+      "ticker": "VIC",
+      "snapshots": [
+        {
+          "date": "18/06/2026",
+          "price": "203,500",
+          "chg": "+5.99%",
+          "rsi": "43.3",
+          "macd": "-2.88 < -1.75 (bear)",
+          "score": "+2",
+          "rec": "🔶 TÍCH LŨY",
+          "note": "Cú bật mạnh +6%, StochRSI=100, vol 1.08x"
+        }
+      ],
+      "trades": [
+        {
+          "date": "18/06/2026",
+          "type": "MUA",
+          "price": "192,000",
+          "sl": "—",
+          "pl": "Giá vốn ban đầu",
+          "note": ""
+        },
+        {
+          "date": "19/06/2026",
+          "type": "MUA",
+          "price": "192,000",
+          "sl": "—",
+          "pl": "Giá vốn ban đầu",
+          "note": ""
+        }
+      ],
+      "entryPlan": [
+        {
+          "cond": "🛡️ Stop-loss cứng",
+          "entry": "**186,000**",
+          "sl": "Cắt toàn bộ",
+          "target": ""
+        },
+        {
+          "cond": "🎯 TP1",
+          "entry": "**210,000**",
+          "sl": "Bán 50 cp",
+          "target": ""
+        },
+        {
+          "cond": "🎯 TP2",
+          "entry": "**219,900** (BB Upper)",
+          "sl": "Bán 30 cp",
+          "target": ""
+        },
+        {
+          "cond": "🎯 TP3",
+          "entry": "**237,700**",
+          "sl": "Bán 20 cp còn lại",
+          "target": ""
+        }
+      ],
+      "position": {
+        "": "",
+        "Trạng thái": "🟢 ĐANG GIỮ",
+        "Số lượng": "100 cp",
+        "Giá vốn": "192,000 VNĐ",
+        "Ngày vào": "18/06/2026",
+        "Vốn đầu tư": "19,200,000 VNĐ"
+      },
+      "buffett": "**Buffett check:** ⚠️ BĐS đặc thù — moat mạnh nhưng nợ/TS cao (đặc thù ngành, không phạt điểm)",
+      "bull": [],
+      "bear": []
+    },
+    "BSR": {
+      "ticker": "BSR",
+      "snapshots": [
+        {
+          "date": "18/06/2026",
+          "price": "26,600",
+          "chg": "+0.95%",
+          "rsi": "28.0",
+          "macd": "-0.426 < -0.130 (bear)",
+          "score": "11%",
+          "rec": "0.58x",
+          "note": "+3"
+        }
+      ],
+      "trades": [
+        {
+          "date": "18/06/2026",
+          "type": "MUA",
+          "price": "26,550",
+          "sl": "24,600",
+          "pl": "—",
+          "note": "Vào lệnh, oversold RSI 28"
+        }
+      ],
+      "entryPlan": [
+        {
+          "cond": "⚠️ Cảnh báo sớm",
+          "entry": "**26,200** (BB Lower)",
+          "sl": "BB Lower bị phá → xem xét cắt 50%",
+          "target": ""
+        },
+        {
+          "cond": "🛡️ Stop-loss cứng",
+          "entry": "**24,600**",
+          "sl": "Cắt toàn bộ — lỗ -7.3% (-195,000đ)",
+          "target": ""
+        },
+        {
+          "cond": "🎯 TP1",
+          "entry": "**27,600** (MA50)",
+          "sl": "Bán 50 cp — lãi +3.9% (+105,000đ)",
+          "target": ""
+        },
+        {
+          "cond": "🎯 TP2",
+          "entry": "**28,100** (MA20)",
+          "sl": "Bán 30 cp — lãi +5.8% (+154,500đ)",
+          "target": ""
+        },
+        {
+          "cond": "🎯 TP3",
+          "entry": "**30,700**",
+          "sl": "Bán 20 cp còn lại — lãi +15.7% (+417,000đ)",
+          "target": ""
+        }
+      ],
+      "position": {
+        "": "",
+        "Trạng thái": "🟢 ĐANG GIỮ",
+        "Số lượng": "100 cp",
+        "Giá vốn": "26,550 VNĐ",
+        "Ngày vào": "18/06/2026",
+        "Vốn đầu tư": "2,655,000 VNĐ"
+      },
+      "buffett": "**Buffett check:** ⚠️ Cyclical commodity — moat độc quyền thực tế (nhà máy lọc dầu duy nhất VN) nhưng phụ thuộc giá dầu thế giới. Phù hợp **position trade** theo chu kỳ dầu, không phải hold dài hạn Buffett-style.",
+      "bull": [],
+      "bear": []
+    },
+    "ACB": {
+      "ticker": "ACB",
+      "snapshots": [
+        {
+          "date": "18/06/2026",
+          "price": "22,400",
+          "chg": "+2.05%",
+          "rsi": "61.1",
+          "macd": "Vừa cắt xuống",
+          "score": "63%",
+          "rec": "0.24x",
+          "note": "+1"
+        }
+      ],
+      "trades": [],
+      "entryPlan": [
+        {
+          "cond": "Pullback về MA20 + volume thấp",
+          "entry": "21,500–22,000",
+          "sl": "21,000",
+          "target": "24,900"
+        },
+        {
+          "cond": "MACD histogram dương trở lại",
+          "entry": "22,000–22,500",
+          "sl": "21,200",
+          "target": "24,900"
+        }
+      ],
+      "position": {
+        "": "",
+        "Trạng thái": "👁️ THEO DÕI",
+        "Số lượng": "—",
+        "Giá vốn": "—"
+      },
+      "buffett": "**Buffett check:** ✅ Trong WATCHLIST — NPL thấp nhất ngành, tăng trưởng ổn, ít scandal. Kiểm chứng 5Y: +65%.",
+      "bull": [],
+      "bear": []
+    },
+    "VRE": {
+      "ticker": "VRE",
+      "snapshots": [
+        {
+          "date": "18/06/2026",
+          "price": "30,100",
+          "chg": "+6.93%",
+          "rsi": "38.9",
+          "macd": "-0.794 < -0.607 (bear)",
+          "score": "44%",
+          "rec": "1.7x",
+          "note": "0"
+        }
+      ],
+      "trades": [],
+      "entryPlan": [
+        {
+          "cond": "Giá vượt MA20 (30.5k) + đóng cửa trên đó 2 phiên",
+          "entry": "30,500–31,000",
+          "sl": "28,500",
+          "target": "34,700"
+        },
+        {
+          "cond": "MACD histogram tiến về 0",
+          "entry": "29,000–30,000",
+          "sl": "27,800",
+          "target": "34,700"
+        }
+      ],
+      "position": {
+        "": "",
+        "Trạng thái": "👁️ THEO DÕI",
+        "Số lượng": "—",
+        "Giá vốn": "—"
+      },
+      "buffett": "**Buffett check:** ⚠️ BĐS đặc thù — moat brand Vincom mạnh nhưng nợ cao, cyclical theo tiêu dùng nội địa.",
+      "bull": [],
+      "bear": []
+    },
+    "VTP": {
+      "ticker": "VTP",
+      "snapshots": [
+        {
+          "date": "18/06/2026",
+          "price": "65,700",
+          "chg": "+0.31%",
+          "rsi": "56.4",
+          "macd": "-0.662 > -0.852 HIST=+0.19",
+          "score": "58%",
+          "rec": "0.27x",
+          "note": "-1"
+        }
+      ],
+      "trades": [],
+      "entryPlan": [
+        {
+          "cond": "Vượt MA50 (67.6k) + vol ≥ 1.5× TB20",
+          "entry": "67,600–68,000",
+          "sl": "65,000",
+          "target": "73,500 (MA200)"
+        },
+        {
+          "cond": "MACD histogram dương + mở rộng",
+          "entry": "66,000–67,000",
+          "sl": "64,500",
+          "target": "73,500"
+        }
+      ],
+      "position": {
+        "": "",
+        "Trạng thái": "👁️ THEO DÕI",
+        "Số lượng": "—",
+        "Giá vốn": "—"
+      },
+      "buffett": "**Buffett check:** ⚠️ Business model rõ nhưng moat trung bình — cạnh tranh cao với GHN, GHTK, J&T. Chưa đủ tiêu chuẩn Watchlist.",
+      "bull": [],
+      "bear": []
+    }
+  },
+  "mistakes_count": 1
+}
