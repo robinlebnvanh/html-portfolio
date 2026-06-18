@@ -195,7 +195,7 @@ function fmt(n){return n?Number(n).toLocaleString():"-";}
 function fmtM(n){return n?(n/1e6).toFixed(2)+"M":"-";}
 
 function loadDash(){
-  fetch("../data/data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
+  fetch("./data/data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
     const h = d.portfolio.holdings||[];
     const w = d.portfolio.watchlist||[];
     const total = h.reduce((s,x)=>s+(x.avg_cost*x.quantity),0);

@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "name": "Investment Dashboard",
+    "desc": "Dashboard theo dõi danh mục đầu tư chứng khoán VN cá nhân. Phân tích kỹ thuật, journal, watchlist.",
+    "tech": ["HTML", "CSS", "JavaScript", "Python"],
+    "category": "frontend",
+    "link": "#",
+    "github": "https://github.com/robinlebnvanh",
+    "date": "2026-06"
+  },
+  {
+    "id": 2,
+    "name": "AI Agent Personal",
+    "desc": "Xây dựng AI agents cá nhân bằng OpenClaw. Tự động hóa công việc hàng ngày.",
+    "tech": ["Python", "OpenClaw", "AI"],
+    "category": "tool",
+    "link": "#",
+    "github": "https://github.com/robinlebnvanh",
+    "date": "2026-04"
+  }
+]

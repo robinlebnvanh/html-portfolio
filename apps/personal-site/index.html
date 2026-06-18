@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robin Le — Software Engineer</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <header>
+    <nav>
+      <div class="logo">Robin Le</div>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <button id="theme-toggle">🌙</button>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section id="hero">
+    <h1>Hi, I'm <span>Robin Le</span> 👋</h1>
+    <p class="tagline">Software Engineer · Building things that matter</p>
+    <a href="#projects" class="btn">Xem dự án</a>
+    <a href="#contact" class="btn btn-outline">Liên hệ</a>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <h2>About</h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>Software Engineer / Project Manager với hơn 10 năm kinh nghiệm.</p>
+        <p>Thích tối giản, hiệu quả và xây dựng những thứ thực sự có ích.</p>
+        <p>Đang học web development và xây dựng AI agents cá nhân.</p>
+      </div>
+      <div class="about-skills" id="skills-list">
+        <!-- Render từ about.json -->
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <h2>Projects</h2>
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="frontend">Frontend</button>
+      <button class="filter-btn" data-filter="backend">Backend</button>
+      <button class="filter-btn" data-filter="tool">Tool</button>
+    </div>
+    <div class="projects-grid" id="projects-grid"></div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <h2>Contact</h2>
+    <p>Liên hệ qua email hoặc mạng xã hội bên dưới.</p>
+    <div class="contact-links">
+      <a class="contact-link" href="mailto:robin@example.com">📧 Email</a>
+      <a class="contact-link" href="https://github.com/robinlebnvanh" target="_blank">🐙 GitHub</a>
+      <a class="contact-link" href="#" target="_blank">💼 LinkedIn</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Robin Le · Built with HTML/CSS/JS</p>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

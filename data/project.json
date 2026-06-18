@@ -1,0 +1,13 @@
+  {
+    "id": 1,
+    "name": "Investment Dashboard",
+    "desc": "Dashboard theo dõi danh mục đầu tư chứng khoán VN cá nhân.",
+    "tech": ["HTML", "CSS", "JavaScript", "Python"],
+    "category": "frontend",
+    "link": "https://robin-le.github.io/dashboard",
+    "github": "https://github.com/robin-le/dashboard",
+    "image": "assets/images/dashboard.png",
+    "date": "2026-06"
+  }
+
+

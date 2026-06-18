@@ -213,7 +213,7 @@ function renderMain(d) {
 }
 
 function loadData() {
-  fetch('../data/data.json?t=' + Date.now())
+  fetch('./data/data.json?t=' + Date.now())
     .then(r => r.json())
     .then(data => {
       appData = data;

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robin Le — Portfolio · Option A</title>
+<style>
+  /* ── RESET & BASE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #ffffff;
+    color: #111111;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #ebebeb;
+    z-index: 100;
+    padding: 16px 0;
+  }
+  nav .container { display: flex; justify-content: space-between; align-items: center; }
+  .nav-logo { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: #111; }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { font-size: 13px; color: #888; transition: color 0.2s; }
+  .nav-links a:hover { color: #111; }
+
+  /* ── HERO ── */
+  .hero { padding: 96px 0 80px; }
+  .hero-tag {
+    display: inline-block;
+    font-size: 12px; font-weight: 600;
+    color: #888;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: 52px; font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    color: #111;
+  }
+  .hero h1 span { color: #111; border-bottom: 3px solid #111; padding-bottom: 2px; }
+  .hero-desc {
+    font-size: 16px; color: #666;
+    max-width: 520px;
+    margin-bottom: 36px;
+    line-height: 1.8;
+  }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block;
+    padding: 11px 24px;
+    border-radius: 4px;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: #111; color: #fff; }
+  .btn-primary:hover { background: #333; }
+  .btn-outline { border: 1.5px solid #ddd; color: #666; }
+  .btn-outline:hover { border-color: #999; color: #111; }
+
+  /* ── SECTION ── */
+  section { padding: 72px 0; border-top: 1px solid #ebebeb; }
+  .section-label {
+    font-size: 11px; font-weight: 700;
+    color: #bbb; letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-size: 30px; font-weight: 800;
+    letter-spacing: -1px;
+    color: #111;
+    margin-bottom: 40px;
+  }
+
+  /* ── ABOUT ── */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .about-text { font-size: 15px; color: #555; line-height: 1.9; }
+  .about-text p + p { margin-top: 14px; }
+  .about-stats { display: flex; flex-direction: column; gap: 24px; }
+  .stat-item { border-left: 2px solid #111; padding-left: 16px; }
+  .stat-num { font-size: 32px; font-weight: 800; color: #111; letter-spacing: -1.5px; }
+  .stat-label { font-size: 11px; color: #aaa; margin-top: 2px; letter-spacing: 0.5px; }
+
+  /* ── SKILLS ── */
+  .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #ebebeb; border: 1px solid #ebebeb; }
+  .skill-card {
+    background: #fff;
+    padding: 24px 20px;
+    transition: background 0.2s;
+  }
+  .skill-card:hover { background: #fafafa; }
+  .skill-icon { font-size: 20px; margin-bottom: 10px; }
+  .skill-name { font-size: 13px; font-weight: 700; color: #111; margin-bottom: 4px; }
+  .skill-desc { font-size: 11px; color: #aaa; line-height: 1.6; }
+
+  /* ── PROJECTS ── */
+  .projects-list { display: flex; flex-direction: column; gap: 0; border: 1px solid #ebebeb; }
+  .project-card {
+    padding: 28px;
+    border-bottom: 1px solid #ebebeb;
+    transition: background 0.2s;
+  }
+  .project-card:last-child { border-bottom: none; }
+  .project-card:hover { background: #fafafa; }
+  .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .project-name { font-size: 16px; font-weight: 700; color: #111; }
+  .project-year { font-size: 11px; color: #aaa; font-weight: 600; margin-top: 3px; }
+  .project-desc { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 16px; }
+  .project-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    font-size: 11px; font-weight: 600;
+    background: #f5f5f5; border: 1px solid #e5e5e5;
+    color: #666;
+    padding: 3px 10px; border-radius: 2px;
+  }
+  .project-result {
+    margin-top: 14px;
+    font-size: 12px; font-weight: 700;
+    color: #111;
+    background: #f5f5f5;
+    padding: 6px 12px; border-radius: 2px;
+    display: inline-block;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── EXPERIENCE ── */
+  .exp-list { display: flex; flex-direction: column; gap: 0; }
+  .exp-item {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 24px;
+    padding: 24px 0;
+    border-bottom: 1px solid #ebebeb;
+  }
+  .exp-item:last-child { border-bottom: none; }
+  .exp-period { font-size: 11px; color: #aaa; font-weight: 600; padding-top: 3px; letter-spacing: 0.3px; }
+  .exp-role { font-size: 15px; font-weight: 700; color: #111; }
+  .exp-company { font-size: 13px; color: #888; margin-top: 2px; margin-bottom: 8px; }
+  .exp-desc { font-size: 13px; color: #555; line-height: 1.7; }
+
+  /* ── CONTACT ── */
+  .contact-links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .contact-link {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; color: #555;
+    border: 1.5px solid #ddd;
+    padding: 10px 18px; border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .contact-link:hover { border-color: #111; color: #111; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 32px 0;
+    border-top: 1px solid #ebebeb;
+    text-align: center;
+    font-size: 12px; color: #ccc;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 36px; }
+    .about-grid { grid-template-columns: 1fr; }
+    .skills-grid { grid-template-columns: repeat(2, 1fr); }
+    .exp-item { grid-template-columns: 1fr; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <div class="nav-logo">Robin Le</div>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#projects">Projects</a>
+      <a href="#experience">Experience</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="container">
+  <div class="hero">
+    <div class="hero-tag">Software Engineer & Project Manager</div>
+    <h1>Building systems<br>that <span>actually work.</span></h1>
+    <p class="hero-desc">
+      10+ years turning complex problems into clean solutions —
+      from enterprise automation to AI-powered document inspection tools.
+      Based in Brisbane, Australia.
+    </p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn btn-primary">View Projects</a>
+      <a href="#contact" class="btn btn-outline">Get in touch</a>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-label">About</div>
+    <div class="section-title">A bit about me</div>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>I'm a Software Engineer and Project Manager with over 10 years of experience delivering software projects across Japan, Australia, and Southeast Asia.</p>
+        <p>I focus on automation, AI tooling, and making repetitive work disappear — whether that's Excel/VBA workflows, Python scripts, or AI agents that inspect design documents overnight.</p>
+        <p>Outside of work, I shoot with a Canon EOS R and believe that good systems and good photography share the same principle: eliminate the unnecessary.</p>
+      </div>
+      <div class="about-stats">
+        <div class="stat-item">
+          <div class="stat-num">10+</div>
+          <div class="stat-label">Years of experience</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">88%</div>
+          <div class="stat-label">AI inspection recall rate (NRI project)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">155</div>
+          <div class="stat-label">Automated checklist criteria</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="section-label">Skills</div>
+    <div class="section-title">What I work with</div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-icon">🐍</div>
+        <div class="skill-name">Python</div>
+        <div class="skill-desc">Automation, data processing, openpyxl, scripting</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">📊</div>
+        <div class="skill-name">Excel / VBA</div>
+        <div class="skill-desc">Macro automation, reporting pipelines, data transformation</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🤖</div>
+        <div class="skill-name">AI Agent</div>
+        <div class="skill-desc">OpenClaw, prompt engineering, LLM workflow design</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">📋</div>
+        <div class="skill-name">Project Management</div>
+        <div class="skill-desc">Agile, stakeholder management, cross-team coordination</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🔍</div>
+        <div class="skill-name">Document Inspection</div>
+        <div class="skill-desc">AI-powered design review, checklist automation, QA tooling</div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">📷</div>
+        <div class="skill-name">Photography</div>
+        <div class="skill-desc">Canon EOS R, minimalist composition, street & portrait</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="section-label">Projects</div>
+    <div class="section-title">Things I've built</div>
+    <div class="projects-list">
+
+      <div class="project-card">
+        <div class="project-header">
+          <div>
+            <div class="project-name">Document Inspection AI</div>
+            <div class="project-year">2026</div>
+          </div>
+        </div>
+        <p class="project-desc">
+          Built an AI-powered design document inspection system for NRI Indonesia.
+          Combines deterministic script checks (Layer A), LLM judgment (Layer B),
+          and vision-based UI review — all without requiring an external API key.
+          Automatically exports Excel reports with 155-criteria coverage tracking.
+        </p>
+        <div class="project-tags">
+          <span class="tag">Python</span>
+          <span class="tag">OpenClaw</span>
+          <span class="tag">openpyxl</span>
+          <span class="tag">LLM</span>
+          <span class="tag">Vision</span>
+        </div>
+        <div class="project-result">✓ 88% recall rate vs manual inspection</div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div>
+            <div class="project-name">Personal AI Agent</div>
+            <div class="project-year">2025 – present</div>
+          </div>
+        </div>
+        <p class="project-desc">
+          Designed and deployed a personal AI assistant using OpenClaw —
+          handles bug ticket creation, document inspection, heartbeat monitoring,
+          and workflow automation across Signal, Telegram, and web UI.
+          Built custom skills for multi-platform bug reporting (Jira, GitHub, CAT).
+        </p>
+        <div class="project-tags">
+          <span class="tag">OpenClaw</span>
+          <span class="tag">AI Skills</span>
+          <span class="tag">Automation</span>
+          <span class="tag">Node.js</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div>
+            <div class="project-name">Excel / VBA Automation Suite</div>
+            <div class="project-year">2020 – present</div>
+          </div>
+        </div>
+        <p class="project-desc">
+          Developed internal automation tools for reporting and data transformation
+          using Excel/VBA and Python. Reduced manual processing time by
+          eliminating repetitive tasks across multiple teams.
+        </p>
+        <div class="project-tags">
+          <span class="tag">Excel</span>
+          <span class="tag">VBA</span>
+          <span class="tag">Python</span>
+          <span class="tag">Automation</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="section-label">Experience</div>
+    <div class="section-title">Where I've worked</div>
+    <div class="exp-list">
+      <div class="exp-item">
+        <div class="exp-period">2022 – present</div>
+        <div>
+          <div class="exp-role">Software Engineer / Project Manager</div>
+          <div class="exp-company">Shift Asia — Brisbane, Australia</div>
+          <div class="exp-desc">Leading AI tooling projects and software delivery for Japanese enterprise clients. Specializing in document automation and inspection systems.</div>
+        </div>
+      </div>
+      <div class="exp-item">
+        <div class="exp-period">2018 – 2022</div>
+        <div>
+          <div class="exp-role">Software Engineer</div>
+          <div class="exp-company">Previous Company — Vietnam</div>
+          <div class="exp-desc">Developed automation workflows and internal tools. Managed cross-functional teams and client deliverables across Southeast Asia.</div>
+        </div>
+      </div>
+      <div class="exp-item">
+        <div class="exp-period">2014 – 2018</div>
+        <div>
+          <div class="exp-role">Junior Software Engineer</div>
+          <div class="exp-company">Early Career — Vietnam</div>
+          <div class="exp-desc">Built data pipelines and reporting systems. Introduced Excel/VBA automation to reduce manual workload across operations teams.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-label">Contact</div>
+    <div class="section-title">Let's talk</div>
+    <p style="font-size:15px;color:#475569;max-width:480px;">
+      Open to interesting projects, collaboration, or just a good conversation about AI, automation, or cameras.
+    </p>
+    <div class="contact-links">
+      <a href="mailto:robin@example.com" class="contact-link">✉️ robin@example.com</a>
+      <a href="https://github.com/robinle" class="contact-link" target="_blank">🐙 GitHub</a>
+      <a href="https://linkedin.com/in/robinle" class="contact-link" target="_blank">💼 LinkedIn</a>
+    </div>
+  </section>
+
+</div><!-- end container -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    Built with HTML & CSS · Robin Le · 2026
+  </div>
+</footer>
+
+</body>
+</html>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* OPTION D v2 — CONCRETE MINIMAL / MASCULINE */
+:root {
+  --bg:   #e8e8e8;
+  --bg2:  #dedede;
+  --ink:  #1a1a1a;
+  --ink2: #555;
+  --ink3: #999;
+  --rule: #bbb;
+}
+
+body {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-weight: 300 !important;
+}
+
+/* Concrete texture overlay on hero */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+.hero { position: relative; background: var(--bg); }
+
+/* NAV */
+nav { background: rgba(232,232,232,0.97) !important; border-bottom: 1px solid var(--rule) !important; }
+.nav-logo {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important; font-weight: 500 !important;
+  letter-spacing: 4px !important; text-transform: uppercase !important;
+  color: var(--ink) !important;
+}
+.nav-links a {
+  font-size: 10px !important; letter-spacing: 3px !important;
+  text-transform: uppercase !important; color: var(--ink3) !important;
+}
+.nav-links a:hover { color: var(--ink) !important; }
+
+/* HERO */
+.hero-tag {
+  font-size: 10px !important; letter-spacing: 4px !important;
+  text-transform: uppercase !important; color: var(--ink3) !important;
+  margin-bottom: 32px !important;
+}
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: clamp(64px, 10vw, 100px) !important;
+  font-weight: 600 !important;
+  letter-spacing: -3px !important;
+  line-height: 1.0 !important;
+  color: var(--ink) !important;
+}
+.hero h1 span {
+  font-style: italic !important;
+  color: var(--ink) !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+.hero-desc {
+  color: var(--ink2) !important;
+  font-size: 13px !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.3px !important;
+  border-left: 1px solid var(--rule);
+  padding-left: 20px;
+  margin-left: 4px;
+}
+
+/* BUTTONS */
+.btn-primary {
+  background: var(--ink) !important; color: var(--bg) !important;
+  border-radius: 0 !important;
+  font-size: 10px !important; letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+  padding: 13px 28px !important;
+}
+.btn-primary:hover { background: #333 !important; }
+.btn-outline {
+  border: 1px solid var(--rule) !important; color: var(--ink2) !important;
+  border-radius: 0 !important;
+  font-size: 10px !important; letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+  padding: 13px 28px !important;
+}
+.btn-outline:hover { border-color: var(--ink) !important; color: var(--ink) !important; }
+
+/* SECTIONS */
+section { border-top: 1px solid var(--rule) !important; background: var(--bg) !important; }
+.section-label {
+  font-size: 10px !important; letter-spacing: 4px !important;
+  color: var(--ink3) !important; text-transform: uppercase !important;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 42px !important; font-weight: 600 !important;
+  letter-spacing: -1px !important; color: var(--ink) !important;
+}
+
+/* ABOUT */
+.about-text { color: var(--ink2) !important; font-weight: 300 !important; font-size: 14px !important; }
+.stat-num {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 48px !important; font-weight: 600 !important;
+  color: var(--ink) !important; letter-spacing: -2px !important;
+}
+.stat-item { border-left: 1px solid var(--ink) !important; }
+.stat-label { color: var(--ink3) !important; letter-spacing: 1px !important; font-size: 10px !important; text-transform: uppercase !important; }
+
+/* SKILLS */
+.skills-grid {
+  gap: 0 !important;
+  background: var(--rule) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 0 !important;
+}
+.skill-card {
+  background: var(--bg) !important;
+  border-radius: 0 !important; border: none !important;
+  padding: 28px 20px !important;
+}
+.skill-card:hover { background: var(--bg2) !important; box-shadow: none !important; }
+.skill-icon { font-size: 16px !important; opacity: 0.6; }
+.skill-name {
+  font-size: 10px !important; letter-spacing: 2.5px !important;
+  text-transform: uppercase !important; color: var(--ink) !important;
+  font-weight: 500 !important;
+}
+.skill-desc { color: var(--ink3) !important; font-weight: 300 !important; font-size: 11px !important; }
+
+/* PROJECTS */
+.projects-list { gap: 0 !important; border: 1px solid var(--rule) !important; border-radius: 0 !important; }
+.project-card {
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--rule) !important;
+  background: var(--bg) !important;
+  position: relative;
+}
+.project-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: transparent;
+  transition: background 0.2s;
+}
+.project-card:hover { background: var(--bg2) !important; box-shadow: none !important; }
+.project-card:hover::before { background: var(--ink); }
+.project-name {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 20px !important; font-weight: 600 !important;
+  color: var(--ink) !important; letter-spacing: -0.3px !important;
+}
+.project-year {
+  font-size: 10px !important; letter-spacing: 3px !important;
+  text-transform: uppercase !important; color: var(--ink3) !important;
+}
+.project-desc { color: var(--ink2) !important; font-weight: 300 !important; font-size: 13px !important; }
+.tag {
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 1px solid var(--rule) !important;
+  color: var(--ink3) !important;
+  font-size: 10px !important; letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+}
+.project-result {
+  background: var(--ink) !important; color: var(--bg) !important;
+  border-radius: 0 !important;
+  font-size: 10px !important; letter-spacing: 1.5px !important;
+  text-transform: uppercase !important; font-weight: 500 !important;
+}
+
+/* EXPERIENCE */
+.exp-item { border-bottom: 1px solid var(--rule) !important; }
+.exp-period { color: var(--ink3) !important; letter-spacing: 2px !important; text-transform: uppercase !important; font-size: 10px !important; }
+.exp-role {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 20px !important; font-weight: 600 !important;
+  color: var(--ink) !important;
+}
+.exp-company { color: var(--ink3) !important; letter-spacing: 0.5px !important; }
+.exp-desc { color: var(--ink2) !important; font-weight: 300 !important; font-size: 13px !important; }
+
+/* CONTACT */
+.contact-link {
+  border-radius: 0 !important;
+  border: 1px solid var(--rule) !important;
+  color: var(--ink2) !important;
+  font-size: 10px !important; letter-spacing: 2.5px !important;
+  text-transform: uppercase !important; font-weight: 500 !important;
+}
+.contact-link:hover { border-color: var(--ink) !important; color: var(--ink) !important; box-shadow: none !important; }
+
+/* FOOTER */
+footer { border-top: 1px solid var(--rule) !important; color: var(--ink3) !important; font-size: 10px !important; letter-spacing: 2px !important; text-transform: uppercase !important; }
+</style>

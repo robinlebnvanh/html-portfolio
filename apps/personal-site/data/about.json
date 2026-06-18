@@ -1,0 +1,16 @@
+{
+  "name": "Robin Le",
+  "title": "Software Engineer / Project Manager",
+  "bio": "10+ năm kinh nghiệm. Thích tối giản và hiệu quả.",
+  "skills": [
+    { "name": "Project Management", "level": 90 },
+    { "name": "HTML/CSS", "level": 60 },
+    { "name": "JavaScript", "level": 40 },
+    { "name": "Python", "level": 30 }
+  ],
+  "links": {
+    "github": "https://github.com/robinlebnvanh",
+    "linkedin": "",
+    "email": "robin@example.com"
+  }
+}
