@@ -22,8 +22,8 @@ function renderProjects(filter) {
     grid.innerHTML = '<p style="color:var(--muted)">Không có dự án nào.</p>';
     return;
   }
-  grid.innerHTML = filtered.map(p => `
-    <div class="card">
+  grid.innerHTML = filtered.map((p, i) => `
+    <div class="card reveal" style="transition-delay:${i * 0.1}s">
       <h3>${p.name}</h3>
       <p>${p.desc}</p>
       <div class="tags">
@@ -32,6 +32,8 @@ function renderProjects(filter) {
       <a href="${p.link || '#'}" target="_blank">Xem dự án →</a>
     </div>
   `).join('');
+  // Đợi 1 tick để DOM cập nhật xong rồi mới observe
+  setTimeout(initReveal, 50);
 }
 
 
@@ -77,3 +79,29 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     renderProjects(btn.dataset.filter);
   });
 });
+
+
+// ===== SCROLL ANIMATIONS =====
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target); // Unobserve sau khi đã hiện
+    }
+  });
+}, { threshold: 0.1 });
+
+function initReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    // Nếu element đã trong viewport → hiện luôn, không cần observe
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight) {
+      el.classList.add('visible');
+    } else {
+      revealObserver.observe(el);
+    }
+  });
+}
+
+// Gọi khi DOM load xong (cho h2 và các element tĩnh)
+document.addEventListener('DOMContentLoaded', initReveal);

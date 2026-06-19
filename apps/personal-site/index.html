@@ -33,12 +33,12 @@
   <section id="about">
     <h2>About</h2>
     <div class="about-grid">
-      <div class="about-text">
+      <div class="about-text reveal">
         <p>Software Engineer / Project Manager với hơn 10 năm kinh nghiệm.</p>
         <p>Thích tối giản, hiệu quả và xây dựng những thứ thực sự có ích.</p>
         <p>Đang học web development và xây dựng AI agents cá nhân.</p>
       </div>
-      <div class="about-skills" id="skills-list">
+      <div class="about-skills reveal" id="skills-list">
         <!-- Render từ about.json -->
       </div>
     </div>
@@ -57,15 +57,34 @@
   </section>
 
   <!-- CONTACT -->
-  <section id="contact">
-    <h2>Contact</h2>
-    <p>Liên hệ qua email hoặc mạng xã hội bên dưới.</p>
-    <div class="contact-links">
-      <a class="contact-link" href="mailto:robin@example.com">📧 Email</a>
-      <a class="contact-link" href="https://github.com/robinlebnvanh" target="_blank">🐙 GitHub</a>
-      <a class="contact-link" href="#" target="_blank">💼 LinkedIn</a>
+ <section id="contact">
+  <h2>Contact</h2>
+  <p style="color:var(--muted);margin-bottom:32px">
+    Có dự án cần làm? Liên hệ mình nhé.
+  </p>
+
+  <form id="contact-form">
+    <div class="form-group">
+      <label>Tên</label>
+      <input type="text" name="name" placeholder="Tên của bạn" required>
     </div>
-  </section>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="email@example.com" required>
+    </div>
+    <div class="form-group">
+      <label>Tin nhắn</label>
+      <textarea name="message" rows="5" placeholder="Nội dung..." required></textarea>
+    </div>
+    <button type="submit" class="btn">Gửi →</button>
+    <p id="form-status" style="margin-top:12px;display:none"></p>
+  </form>
+
+  <div class="contact-links" style="margin-top:40px">
+    <a class="contact-link" href="mailto:robin@example.com">📧 Email</a>
+    <a class="contact-link" href="https://github.com/robinlebnvanh" target="_blank">🐙 GitHub</a>
+  </div>
+</section>
 
   <footer>
     <p>© 2026 Robin Le · Built with HTML/CSS/JS</p>
