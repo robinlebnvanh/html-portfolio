@@ -117,7 +117,7 @@ if (contactForm) {
     btn.textContent = 'Đang gửi...';
     btn.disabled = true;
 
-    const res = await fetch('https://formspree.io/f/XXXXXXXX', {  // ← đổi endpoint
+    const res = await fetch('https://formspree.io/f/maqzgroj', {  // ← đổi endpoint
       method: 'POST',
       body: new FormData(contactForm),
       headers: { 'Accept': 'application/json' }
