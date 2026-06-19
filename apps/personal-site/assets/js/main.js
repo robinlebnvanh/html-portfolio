@@ -105,3 +105,35 @@ function initReveal() {
 
 // Gọi khi DOM load xong (cho h2 và các element tĩnh)
 document.addEventListener('DOMContentLoaded', initReveal);
+
+// ===== CONTACT FORM =====
+const contactForm = document.getElementById('contact-form');
+if (contactForm) {
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = document.getElementById('form-status');
+    const btn = contactForm.querySelector('button[type=submit]');
+
+    btn.textContent = 'Đang gửi...';
+    btn.disabled = true;
+
+    const res = await fetch('https://formspree.io/f/XXXXXXXX', {  // ← đổi endpoint
+      method: 'POST',
+      body: new FormData(contactForm),
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (res.ok) {
+      status.textContent = '✅ Gửi thành công! Mình sẽ reply sớm.';
+      status.style.color = '#34d399';
+      contactForm.reset();
+    } else {
+      status.textContent = '❌ Lỗi — thử lại sau nhé.';
+      status.style.color = '#f87171';
+    }
+
+    status.style.display = 'block';
+    btn.textContent = 'Gửi →';
+    btn.disabled = false;
+  });
+}

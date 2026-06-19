@@ -313,3 +313,33 @@ footer {
 .card.reveal:nth-child(3) { transition-delay: 0.2s; }
 .card.reveal:nth-child(4) { transition-delay: 0.3s; }
 .card.reveal:nth-child(5) { transition-delay: 0.4s; }
+
+
+/* ===== CONTACT FORM ===== */
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  max-width: 540px;
+  padding: 10px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
