@@ -200,6 +200,8 @@ function loadDash(){
     const w = d.portfolio.watchlist||[];
     const total = h.reduce((s,x)=>s+(x.avg_cost*x.quantity),0);
 
+    renderCharts(h);  // Render biểu đồ từ holdings data
+
     document.querySelector(".updated").textContent = "Updated: "+d.updated;
     document.getElementById("stat-total").textContent = fmtM(total);
     document.getElementById("stat-pos").textContent   = h.length;
