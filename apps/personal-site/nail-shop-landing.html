@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shine Nails - Tiệm nail cao cấp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #5a4a6b;
+            --secondary: #8b7a9d;
+            --accent: #d4a574;
+            --accent-light: #e8d4b8;
+            --dark: #2a2a2a;
+            --light: #faf8f5;
+            --cream: #f5f3f0;
+            --text: #3a3a3a;
+            --gold: #c9a961;
+            --rose-gold: #c77a7a;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.8;
+            color: var(--text);
+            background: var(--light);
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Header Navigation */
+        header {
+            background: var(--light);
+            padding: 1.5rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(90, 74, 107, 0.08);
+            border-bottom: 1px solid rgba(212, 165, 116, 0.2);
+        }
+
+        header nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        header .logo span {
+            color: var(--accent);
+        }
+
+        header nav a {
+            color: var(--text);
+            text-decoration: none;
+            margin-left: 3rem;
+            font-size: 0.9rem;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        header nav a:hover {
+            color: var(--accent);
+            opacity: 1;
+        }
+
+        /* Main Content */
+        main {
+            margin-top: 70px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #6b5a7d 50%, var(--secondary) 100%);
+            color: white;
+            padding: 8rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -15%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(212, 165, 116, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(200, 170, 140, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 4.2rem;
+            margin-bottom: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+
+        .hero .tagline {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.9;
+            font-weight: 300;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1.1rem 3rem;
+            text-decoration: none;
+            border-radius: 3px;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 8px 25px rgba(212, 165, 116, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--gold);
+            border-color: var(--gold);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(212, 165, 116, 0.35);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border-color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+        }
+
+        /* Services Section */
+        section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 6rem 2rem;
+        }
+
+        .section-title {
+            font-size: 3.2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: -0.8px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--secondary);
+            margin-bottom: 4rem;
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.8rem;
+        }
+
+        .service-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 2px;
+            text-align: center;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            box-shadow: 0 10px 30px rgba(90, 74, 107, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--gold));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .service-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-12px);
+            box-shadow: 0 20px 50px rgba(90, 74, 107, 0.12);
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            transition: transform 0.4s ease;
+        }
+
+        .service-card:hover .service-icon {
+            transform: scale(1.1);
+        }
+
+        .service-card h3 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1.2rem;
+            letter-spacing: -0.3px;
+        }
+
+        .service-card p {
+            color: var(--secondary);
+            line-height: 1.9;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        .service-price {
+            font-size: 1.6rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        /* Gallery Section */
+        .gallery {
+            background: var(--cream);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 12px 35px rgba(90, 74, 107, 0.15);
+            border: 1px solid rgba(212, 165, 116, 0.3);
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 55px rgba(90, 74, 107, 0.25);
+        }
+
+        .gallery-item-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-align: center;
+            padding: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            background: white;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .testimonial-card {
+            background: var(--cream);
+            padding: 2.8rem;
+            border-radius: 2px;
+            border-left: 3px solid var(--accent);
+            box-shadow: 0 8px 20px rgba(90, 74, 107, 0.08);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            border-left: 3px solid var(--accent);
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(90, 74, 107, 0.12);
+        }
+
+        .stars {
+            color: var(--accent);
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .testimonial-text {
+            color: var(--secondary);
+            margin-bottom: 1.8rem;
+            font-style: italic;
+            line-height: 1.9;
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.4rem;
+            letter-spacing: -0.3px;
+        }
+
+        .testimonial-role {
+            color: var(--accent);
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* About Section */
+        .about {
+            background: linear-gradient(135deg, var(--light) 0%, var(--cream) 100%);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-text h3 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.3px;
+        }
+
+        .about-text p {
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            line-height: 2;
+            font-weight: 300;
+        }
+
+        .about-list {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .about-list li {
+            padding: 1rem 0;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+
+        .about-list li::before {
+            content: '✨';
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .about-visual {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            height: 420px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 140px;
+            box-shadow: 0 15px 50px rgba(90, 74, 107, 0.2);
+            border: 1px solid rgba(212, 165, 116, 0.3);
+        }
+
+        /* Contact Section */
+        .contact {
+            background: white;
+            text-align: center;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3.5rem;
+        }
+
+        .contact-item {
+            padding: 2.5rem;
+            background: var(--cream);
+            border-radius: 2px;
+            box-shadow: 0 8px 20px rgba(90, 74, 107, 0.08);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            transition: all 0.4s ease;
+        }
+
+        .contact-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px rgba(90, 74, 107, 0.12);
+        }
+
+        .contact-item h3 {
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            letter-spacing: -0.3px;
+        }
+
+        .contact-item a,
+        .contact-item p {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .contact-item a:hover {
+            color: var(--accent);
+        }
+
+        .contact-form {
+            max-width: 550px;
+            margin: 0 auto;
+            background: var(--cream);
+            padding: 3.5rem;
+            border-radius: 2px;
+            box-shadow: 0 10px 30px rgba(90, 74, 107, 0.1);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.7rem;
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid rgba(212, 165, 116, 0.4);
+            border-radius: 2px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            color: var(--text);
+            background: white;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--secondary);
+            opacity: 0.6;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 130px;
+        }
+
+        .form-group button {
+            width: 100%;
+            padding: 1.15rem;
+            background: linear-gradient(135deg, var(--accent), var(--gold));
+            color: white;
+            border: none;
+            border-radius: 2px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 20px rgba(212, 165, 116, 0.25);
+        }
+
+        .form-group button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(212, 165, 116, 0.35);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 3.5rem 2rem 2rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 2.5rem;
+            text-align: left;
+            margin-bottom: 2.5rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1.2rem;
+            color: var(--accent);
+            letter-spacing: 0.3px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.7rem;
+            transition: color 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent);
+        }
+
+        .footer-section p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(212, 165, 116, 0.2);
+            padding-top: 2.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 300;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: flex-start;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            width: 42px;
+            height: 42px;
+            background: rgba(212, 165, 116, 0.2);
+            border: 1px solid rgba(212, 165, 116, 0.4);
+            border-radius: 0;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .social-links a:hover {
+            background: var(--accent);
+            color: var(--primary);
+            border-color: var(--accent);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header nav a {
+                margin-left: 1.5rem;
+                font-size: 0.8rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .tagline {
+                font-size: 1.2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 2.3rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+
+            .about-visual {
+                height: 300px;
+                font-size: 100px;
+            }
+
+            section {
+                padding: 4rem 1.5rem;
+            }
+
+            .contact-form {
+                padding: 2.5rem;
+            }
+
+            .footer-content {
+                text-align: center;
+            }
+
+            .social-links {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 1rem;
+            }
+
+            header nav {
+                flex-direction: column;
+                gap: 1.2rem;
+            }
+
+            header nav a {
+                margin-left: 0;
+                font-size: 0.75rem;
+            }
+
+            header .logo {
+                font-size: 1.5rem;
+            }
+
+            .hero {
+                padding: 5rem 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero .tagline {
+                font-size: 1rem;
+            }
+
+            main {
+                margin-top: 100px;
+            }
+
+            .services-grid,
+            .gallery-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            section {
+                padding: 3rem 1rem;
+            }
+
+            .btn {
+                padding: 0.95rem 2rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .service-card,
+        .testimonial-card,
+        .gallery-item {
+            animation: fadeInUp 0.7s ease-out;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">✨ Shine<span>Nails</span></div>
+            <div>
+                <a href="#services">Dịch Vụ</a>
+                <a href="#gallery">Portfolio</a>
+                <a href="#about">Về Chúng Tôi</a>
+                <a href="#contact">Liên Hệ</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Nghệ Thuật Chân Dung Móng Tay</h1>
+                <p class="tagline">Sắc Đẹp Được Tạo Ra Từng Chi Tiết</p>
+                <p>Chúng tôi mang đến những dịch vụ nail cao cấp với công nghệ tiên tiến nhất, được phục vụ bởi những thợ nail tay nghề hơn 5 năm. Mỗi ngón tay là một tác phẩm nghệ thuật.</p>
+                <a href="#contact" class="btn btn-primary">Đặt Lịch Tư Vấn</a>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section class="services" id="services">
+            <h2 class="section-title">Bộ Sưu Tập Dịch Vụ</h2>
+            <p class="section-subtitle">Các dịch vụ cao cấp được thiết kế riêng cho bạn</p>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">💅</div>
+                    <h3>Manicure Sang Trọng</h3>
+                    <p>Chăm sóc tay toàn diện với massage thư giãn và sơn gel bền vĩnh viễn cùng màu sắc cao cấp.</p>
+                    <div class="service-price">280.000₫</div>
+                    <a href="#contact" class="btn btn-primary">Đặt Lịch</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">✨</div>
+                    <h3>Nail Art Đặc Biệt</h3>
+                    <p>Thiết kế nail art tùy chỉnh theo ý tưởng của bạn với các chi tiết tinh tế và màu sắc bắt mắt.</p>
+                    <div class="service-price">450.000₫</div>
+                    <a href="#contact" class="btn btn-primary">Tư Vấn</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">💎</div>
+                    <h3>Pedicure Premium</h3>
+                    <p>Chỉnh sửa toàn diện từ chân đến ngón chân với sơn gel bền 4 tuần và massage thư giãn chuyên sâu.</p>
+                    <div class="service-price">380.000₫</div>
+                    <a href="#contact" class="btn btn-primary">Đặt Lịch</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🌸</div>
+                    <h3>Gel Extension Sang Trọng</h3>
+                    <p>Nối móng bằng gel cao cấp với độ dài, độ cứng và hình dáng tùy theo sở thích cá nhân của bạn.</p>
+                    <div class="service-price">650.000₫</div>
+                    <a href="#contact" class="btn btn-primary">Đặt Lịch</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">👰</div>
+                    <h3>Gói Cô Dâu Đặc Biệt</h3>
+                    <p>Gói dịch vụ hoàn chỉnh cho ngày trọng đại với thiết kế sang trọng, bền lâu và sắc đẹp vĩnh cửu.</p>
+                    <div class="service-price">1.200.000₫</div>
+                    <a href="#contact" class="btn btn-primary">Tư Vấn</a>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🎨</div>
+                    <h3>Thiết Kế Riêng</h3>
+                    <p>Tạo thiết kế nail hoàn toàn độc quyền theo ý tưởng, phong cách và cá tính riêng của bạn.</p>
+                    <div class="service-price">Tùy Định Giá</div>
+                    <a href="#contact" class="btn btn-primary">Tư Vấn</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section class="gallery" id="gallery">
+            <h2 class="section-title">Bộ Sưu Tập Tác Phẩm</h2>
+            <p class="section-subtitle">Những thiết kế nail art độc đáo từ studio chúng tôi</p>
+            
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-item-content">
+                        <div style="font-size: 60px;">💖</div>
+                        <div>Hồng Vintage</div>
+                    </div>
+                </div>
+                <div class="gallery-item" style="background: linear-gradient(135deg, #000, #333);">
+                    <div class="gallery-item-content">
+                        <div style="font-size: 60px;">⭐</div>
+                        <div>Galaxy Black</div>
+                    </div>
+                </div>
+                <div class="gallery-item" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                    <div class="gallery-item-content">
+                        <div style="font-size: 60px;">👑</div>
+                        <div>Gold Luxury</div>
+                    </div>
+                </div>
+                <div class="gallery-item" style="background: linear-gradient(135deg, #87CEEB, #E0FFFF);">
+                    <div class="gallery-item-content">
+                        <div style="font-size: 60px;">❄️</div>
+                        <div>Winter Blue</div>
+                    </div>
+                </div>
+                <div class="gallery-item" style="background: linear-gradient(135deg, #FF69B4, #FFB6C1);">
+                    <div class="gallery-item-content">
+                        <div style="font-size: 60px;">🌹</div>
+                        <div>Rose Garden</div>
+                    </div>
+                </div>
+                <div class="gallery-item" style="background: linear-gradient(135deg, #8B4513, #D2B48C);">
+                    <div class="gallery-item-content">
+                        <div style="font-size: 60px;">🍂</div>
+                        <div>Autumn Style</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about" id="about">
+            <div class="about-content">
+                <div class="about-visual">💅</div>
+                <div class="about-text">
+                    <h2 class="section-title">Về Shine Nails</h2>
+                    <p>Chúng tôi là một tiệm nail boutique sang trọng được yêu thích tại trung tâm thành phố, nơi mỗi khách hàng được coi trọng như gia đình.</p>
+                    <p>Với hơn 5 năm kinh nghiệm, đội ngũ nail artist tay nghề cao và luôn cập nhật trend mới nhất sẽ mang đến cho bạn những tác phẩm hoàn hảo.</p>
+                    <ul class="about-list">
+                        <li>Sử dụng sản phẩm gel, sơn từ các thương hiệu cao cấp hàng đầu thế giới</li>
+                        <li>Nhân viên có chứng chỉ chuyên nghiệp và tay nghề được đào tạo quốc tế</li>
+                        <li>Không gian sang trọng, sạch sẽ, thoải mái với thiết kế hiện đại</li>
+                        <li>Chúng tôi chỉ phục vụ khách hàng theo lịch hẹn để đảm bảo chất lượng tốt nhất</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="testimonials">
+            <h2 class="section-title">Từ Những Khách Hàng Thân Yêu</h2>
+            <p class="section-subtitle">Lời nhận xét từ những vị khách hàng đã trải nghiệm dịch vụ của chúng tôi</p>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Đây là lần đầu tiên tôi trải nghiệm dịch vụ nail art cao cấp. Thợ nail rất chuyên nghiệp, tay nghề xuất sắc. Móng tay của tôi đẹp quá! Sẽ quay lại chắc chắn."</p>
+                    <div class="testimonial-author">Ngọc Anh</div>
+                    <div class="testimonial-role">Khách Hàng Thân Thiết</div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Dịch vụ Bridal Package của Shine Nails tuyệt vời. Team rất chuyên nghiệp, tận tâm và tạo ra những tác phẩm nail hoàn hảo cho ngày trọng đại của mình."</p>
+                    <div class="testimonial-author">Kim Thanh</div>
+                    <div class="testimonial-role">Cô Dâu Hạnh Phúc</div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Không gian tiệm rất sang trọng và sạch sẽ, nhân viên tư vấn rất chuyên nghiệp. Kỳ vọng của tôi được vượt quá. Chất lượng dịch vụ thực sự tuyệt đỉnh!"</p>
+                    <div class="testimonial-author">Hương Giang</div>
+                    <div class="testimonial-role">Khách Hàng VIP</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact" id="contact">
+            <h2 class="section-title">Liên Hệ Chúng Tôi</h2>
+            <p class="section-subtitle">Sẵn sàng tạo nên sắc đẹp hoàn hảo cho bạn</p>
+
+            <div class="contact-info">
+                <div class="contact-item">
+                    <h3>📍 Địa Chỉ</h3>
+                    <p>123 Nguyễn Huệ, Quận 1<br>TP. Hồ Chí Minh, Vietnam</p>
+                </div>
+                <div class="contact-item">
+                    <h3>📱 Liên Hệ</h3>
+                    <a href="tel:+84901234567">(+84) 90 123 4567</a>
+                    <p style="margin-top: 0.8rem;">Hỗ trợ từ 9am đến 9pm hàng ngày</p>
+                </div>
+                <div class="contact-item">
+                    <h3>⏰ Giờ Mở Cửa</h3>
+                    <p>Thứ 2 - Thứ 6: 9am - 9pm<br>Thứ 7 - Chủ Nhật: 10am - 8pm</p>
+                </div>
+            </div>
+
+            <div class="contact-form">
+                <form onsubmit="handleSubmit(event)">
+                    <div class="form-group">
+                        <label for="name">Họ Tên</label>
+                        <input type="text" id="name" name="name" placeholder="Nhập tên của bạn" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Số Điện Thoại</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Nhập số điện thoại" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="service">Dịch Vụ Quan Tâm</label>
+                        <input type="text" id="service" name="service" placeholder="VD: Gel Extension Sang Trọng">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Ngày Mong Muốn</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Ghi Chú</label>
+                        <textarea id="message" name="message" placeholder="Mô tả chi tiết yêu cầu của bạn..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Gửi Yêu Cầu Đặt Lịch</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Shine Nails Studio</h4>
+                <p>Nơi sắc đẹp được tạo ra từ từng chi tiết, nơi bạn được coi trọng như gia đình.</p>
+                <div class="social-links">
+                    <a href="https://facebook.com" target="_blank" title="Facebook">f</a>
+                    <a href="https://instagram.com" target="_blank" title="Instagram">📷</a>
+                    <a href="https://zalo.me" target="_blank" title="Zalo">Z</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Dịch Vụ</h4>
+                <a href="#services">Manicure Sang Trọng</a>
+                <a href="#services">Nail Art Đặc Biệt</a>
+                <a href="#services">Gel Extension</a>
+                <a href="#services">Gói Cô Dâu</a>
+            </div>
+            <div class="footer-section">
+                <h4>Thông Tin</h4>
+                <a href="#">Chính Sách Bảo Mật</a>
+                <a href="#">Điều Khoản Sử Dụng</a>
+                <a href="#">Chính Sách Hoàn Trả</a>
+                <a href="#">Hỗ Trợ Khách Hàng</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Shine Nails Studio. Tất cả các quyền được bảo lưu. | Crafted with ❤️ for nail lovers</p>
+        </div>
+    </footer>
+
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            alert('Cảm ơn bạn đã gửi yêu cầu! Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.');
+            event.target.reset();
+        }
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && document.querySelector(href)) {
+                    e.preventDefault();
+                    document.querySelector(href).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
