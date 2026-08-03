@@ -5,7 +5,7 @@
     "desc": "Dashboard theo dõi danh mục đầu tư chứng khoán VN cá nhân. Phân tích kỹ thuật, journal, watchlist.",
     "tech": ["HTML", "CSS", "JavaScript", "Python"],
     "category": "frontend",
-    "link": "#",
+    "link": "../stocks-app/",
     "github": "https://github.com/robinlebnvanh",
     "date": "2026-06"
   },
