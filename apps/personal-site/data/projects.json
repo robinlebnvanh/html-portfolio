@@ -17,6 +17,16 @@
     "category": "tool",
     "link": "#",
     "github": "https://github.com/robinlebnvanh",
-    "date": "2026-04"
+    "date": "2026-07"
+  },
+  {
+    "id": 3,
+    "name": "Nail Salon Website",
+    "desc": "Website giới thiệu dịch vụ làm móng, đặt lịch hẹn và quản lý khách hàng cho tiệm nail.",
+    "tech": ["HTML", "CSS", "JavaScript"],
+    "category": "frontend",
+    "link": "../nail-landing-page/",
+    "github": "https://github.com/robinlebnvanh",
+    "date": "2026-08"
   }
 ]
