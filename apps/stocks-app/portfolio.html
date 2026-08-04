@@ -7,12 +7,14 @@
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="assets/css/pages/portfolio.css">
+<script src="assets/js/config.js"></script>
 </head>
 <body>
 <nav>
   <span class="logo">📈 VN Stocks</span>
   <a href="index.html">Dashboard</a>
   <a href="portfolio.html" class="active">Portfolio</a>
+  <a href="portfolio.html#admin">Admin</a>
   <a href="journal.html">Journal</a>
   <a href="glossary.html">Glossary</a>
   <div class="spacer"></div>
@@ -21,6 +23,47 @@
 <div class="page">
   <h1>Portfolio</h1>
   <p class="subtitle">Chi tiết các vị thế đang nắm giữ</p>
+
+  <section id="admin" class="admin-panel" aria-labelledby="admin-title">
+    <div class="admin-heading">
+      <div>
+        <div id="admin-title" class="section-title">🔐 Admin — Quản lý holdings</div>
+        <p class="admin-help">Dữ liệu được ghi vào SQLite qua FastAPI. Token chỉ giữ trong tab hiện tại.</p>
+      </div>
+      <span id="admin-status" class="admin-status" role="status" aria-live="polite">Chưa kết nối</span>
+    </div>
+
+    <div class="admin-auth-row">
+      <label class="admin-field admin-token-field">
+        <span>ADMIN API token</span>
+        <input id="admin-token" type="password" autocomplete="off" placeholder="Bearer token của bạn">
+      </label>
+      <button id="admin-load" class="admin-button secondary" type="button">Kết nối / Tải data</button>
+    </div>
+
+    <form id="holding-form" class="admin-form">
+      <input id="holding-id" type="hidden">
+      <label class="admin-field"><span>Ticker *</span><input id="holding-ticker" required maxlength="12" placeholder="VIC"></label>
+      <label class="admin-field"><span>Số lượng *</span><input id="holding-quantity" required type="number" min="0" step="1" placeholder="100"></label>
+      <label class="admin-field"><span>Giá vốn *</span><input id="holding-avg-cost" required type="number" min="0" step="1" placeholder="192000"></label>
+      <label class="admin-field"><span>Ngày vào *</span><input id="holding-entry-date" required type="date"></label>
+      <label class="admin-field"><span>Stop-loss</span><input id="holding-stop-loss" type="number" min="0" step="1" placeholder="186000"></label>
+      <label class="admin-field"><span>Status *</span><select id="holding-status" required><option value="HOLDING">HOLDING</option><option value="WATCHING">WATCHING</option><option value="CLOSED">CLOSED</option></select></label>
+      <label class="admin-field admin-wide"><span>Targets (ngăn cách bằng dấu phẩy)</span><input id="holding-targets" placeholder="210000, 219900"></label>
+      <label class="admin-field admin-wide"><span>Ghi chú</span><textarea id="holding-note" rows="2" placeholder="Luận điểm hoặc điều kiện theo dõi"></textarea></label>
+      <div class="admin-form-actions admin-wide">
+        <button id="holding-submit" class="admin-button primary" type="submit">Thêm holding</button>
+        <button id="holding-cancel" class="admin-button secondary hidden" type="button">Huỷ sửa</button>
+      </div>
+    </form>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Mã</th><th>SL</th><th>Giá vốn</th><th>Ngày vào</th><th>Status</th><th>Targets</th><th>Actions</th></tr></thead>
+        <tbody id="admin-holdings-body"><tr><td colspan="7" class="admin-empty">Nhập token rồi bấm “Kết nối / Tải data”.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
 
   <!-- VIC -->
   <div class="section-title">🟢 Đang giữ</div>
@@ -264,5 +307,75 @@
   </div>
 
 </div>
+<script>
+const ADMIN_API_BASE_URL = window.PRJ008_CONFIG.apiBaseUrl;
+const admin = (id) => document.getElementById(id);
+
+function adminToken(){ return admin("admin-token").value.trim(); }
+function adminMessage(message, state=""){ const el=admin("admin-status"); el.textContent=message; el.dataset.state=state; }
+function adminEscape(value){ return String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
+
+async function adminRequest(path, options={}){
+  const headers = { ...(options.body ? {"Content-Type":"application/json"} : {}), ...(options.headers||{}) };
+  if(adminToken()) headers.Authorization = "Bearer "+adminToken();
+  const response = await fetch(ADMIN_API_BASE_URL+path, {...options, headers});
+  if(response.status === 204) return null;
+  const body = await response.json().catch(() => ({}));
+  if(!response.ok) throw new Error(body.detail || "HTTP "+response.status);
+  return body;
+}
+
+function renderAdminHoldings(holdings){
+  const body = admin("admin-holdings-body");
+  if(!holdings.length){ body.innerHTML="<tr><td colspan='7' class='admin-empty'>Chưa có holding.</td></tr>"; return; }
+  body.innerHTML = holdings.map(h => `<tr>
+    <td><span class="ticker-badge">${adminEscape(h.ticker)}</span></td>
+    <td>${h.quantity.toLocaleString()}</td><td>${h.avg_cost.toLocaleString()}</td>
+    <td>${adminEscape(h.entry_date)}</td><td><span class="status-badge badge-${h.status === "HOLDING" ? "hold" : "watch"}">${adminEscape(h.status)}</span></td>
+    <td>${(h.targets||[]).map(Number).map(n=>n.toLocaleString()).join(", ") || "-"}</td>
+    <td class="admin-actions"><button type="button" class="admin-link" data-edit="${h.id}">Sửa</button><button type="button" class="admin-link danger" data-delete="${h.id}">Xoá</button></td>
+  </tr>`).join("");
+  body.querySelectorAll("[data-edit]").forEach(button => button.addEventListener("click", () => editHolding(holdings.find(h => h.id === Number(button.dataset.edit)))));
+  body.querySelectorAll("[data-delete]").forEach(button => button.addEventListener("click", () => deleteHolding(Number(button.dataset.delete))));
+}
+
+async function loadAdminHoldings(){
+  try { adminMessage("Đang tải...", "loading"); const data=await adminRequest("/api/v1/stocks/portfolio"); renderAdminHoldings(data.holdings||[]); adminMessage("✓ Đã tải từ FastAPI / SQLite", "success"); }
+  catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+function formValues(){
+  const targets = admin("holding-targets").value.split(",").map(value => value.trim()).filter(Boolean).map(Number);
+  if(targets.some(value => !Number.isInteger(value) || value < 0)) throw new Error("Targets phải là số nguyên không âm, ngăn cách bằng dấu phẩy");
+  return { ticker:admin("holding-ticker").value.trim().toUpperCase(), quantity:Number(admin("holding-quantity").value), avg_cost:Number(admin("holding-avg-cost").value), entry_date:admin("holding-entry-date").value, stop_loss:admin("holding-stop-loss").value ? Number(admin("holding-stop-loss").value) : null, status:admin("holding-status").value, note:admin("holding-note").value.trim() || null, targets };
+}
+
+function editHolding(holding){
+  admin("holding-id").value=holding.id; admin("holding-ticker").value=holding.ticker; admin("holding-ticker").disabled=true;
+  admin("holding-quantity").value=holding.quantity; admin("holding-avg-cost").value=holding.avg_cost; admin("holding-entry-date").value=holding.entry_date;
+  admin("holding-stop-loss").value=holding.stop_loss ?? ""; admin("holding-status").value=holding.status; admin("holding-targets").value=(holding.targets||[]).join(", "); admin("holding-note").value=holding.note||"";
+  admin("holding-submit").textContent="Lưu thay đổi"; admin("holding-cancel").classList.remove("hidden"); admin("holding-ticker").focus();
+}
+
+function resetHoldingForm(){ admin("holding-form").reset(); admin("holding-id").value=""; admin("holding-ticker").disabled=false; admin("holding-status").value="HOLDING"; admin("holding-submit").textContent="Thêm holding"; admin("holding-cancel").classList.add("hidden"); }
+
+async function saveHolding(event){
+  event.preventDefault();
+  try { const id=admin("holding-id").value; const payload=formValues(); if(!payload.ticker || !payload.entry_date) throw new Error("Ticker và ngày vào là bắt buộc");
+    adminMessage("Đang lưu...", "loading"); await adminRequest(id ? "/api/v1/stocks/holdings/"+id : "/api/v1/stocks/holdings", {method:id?"PATCH":"POST",body:JSON.stringify(id ? Object.fromEntries(Object.entries(payload).filter(([key])=>key!=="ticker")) : payload)}); resetHoldingForm(); await loadAdminHoldings();
+  } catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+async function deleteHolding(id){
+  if(!confirm("Xoá holding này? Hành động này sẽ xoá cả target prices.")) return;
+  try { adminMessage("Đang xoá...", "loading"); await adminRequest("/api/v1/stocks/holdings/"+id,{method:"DELETE"}); await loadAdminHoldings(); }
+  catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+admin("admin-load").addEventListener("click", loadAdminHoldings);
+admin("holding-form").addEventListener("submit", saveHolding);
+admin("holding-cancel").addEventListener("click", resetHoldingForm);
+if(location.hash === "#admin") admin("admin").scrollIntoView();
+</script>
 </body>
 </html>

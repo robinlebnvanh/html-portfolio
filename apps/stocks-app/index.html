@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="assets/css/pages/dashboard.css">
+<script src="assets/js/config.js"></script>
 </head>
 <body>
 
@@ -14,6 +15,7 @@
   <span class="logo">📈 VN Stocks</span>
   <a href="index.html" class="active">Dashboard</a>
   <a href="portfolio.html">Portfolio</a>
+  <a href="portfolio.html#admin">Admin</a>
   <a href="journal.html">Journal</a>
   <a href="glossary.html">Glossary</a>
   <div class="spacer"></div>
@@ -23,6 +25,7 @@
 <div class="page">
   <h1>Dashboard</h1>
   <p class="subtitle">Tổng quan danh mục — Robin3</p>
+  <div id="data-status" class="data-status" role="status" aria-live="polite">Đang kết nối FastAPI...</div>
 
   <!-- STAT CARDS -->
   <div class="stats">
@@ -191,16 +194,75 @@
 
 </div>
 <script>
-function fmt(n){return n?Number(n).toLocaleString():"-";}
-function fmtM(n){return n?(n/1e6).toFixed(2)+"M":"-";}
+const API_BASE_URL = window.PRJ008_CONFIG.apiBaseUrl;
+
+function fmt(n){return n !== null && n !== undefined ? Number(n).toLocaleString():"-";}
+function fmtM(n){return n !== null && n !== undefined ? (n/1e6).toFixed(2)+"M":"-";}
+
+function setDataStatus(message, state){
+  const status = document.getElementById("data-status");
+  if(status){
+    status.textContent = message;
+    status.dataset.state = state;
+  }
+}
+
+async function fetchJson(url){
+  const response = await fetch(url);
+  if(!response.ok) throw new Error("HTTP "+response.status);
+  return response.json();
+}
+
+function normalizeApiData(portfolio, journals){
+  const normalizedJournals = {};
+  for(const [ticker, journal] of Object.entries(journals)){
+    normalizedJournals[ticker] = {
+      ...journal,
+      snapshots: (journal.snapshots||[]).map(snapshot => ({
+        ...snapshot,
+        rec: snapshot.recommendation
+      })),
+      entryPlan: (journal.entry_plan||[]).map(plan => ({
+        cond: plan.condition,
+        entry: plan.entry_text,
+        sl: plan.stop_loss_action,
+        target: plan.target_text
+      }))
+    };
+  }
+  return {
+    updated: portfolio.updated,
+    portfolio,
+    journals: normalizedJournals,
+    mistakes_count: 0
+  };
+}
+
+async function loadFromApi(){
+  const [portfolio, journals] = await Promise.all([
+    fetchJson(API_BASE_URL+"/api/v1/stocks/portfolio"),
+    fetchJson(API_BASE_URL+"/api/v1/stocks/journals")
+  ]);
+  return normalizeApiData(portfolio, journals);
+}
+
+function loadFallback(){
+  return fetchJson("./data/data.json?t="+Date.now());
+}
 
 function loadDash(){
-  fetch("./data/data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
+  let source = "api";
+  setDataStatus("Đang tải dữ liệu từ FastAPI...", "loading");
+  loadFromApi().catch(apiError=>{
+    source = "fallback";
+    console.warn("FastAPI unavailable, using data.json fallback:", apiError);
+    return loadFallback();
+  }).then(d=>{
     const h = d.portfolio.holdings||[];
     const w = d.portfolio.watchlist||[];
     const total = h.reduce((s,x)=>s+(x.avg_cost*x.quantity),0);
 
-    renderCharts(h);  // Render biểu đồ từ holdings data
+    if(typeof renderCharts === "function") renderCharts(h);  // Chart implementation is optional in L3-05
 
     document.querySelector(".updated").textContent = "Updated: "+d.updated;
     document.getElementById("stat-total").textContent = fmtM(total);
@@ -244,7 +306,15 @@ function loadDash(){
     const wGrid = document.getElementById("watchlist-grid");
     if(wGrid) wGrid.innerHTML = wCards;
 
-  }).catch(e=>console.warn("data.json failed:",e));
+    setDataStatus(
+      source === "api" ? "✓ Connected to FastAPI / SQLite" : "⚠ API chưa chạy — đang dùng data.json fallback",
+      source
+    );
+
+  }).catch(e=>{
+    console.error("Both API and fallback failed:", e);
+    setDataStatus("✕ Không tải được dữ liệu", "error");
+  });
 }
 
 setInterval(loadDash, 60000);

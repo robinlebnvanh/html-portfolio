@@ -4,6 +4,20 @@ nav .updated {
   color: var(--muted);
 }
 
+.data-status {
+  display: inline-block;
+  margin: 4px 0 18px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.data-status[data-state="api"] { color: var(--green, #65d391); }
+.data-status[data-state="fallback"] { color: var(--yellow, #f5c451); }
+.data-status[data-state="error"] { color: var(--red, #ff7070); }
+
 .section {
   margin-bottom: 32px;
 }

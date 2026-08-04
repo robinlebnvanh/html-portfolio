@@ -1,0 +1,2 @@
+/apps/api/database/*.sqlite3
+/apps/api/database/*.sqlite3-*
