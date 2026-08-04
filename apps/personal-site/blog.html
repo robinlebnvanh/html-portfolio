@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — Robin Le</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/config.js"></script>
+</head>
+<body>
+
+  <header>
+    <nav>
+      <a class="logo" href="index.html">Robin Le</a>
+      <ul class="nav-links">
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#projects">Projects</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+      <button id="theme-toggle">🌙</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <p class="eyebrow">Robin Log</p>
+      <h1>Blog</h1>
+      <p class="tagline">Ghi lại quá trình học, build và deploy các project web.</p>
+    </section>
+
+    <section class="blog-section">
+      <div class="section-header">
+        <h2>Latest Posts</h2>
+        <p id="blog-status" class="data-status" role="status" aria-live="polite">Đang tải bài viết...</p>
+      </div>
+      <div class="projects-grid" id="blog-posts"></div>
+      <button class="btn blog-load-button" id="load-more-posts" type="button">Load more</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Robin Le · Built with HTML/CSS/JS</p>
+  </footer>
+
+  <script src="assets/js/blog.js"></script>
+</body>
+</html>

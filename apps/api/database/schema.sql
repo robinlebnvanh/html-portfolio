@@ -96,3 +96,17 @@ CREATE TABLE IF NOT EXISTS journal_theses (
     content TEXT NOT NULL,
     UNIQUE (ticker, side, item_order)
 );
+
+CREATE TABLE IF NOT EXISTS blog_posts (
+    id INTEGER PRIMARY KEY,
+    slug TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    content TEXT NOT NULL,
+    category TEXT NOT NULL,
+    tags TEXT NOT NULL DEFAULT '[]',
+    status TEXT NOT NULL CHECK (status IN ('draft', 'published')),
+    published_at TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

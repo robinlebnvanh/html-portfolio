@@ -103,6 +103,40 @@ Returns journal data keyed by ticker.
 
 Future endpoints should use FastAPI's standard validation/error response. L3-03 does not add custom error handling.
 
+## Blog endpoints
+
+Blog posts are backend-owned data stored in SQLite table `blog_posts`.
+The personal site reads them through FastAPI instead of static JSON.
+
+### GET `/api/v1/blog/posts`
+
+Returns published posts with pagination:
+
+```json
+{
+  "posts": [
+    {
+      "id": 1,
+      "slug": "backend-blog-api",
+      "title": "Building a backend-powered blog",
+      "summary": "Why this portfolio stores blog posts in SQLite and serves them through FastAPI.",
+      "category": "backend",
+      "tags": ["FastAPI", "SQLite", "Portfolio"],
+      "published_at": "2026-08-05",
+      "updated_at": "2026-08-05 10:00:00"
+    }
+  ],
+  "total": 2,
+  "limit": 4,
+  "offset": 0,
+  "has_more": false
+}
+```
+
+### GET `/api/v1/blog/posts/{slug}`
+
+Returns one published post with full `content`. Unknown slugs return `404`.
+
 ## Authentication (L3-07)
 
 The read endpoints and `/health` are public. All holdings write endpoints

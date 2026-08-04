@@ -1,10 +1,15 @@
 import os
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, HTTPException, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from app.blog_repository import (
+    get_published_post,
+    list_published_posts,
+    seed_default_blog_posts,
+)
 from app.database import get_connection, initialize_database
 from app.auth import require_admin_token
 from app.stocks_repository import (
@@ -44,6 +49,10 @@ class HoldingUpdate(BaseModel):
     targets: list[TargetPrice] | None = None
 
 
+PostLimit = Annotated[int, Query(ge=1, le=20)]
+PostOffset = Annotated[int, Query(ge=0)]
+
+
 app = FastAPI(
     title="PRJ008 API",
     version="0.1.0",
@@ -68,6 +77,8 @@ app.add_middleware(
 )
 
 initialize_database()
+with get_connection() as startup_connection:
+    seed_default_blog_posts(startup_connection)
 
 
 @app.get("/health", tags=["system"])
@@ -88,6 +99,23 @@ def journals() -> dict[str, Any]:
     """Return ticker journals read from SQLite."""
     with get_connection() as connection:
         return get_journals(connection)
+
+
+@app.get("/api/v1/blog/posts", tags=["blog"])
+def blog_posts(limit: PostLimit = 6, offset: PostOffset = 0) -> dict[str, Any]:
+    """Return published blog posts for the personal site."""
+    with get_connection() as connection:
+        return list_published_posts(connection, limit, offset)
+
+
+@app.get("/api/v1/blog/posts/{slug}", tags=["blog"])
+def blog_post(slug: str) -> dict[str, Any]:
+    """Return one published blog post."""
+    with get_connection() as connection:
+        post = get_published_post(connection, slug)
+    if post is None:
+        raise HTTPException(status_code=404, detail="blog post not found")
+    return {"post": post}
 
 
 @app.post(

@@ -252,6 +252,77 @@ h2 {
   font-weight: 600;
 }
 
+/* ===== BLOG ===== */
+.page-hero {
+  padding-top: calc(var(--nav-height) + 72px);
+  padding-bottom: 40px;
+}
+
+.page-hero h1 {
+  font-size: 48px;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.blog-section {
+  padding-top: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 32px;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+.data-status {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.data-status[data-type="error"] {
+  color: #f87171;
+}
+
+.blog-card {
+  min-height: 240px;
+}
+
+.blog-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.blog-load-button {
+  border: 0;
+  cursor: pointer;
+  margin-top: 32px;
+}
+
+.blog-load-button:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+
 /* ===== CONTACT ===== */
 #contact p { color: var(--muted); margin-bottom: 24px; }
 
@@ -290,8 +361,16 @@ footer {
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   #hero h1 { font-size: 36px; }
+  .page-hero h1 { font-size: 36px; }
   .about-grid { grid-template-columns: 1fr; }
   .projects-grid { grid-template-columns: 1fr; }
+  .section-header {
+    display: block;
+  }
+  .data-status {
+    margin-top: 12px;
+    text-align: left;
+  }
   .nav-links { display: none; }
 }
 
