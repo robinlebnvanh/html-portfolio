@@ -35,7 +35,45 @@ The API accepts these environment variables:
 ADMIN_API_TOKEN       required for write endpoints
 API_ALLOWED_ORIGINS   comma-separated frontend origins; local defaults are allowed
 PORT                  server port; hosting platforms usually provide this
+DATABASE_URL          SQLAlchemy database URL; SQLite is the local default
 ```
+
+## PostgreSQL migration foundation
+
+The project has migrated the runtime repositories and seed script from direct
+`sqlite3` access to SQLAlchemy 2. SQLite remains the local default; PostgreSQL
+will be enabled after migrations, seed/transfer, and representative API checks
+pass against PostgreSQL.
+
+Simple explanation:
+
+- SQLAlchemy is the Python-to-database adapter (the translator between Python and the database).
+- Psycopg is the PostgreSQL driver (the low-level connector).
+- Alembic is the migration tool (the version history for creating/changing tables).
+- SQLAlchemy now handles stocks data, blog reads, and the seed script.
+- SQLite remains the local/test database; PostgreSQL will become the production database.
+
+Default local database URL:
+
+```text
+sqlite:///apps/api/database/prj008.sqlite3
+```
+
+PostgreSQL example:
+
+```text
+postgresql+psycopg://user:password@localhost:5432/prj008
+```
+
+Run the initial migration against a configured database from `apps/api`:
+
+```bash
+alembic upgrade head
+```
+
+Do not point production `DATABASE_URL` at PostgreSQL until migrations,
+seed/transfer, and representative API checks have been verified against the
+PostgreSQL database.
 
 The Dockerfile packages the API as a separate backend service. Build from the
 repository root, not from `apps/api`, because the image also copies the stocks
@@ -103,4 +141,5 @@ Seed the local database from the `apps/api` directory:
 python -m scripts.seed_database
 ```
 
-The API then reads from `database/prj008.sqlite3` through `app/stocks_repository.py`.
+The API then reads from `database/prj008.sqlite3` through the SQLAlchemy
+repositories in `app/stocks_repository.py` and `app/blog_repository.py`.

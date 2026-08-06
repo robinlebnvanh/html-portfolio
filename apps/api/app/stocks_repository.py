@@ -1,250 +1,304 @@
-"""SQLite queries for the stocks API."""
+"""SQLAlchemy queries for the stocks API."""
 
 from __future__ import annotations
 
-import sqlite3
-from typing import Any
+from datetime import date
+from typing import Any, Mapping
+
+from sqlalchemy import delete, insert, select, update
+from sqlalchemy.orm import Session
+
+from app.sqlalchemy_tables import (
+    holding_targets,
+    holdings,
+    journal_entry_plans,
+    journal_positions,
+    journal_snapshots,
+    journal_theses,
+    journals,
+    portfolios,
+    stocks,
+    trades,
+    watchlist_items,
+)
 
 
-def _as_dict(row: sqlite3.Row) -> dict[str, Any]:
+def _as_dict(row: Mapping[str, Any]) -> dict[str, Any]:
     return dict(row)
 
 
+def _touch_portfolio(session: Session) -> None:
+    """Update the portfolio timestamp using database-independent Python data."""
+
+    session.execute(
+        update(portfolios)
+        .where(portfolios.c.id == 1)
+        .values(updated_at=date.today().isoformat())
+    )
+
+
 def _holding_from_row(
-    connection: sqlite3.Connection,
-    row: sqlite3.Row,
+    session: Session,
+    row: Mapping[str, Any],
     *,
     include_id: bool = False,
 ) -> dict[str, Any]:
     holding = _as_dict(row)
-    holding["targets"] = [
-        target[0]
-        for target in connection.execute(
-            """
-            SELECT price
-            FROM holding_targets
-            WHERE holding_id = ?
-            ORDER BY target_order
-            """,
-            (row["id"],),
-        ).fetchall()
-    ]
+    holding["targets"] = list(
+        session.scalars(
+            select(holding_targets.c.price)
+            .where(holding_targets.c.holding_id == row["id"])
+            .order_by(holding_targets.c.target_order)
+        ).all()
+    )
     if not include_id:
         holding.pop("id", None)
     return holding
 
 
 def get_holding(
-    connection: sqlite3.Connection,
+    session: Session,
     holding_id: int,
     *,
     include_id: bool = True,
 ) -> dict[str, Any] | None:
-    row = connection.execute(
-        """
-        SELECT id, ticker, quantity, avg_cost, entry_date, stop_loss, status, note
-        FROM holdings
-        WHERE id = ?
-        """,
-        (holding_id,),
-    ).fetchone()
-    return _holding_from_row(connection, row, include_id=include_id) if row else None
+    row = session.execute(
+        select(
+            holdings.c.id,
+            holdings.c.ticker,
+            holdings.c.quantity,
+            holdings.c.avg_cost,
+            holdings.c.entry_date,
+            holdings.c.stop_loss,
+            holdings.c.status,
+            holdings.c.note,
+        ).where(holdings.c.id == holding_id)
+    ).mappings().first()
+    return _holding_from_row(session, row, include_id=include_id) if row else None
+
+
+def holding_exists(session: Session, ticker: str) -> bool:
+    """Return whether a holding ticker already exists."""
+
+    return session.scalar(
+        select(holdings.c.id).where(holdings.c.ticker == ticker)
+    ) is not None
 
 
 def create_holding(
-    connection: sqlite3.Connection,
+    session: Session,
     holding: dict[str, Any],
 ) -> dict[str, Any]:
-    connection.execute(
-        "INSERT OR IGNORE INTO stocks (ticker) VALUES (?)",
-        (holding["ticker"],),
-    )
-    cursor = connection.execute(
-        """
-        INSERT INTO holdings
-            (portfolio_id, ticker, quantity, avg_cost, entry_date,
-             stop_loss, status, note)
-        VALUES (1, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            holding["ticker"], holding["quantity"], holding["avg_cost"],
-            holding["entry_date"], holding["stop_loss"], holding["status"],
-            holding["note"],
-        ),
-    )
-    connection.executemany(
-        "INSERT INTO holding_targets (holding_id, target_order, price) VALUES (?, ?, ?)",
-        (
-            (cursor.lastrowid, order, target)
+    try:
+        if session.scalar(select(stocks.c.ticker).where(stocks.c.ticker == holding["ticker"])) is None:
+            session.execute(insert(stocks).values(ticker=holding["ticker"]))
+
+        result = session.execute(
+            insert(holdings).values(
+                portfolio_id=1,
+                ticker=holding["ticker"],
+                quantity=holding["quantity"],
+                avg_cost=holding["avg_cost"],
+                entry_date=holding["entry_date"],
+                stop_loss=holding["stop_loss"],
+                status=holding["status"],
+                note=holding["note"],
+            )
+        )
+        holding_id = result.inserted_primary_key[0]
+        targets = [
+            {"holding_id": holding_id, "target_order": order, "price": target}
             for order, target in enumerate(holding["targets"], start=1)
-        ),
-    )
-    connection.execute(
-        "UPDATE portfolios SET updated_at = date('now') WHERE id = 1"
-    )
-    result = get_holding(connection, cursor.lastrowid)
+        ]
+        if targets:
+            session.execute(insert(holding_targets), targets)
+        _touch_portfolio(session)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+    result = get_holding(session, holding_id)
     assert result is not None
     return result
 
 
 def update_holding(
-    connection: sqlite3.Connection,
+    session: Session,
     holding_id: int,
     changes: dict[str, Any],
 ) -> dict[str, Any] | None:
-    existing = get_holding(connection, holding_id)
+    existing = get_holding(session, holding_id)
     if existing is None:
         return None
 
-    targets = changes.pop("targets", None)
-    if changes:
-        assignments = ", ".join(f"{column} = ?" for column in changes)
-        connection.execute(
-            f"UPDATE holdings SET {assignments} WHERE id = ?",
-            (*changes.values(), holding_id),
-        )
-    if targets is not None:
-        connection.execute(
-            "DELETE FROM holding_targets WHERE holding_id = ?",
-            (holding_id,),
-        )
-        connection.executemany(
-            "INSERT INTO holding_targets (holding_id, target_order, price) VALUES (?, ?, ?)",
-            ((holding_id, order, target) for order, target in enumerate(targets, start=1)),
-        )
-    connection.execute(
-        "UPDATE portfolios SET updated_at = date('now') WHERE id = 1"
-    )
-    return get_holding(connection, holding_id)
+    values = dict(changes)
+    targets = values.pop("targets", None)
+    try:
+        if values:
+            session.execute(
+                update(holdings)
+                .where(holdings.c.id == holding_id)
+                .values(**values)
+            )
+        if targets is not None:
+            session.execute(
+                delete(holding_targets).where(holding_targets.c.holding_id == holding_id)
+            )
+            replacement_targets = [
+                {"holding_id": holding_id, "target_order": order, "price": target}
+                for order, target in enumerate(targets, start=1)
+            ]
+            if replacement_targets:
+                session.execute(insert(holding_targets), replacement_targets)
+        _touch_portfolio(session)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+    return get_holding(session, holding_id)
 
 
-def delete_holding(connection: sqlite3.Connection, holding_id: int) -> bool:
-    cursor = connection.execute("DELETE FROM holdings WHERE id = ?", (holding_id,))
-    if cursor.rowcount:
-        connection.execute(
-            "UPDATE portfolios SET updated_at = date('now') WHERE id = 1"
-        )
-    return cursor.rowcount > 0
+def delete_holding(session: Session, holding_id: int) -> bool:
+    try:
+        result = session.execute(delete(holdings).where(holdings.c.id == holding_id))
+        if result.rowcount:
+            _touch_portfolio(session)
+            session.commit()
+            return True
+        session.rollback()
+        return False
+    except Exception:
+        session.rollback()
+        raise
 
 
-def get_portfolio(connection: sqlite3.Connection) -> dict[str, Any]:
-    portfolio = connection.execute(
-        "SELECT updated_at, note FROM portfolios WHERE id = 1"
-    ).fetchone()
+def get_portfolio(session: Session) -> dict[str, Any]:
+    portfolio = session.execute(
+        select(portfolios.c.updated_at, portfolios.c.note).where(portfolios.c.id == 1)
+    ).mappings().first()
 
     if portfolio is None:
         return {"updated": None, "holdings": [], "watchlist": [], "summary": {}}
 
-    holdings: list[dict[str, Any]] = []
-    holding_rows = connection.execute(
-        """
-        SELECT id, ticker, quantity, avg_cost, entry_date, stop_loss, status, note
-        FROM holdings
-        WHERE portfolio_id = 1
-        ORDER BY id
-        """
-    ).fetchall()
-    for row in holding_rows:
-        # The stable database id is needed by the admin UI for PATCH/DELETE.
-        holdings.append(_holding_from_row(connection, row, include_id=True))
-
-    watchlist = [
-        row[0]
-        for row in connection.execute(
-            """
-            SELECT ticker
-            FROM watchlist_items
-            WHERE portfolio_id = 1
-            ORDER BY ticker
-            """
-        ).fetchall()
+    holding_rows = session.execute(
+        select(
+            holdings.c.id,
+            holdings.c.ticker,
+            holdings.c.quantity,
+            holdings.c.avg_cost,
+            holdings.c.entry_date,
+            holdings.c.stop_loss,
+            holdings.c.status,
+            holdings.c.note,
+        )
+        .where(holdings.c.portfolio_id == 1)
+        .order_by(holdings.c.id)
+    ).mappings().all()
+    holdings_data = [
+        _holding_from_row(session, row, include_id=True) for row in holding_rows
     ]
-    total_invested = sum(item["quantity"] * item["avg_cost"] for item in holdings)
+    watchlist = list(
+        session.scalars(
+            select(watchlist_items.c.ticker)
+            .where(watchlist_items.c.portfolio_id == 1)
+            .order_by(watchlist_items.c.ticker)
+        ).all()
+    )
+    total_invested = sum(
+        item["quantity"] * item["avg_cost"] for item in holdings_data
+    )
 
     return {
         "updated": portfolio["updated_at"],
-        "holdings": holdings,
+        "holdings": holdings_data,
         "watchlist": watchlist,
         "summary": {
             "total_invested": total_invested,
-            "positions": len(holdings),
+            "positions": len(holdings_data),
             "note": portfolio["note"],
         },
     }
 
 
-def get_journals(connection: sqlite3.Connection) -> dict[str, Any]:
-    journals: dict[str, Any] = {}
-    journal_rows = connection.execute(
-        "SELECT ticker, buffett FROM journals ORDER BY ticker"
-    ).fetchall()
+def get_journals(session: Session) -> dict[str, Any]:
+    journals_data: dict[str, Any] = {}
+    journal_rows = session.execute(
+        select(journals.c.ticker, journals.c.buffett).order_by(journals.c.ticker)
+    ).mappings().all()
 
     for journal in journal_rows:
         ticker = journal["ticker"]
         snapshots = [
             _as_dict(row)
-            for row in connection.execute(
-                """
-                SELECT snapshot_date AS date, price, change_percent, rsi, macd,
-                       score, recommendation, note
-                FROM journal_snapshots
-                WHERE ticker = ?
-                ORDER BY snapshot_date
-                """,
-                (ticker,),
-            ).fetchall()
+            for row in session.execute(
+                select(
+                    journal_snapshots.c.snapshot_date.label("date"),
+                    journal_snapshots.c.price,
+                    journal_snapshots.c.change_percent,
+                    journal_snapshots.c.rsi,
+                    journal_snapshots.c.macd,
+                    journal_snapshots.c.score,
+                    journal_snapshots.c.recommendation,
+                    journal_snapshots.c.note,
+                )
+                .where(journal_snapshots.c.ticker == ticker)
+                .order_by(journal_snapshots.c.snapshot_date)
+            ).mappings().all()
         ]
-        trades = [
+        trades_data = [
             _as_dict(row)
-            for row in connection.execute(
-                """
-                SELECT trade_date AS date, trade_type AS type, price,
-                       stop_loss, pnl, note
-                FROM trades
-                WHERE ticker = ?
-                ORDER BY id
-                """,
-                (ticker,),
-            ).fetchall()
+            for row in session.execute(
+                select(
+                    trades.c.trade_date.label("date"),
+                    trades.c.trade_type.label("type"),
+                    trades.c.price,
+                    trades.c.stop_loss,
+                    trades.c.pnl,
+                    trades.c.note,
+                )
+                .where(trades.c.ticker == ticker)
+                .order_by(trades.c.id)
+            ).mappings().all()
         ]
         entry_plan = [
             _as_dict(row)
-            for row in connection.execute(
-                """
-                SELECT condition, entry_text, stop_loss_action, target_text
-                FROM journal_entry_plans
-                WHERE ticker = ?
-                ORDER BY plan_order
-                """,
-                (ticker,),
-            ).fetchall()
+            for row in session.execute(
+                select(
+                    journal_entry_plans.c.condition,
+                    journal_entry_plans.c.entry_text,
+                    journal_entry_plans.c.stop_loss_action,
+                    journal_entry_plans.c.target_text,
+                )
+                .where(journal_entry_plans.c.ticker == ticker)
+                .order_by(journal_entry_plans.c.plan_order)
+            ).mappings().all()
         ]
-        position_row = connection.execute(
-            """
-            SELECT status, quantity, avg_cost, entry_date, invested_amount
-            FROM journal_positions
-            WHERE ticker = ?
-            """,
-            (ticker,),
-        ).fetchone()
+        position_row = session.execute(
+            select(
+                journal_positions.c.status,
+                journal_positions.c.quantity,
+                journal_positions.c.avg_cost,
+                journal_positions.c.entry_date,
+                journal_positions.c.invested_amount,
+            ).where(journal_positions.c.ticker == ticker)
+        ).mappings().first()
         position = _as_dict(position_row) if position_row else None
 
         theses = {"bull": [], "bear": []}
-        for row in connection.execute(
-            """
-            SELECT side, content
-            FROM journal_theses
-            WHERE ticker = ?
-            ORDER BY side, item_order
-            """,
-            (ticker,),
-        ).fetchall():
+        thesis_rows = session.execute(
+            select(journal_theses.c.side, journal_theses.c.content)
+            .where(journal_theses.c.ticker == ticker)
+            .order_by(journal_theses.c.side, journal_theses.c.item_order)
+        ).mappings().all()
+        for row in thesis_rows:
             theses[row["side"]].append(row["content"])
 
-        journals[ticker] = {
+        journals_data[ticker] = {
             "ticker": ticker,
             "snapshots": snapshots,
-            "trades": trades,
+            "trades": trades_data,
             "entry_plan": entry_plan,
             "position": position,
             "buffett": journal["buffett"],
@@ -252,4 +306,4 @@ def get_journals(connection: sqlite3.Connection) -> dict[str, Any]:
             "bear": theses["bear"],
         }
 
-    return journals
+    return journals_data

@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 from typing import Any
+
+from sqlalchemy import func, insert, select
+from sqlalchemy.orm import Session
+
+from app.sqlalchemy_tables import blog_posts
 
 
 DEFAULT_POSTS = [
@@ -49,7 +53,7 @@ def _decode_tags(value: str | None) -> list[str]:
     return tags if isinstance(tags, list) else []
 
 
-def _row_to_post(row: sqlite3.Row, include_content: bool = False) -> dict[str, Any]:
+def _row_to_post(row: dict[str, Any], include_content: bool = False) -> dict[str, Any]:
     post = {
         "id": row["id"],
         "slug": row["slug"],
@@ -65,57 +69,55 @@ def _row_to_post(row: sqlite3.Row, include_content: bool = False) -> dict[str, A
     return post
 
 
-def seed_default_blog_posts(connection: sqlite3.Connection) -> None:
+def seed_default_blog_posts(session: Session) -> None:
     """Insert starter posts only when the blog table is empty."""
-    existing = connection.execute("SELECT COUNT(*) FROM blog_posts").fetchone()[0]
+    existing = session.scalar(select(func.count()).select_from(blog_posts))
     if existing:
         return
 
-    connection.executemany(
-        """
-        INSERT INTO blog_posts
-            (slug, title, summary, content, category, tags, status, published_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            (
-                post["slug"],
-                post["title"],
-                post["summary"],
-                post["content"],
-                post["category"],
-                json.dumps(post["tags"]),
-                post["status"],
-                post["published_at"],
-            )
+    session.execute(
+        insert(blog_posts),
+        [
+            {
+                "slug": post["slug"],
+                "title": post["title"],
+                "summary": post["summary"],
+                "content": post["content"],
+                "category": post["category"],
+                "tags": json.dumps(post["tags"]),
+                "status": post["status"],
+                "published_at": post["published_at"],
+            }
             for post in DEFAULT_POSTS
-        ),
+        ],
     )
-    connection.commit()
+    session.commit()
 
 
-def list_published_posts(
-    connection: sqlite3.Connection,
-    limit: int,
-    offset: int,
-) -> dict[str, Any]:
+def list_published_posts(session: Session, limit: int, offset: int) -> dict[str, Any]:
     """Return paginated published blog posts."""
-    total = connection.execute(
-        "SELECT COUNT(*) FROM blog_posts WHERE status = 'published'"
-    ).fetchone()[0]
-    rows = connection.execute(
-        """
-        SELECT id, slug, title, summary, category, tags, published_at, updated_at
-        FROM blog_posts
-        WHERE status = 'published'
-        ORDER BY published_at DESC, id DESC
-        LIMIT ? OFFSET ?
-        """,
-        (limit, offset),
-    ).fetchall()
+    total = session.scalar(
+        select(func.count()).where(blog_posts.c.status == "published")
+    )
+    rows = session.execute(
+        select(
+            blog_posts.c.id,
+            blog_posts.c.slug,
+            blog_posts.c.title,
+            blog_posts.c.summary,
+            blog_posts.c.category,
+            blog_posts.c.tags,
+            blog_posts.c.published_at,
+            blog_posts.c.updated_at,
+        )
+        .where(blog_posts.c.status == "published")
+        .order_by(blog_posts.c.published_at.desc(), blog_posts.c.id.desc())
+        .limit(limit)
+        .offset(offset)
+    ).mappings().all()
 
     return {
-        "posts": [_row_to_post(row) for row in rows],
+        "posts": [_row_to_post(dict(row)) for row in rows],
         "total": total,
         "limit": limit,
         "offset": offset,
@@ -123,17 +125,20 @@ def list_published_posts(
     }
 
 
-def get_published_post(
-    connection: sqlite3.Connection,
-    slug: str,
-) -> dict[str, Any] | None:
+def get_published_post(session: Session, slug: str) -> dict[str, Any] | None:
     """Return one published blog post by slug."""
-    row = connection.execute(
-        """
-        SELECT id, slug, title, summary, content, category, tags, published_at, updated_at
-        FROM blog_posts
-        WHERE slug = ? AND status = 'published'
-        """,
-        (slug,),
-    ).fetchone()
-    return _row_to_post(row, include_content=True) if row else None
+    row = session.execute(
+        select(
+            blog_posts.c.id,
+            blog_posts.c.slug,
+            blog_posts.c.title,
+            blog_posts.c.summary,
+            blog_posts.c.content,
+            blog_posts.c.category,
+            blog_posts.c.tags,
+            blog_posts.c.published_at,
+            blog_posts.c.updated_at,
+        )
+        .where(blog_posts.c.slug == slug, blog_posts.c.status == "published")
+    ).mappings().first()
+    return _row_to_post(dict(row), include_content=True) if row else None

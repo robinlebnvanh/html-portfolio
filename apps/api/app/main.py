@@ -10,13 +10,15 @@ from app.blog_repository import (
     list_published_posts,
     seed_default_blog_posts,
 )
-from app.database import get_connection, initialize_database
 from app.auth import require_admin_token
+from app.database import initialize_database
+from app.sqlalchemy_database import get_session
 from app.stocks_repository import (
     create_holding,
     delete_holding,
     get_journals,
     get_portfolio,
+    holding_exists,
     update_holding,
 )
 
@@ -77,8 +79,8 @@ app.add_middleware(
 )
 
 initialize_database()
-with get_connection() as startup_connection:
-    seed_default_blog_posts(startup_connection)
+with get_session() as startup_session:
+    seed_default_blog_posts(startup_session)
 
 
 @app.get("/health", tags=["system"])
@@ -89,30 +91,30 @@ def health() -> dict[str, str]:
 
 @app.get("/api/v1/stocks/portfolio", tags=["stocks"])
 def portfolio() -> dict[str, Any]:
-    """Return portfolio data read from SQLite."""
-    with get_connection() as connection:
-        return get_portfolio(connection)
+    """Return portfolio data read through SQLAlchemy."""
+    with get_session() as session:
+        return get_portfolio(session)
 
 
 @app.get("/api/v1/stocks/journals", tags=["stocks"])
 def journals() -> dict[str, Any]:
-    """Return ticker journals read from SQLite."""
-    with get_connection() as connection:
-        return get_journals(connection)
+    """Return ticker journals read through SQLAlchemy."""
+    with get_session() as session:
+        return get_journals(session)
 
 
 @app.get("/api/v1/blog/posts", tags=["blog"])
 def blog_posts(limit: PostLimit = 6, offset: PostOffset = 0) -> dict[str, Any]:
     """Return published blog posts for the personal site."""
-    with get_connection() as connection:
-        return list_published_posts(connection, limit, offset)
+    with get_session() as session:
+        return list_published_posts(session, limit, offset)
 
 
 @app.get("/api/v1/blog/posts/{slug}", tags=["blog"])
 def blog_post(slug: str) -> dict[str, Any]:
     """Return one published blog post."""
-    with get_connection() as connection:
-        post = get_published_post(connection, slug)
+    with get_session() as session:
+        post = get_published_post(session, slug)
     if post is None:
         raise HTTPException(status_code=404, detail="blog post not found")
     return {"post": post}
@@ -125,18 +127,16 @@ def blog_post(slug: str) -> dict[str, Any]:
     dependencies=[Depends(require_admin_token)],
 )
 def create_portfolio_holding(payload: HoldingCreate) -> dict[str, Any]:
-    """Create a holding and persist it to SQLite."""
+    """Create a holding and persist it through SQLAlchemy."""
     values = payload.model_dump()
     values["ticker"] = values["ticker"].strip().upper()
     if not values["ticker"]:
         raise HTTPException(status_code=422, detail="ticker must not be blank")
 
-    with get_connection() as connection:
-        if connection.execute(
-            "SELECT 1 FROM holdings WHERE ticker = ?", (values["ticker"],)
-        ).fetchone():
+    with get_session() as session:
+        if holding_exists(session, values["ticker"]):
             raise HTTPException(status_code=409, detail="holding ticker already exists")
-        return {"holding": create_holding(connection, values)}
+        return {"holding": create_holding(session, values)}
 
 
 @app.patch(
@@ -148,10 +148,10 @@ def update_portfolio_holding(
     holding_id: int,
     payload: HoldingUpdate,
 ) -> dict[str, Any]:
-    """Update selected holding fields and persist them to SQLite."""
+    """Update selected holding fields and persist them through SQLAlchemy."""
     changes = payload.model_dump(exclude_unset=True)
-    with get_connection() as connection:
-        updated = update_holding(connection, holding_id, changes)
+    with get_session() as session:
+        updated = update_holding(session, holding_id, changes)
         if updated is None:
             raise HTTPException(status_code=404, detail="holding not found")
         return {"holding": updated}
@@ -164,8 +164,8 @@ def update_portfolio_holding(
     dependencies=[Depends(require_admin_token)],
 )
 def delete_portfolio_holding(holding_id: int) -> Response:
-    """Delete a holding and its target prices from SQLite."""
-    with get_connection() as connection:
-        if not delete_holding(connection, holding_id):
+    """Delete a holding and its target prices through SQLAlchemy."""
+    with get_session() as session:
+        if not delete_holding(session, holding_id):
             raise HTTPException(status_code=404, detail="holding not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
