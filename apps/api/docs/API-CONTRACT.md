@@ -153,8 +153,8 @@ configured token returns `503` so writes fail closed.
 
 ## Write endpoints (L3-06, authenticated in L3-07)
 
-Write operations are intentionally limited to portfolio holdings. They require
-the L3-07 admin Bearer token described above.
+Write operations cover holdings, watchlist items, journal thesis fields, and
+trade rows. They require the L3-07 admin Bearer token described above.
 
 ### POST `/api/v1/stocks/holdings`
 
@@ -184,7 +184,76 @@ Updates any supplied holding fields and replaces `targets` when that field is su
 Deletes the holding and its target prices. It returns `204` on success and `404` for an unknown ID.
 
 All write endpoints validate request bodies, require the admin bearer token,
-and persist within the SQLite transaction opened by the API.
+and persist within the database transaction opened by the API.
+
+### POST `/api/v1/stocks/watchlist`
+
+Adds one ticker to the portfolio watchlist:
+
+```json
+{"ticker": "ACB"}
+```
+
+The endpoint returns `{ "watchlist_item": { "ticker": "ACB" } }`. Duplicate
+tickers return `409`.
+
+### DELETE `/api/v1/stocks/watchlist/{ticker}`
+
+Removes one ticker from the portfolio watchlist. Unknown tickers return `404`.
+
+### POST `/api/v1/stocks/journals`
+
+Creates a ticker journal and optional thesis lists:
+
+```json
+{
+  "ticker": "ACB",
+  "buffett": "Buffett check text",
+  "bull": ["Strong deposit growth"],
+  "bear": ["Valuation risk"]
+}
+```
+
+The endpoint returns `{ "journal": ... }` using the same journal shape as
+`GET /api/v1/stocks/journals`. Duplicate journals return `409`.
+
+### PATCH `/api/v1/stocks/journals/{ticker}`
+
+Updates `buffett`, `bull`, and/or `bear`. Supplying `bull` or `bear` replaces
+that full list. Unknown journals return `404`.
+
+### DELETE `/api/v1/stocks/journals/{ticker}`
+
+Deletes the journal and its child rows: snapshots, trades, entry plans,
+position, and theses. Unknown journals return `404`.
+
+### POST `/api/v1/stocks/trades`
+
+Creates a trade row and creates an empty journal for the ticker if needed:
+
+```json
+{
+  "ticker": "ACB",
+  "date": "2026-08-27",
+  "type": "BUY",
+  "price": 25000,
+  "stop_loss": 23000,
+  "pnl": "0",
+  "note": "Initial entry"
+}
+```
+
+The endpoint returns `{ "trade": ... }`. Trade rows returned by
+`GET /api/v1/stocks/journals` include stable numeric `id` and `ticker` fields
+for Admin UI edit/delete actions.
+
+### PATCH `/api/v1/stocks/trades/{trade_id}`
+
+Updates any supplied trade fields except ticker. Unknown trades return `404`.
+
+### DELETE `/api/v1/stocks/trades/{trade_id}`
+
+Deletes one trade row. Unknown trades return `404`.
 
 ## Source mapping
 

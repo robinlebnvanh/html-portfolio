@@ -63,6 +63,59 @@
         <tbody id="admin-holdings-body"><tr><td colspan="7" class="admin-empty">Nhập token rồi bấm “Kết nối / Tải data”.</td></tr></tbody>
       </table>
     </div>
+
+    <div class="admin-subsection">
+      <div class="section-title">Watchlist</div>
+      <form id="watchlist-form" class="admin-inline-form">
+        <label class="admin-field admin-token-field"><span>Ticker</span><input id="watchlist-ticker" maxlength="12" placeholder="ACB"></label>
+        <button class="admin-button primary" type="submit">Thêm watchlist</button>
+      </form>
+      <div id="admin-watchlist-list" class="admin-chip-list"></div>
+    </div>
+
+    <div class="admin-subsection">
+      <div class="section-title">Journal</div>
+      <form id="journal-form" class="admin-form">
+        <label class="admin-field"><span>Ticker *</span><input id="journal-ticker" required maxlength="12" placeholder="VIC"></label>
+        <label class="admin-field admin-wide"><span>Buffett check</span><textarea id="journal-buffett" rows="3" placeholder="Luận điểm tổng quan"></textarea></label>
+        <label class="admin-field admin-wide"><span>Bull case (mỗi dòng một ý)</span><textarea id="journal-bull" rows="4" placeholder="Dòng tiền cải thiện&#10;Có catalyst rõ"></textarea></label>
+        <label class="admin-field admin-wide"><span>Bear case (mỗi dòng một ý)</span><textarea id="journal-bear" rows="4" placeholder="Định giá cao&#10;Rủi ro thị trường"></textarea></label>
+        <div class="admin-form-actions admin-wide">
+          <button class="admin-button primary" type="submit">Lưu journal</button>
+          <button id="journal-delete" class="admin-button danger" type="button">Xoá journal</button>
+        </div>
+      </form>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Mã</th><th>Buffett check</th><th>Bull</th><th>Bear</th><th>Actions</th></tr></thead>
+          <tbody id="admin-journals-body"><tr><td colspan="5" class="admin-empty">Chưa tải journal.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-subsection">
+      <div class="section-title">Trades</div>
+      <form id="trade-form" class="admin-form">
+        <input id="trade-id" type="hidden">
+        <label class="admin-field"><span>Ticker *</span><input id="trade-ticker" required maxlength="12" placeholder="VIC"></label>
+        <label class="admin-field"><span>Ngày *</span><input id="trade-date" required type="date"></label>
+        <label class="admin-field"><span>Loại *</span><select id="trade-type" required><option value="MUA">MUA</option><option value="BAN">BAN</option><option value="BUY">BUY</option><option value="SELL">SELL</option></select></label>
+        <label class="admin-field"><span>Giá *</span><input id="trade-price" required type="number" min="0" step="1" placeholder="192000"></label>
+        <label class="admin-field"><span>Stop-loss</span><input id="trade-stop-loss" type="number" min="0" step="1" placeholder="186000"></label>
+        <label class="admin-field"><span>P&L</span><input id="trade-pnl" placeholder="+1.2M hoặc Giá vốn ban đầu"></label>
+        <label class="admin-field admin-wide"><span>Ghi chú</span><textarea id="trade-note" rows="2" placeholder="Lý do mua/bán"></textarea></label>
+        <div class="admin-form-actions admin-wide">
+          <button id="trade-submit" class="admin-button primary" type="submit">Thêm trade</button>
+          <button id="trade-cancel" class="admin-button secondary hidden" type="button">Huỷ sửa</button>
+        </div>
+      </form>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Mã</th><th>Ngày</th><th>Loại</th><th>Giá</th><th>Stop</th><th>P&L</th><th>Ghi chú</th><th>Actions</th></tr></thead>
+          <tbody id="admin-trades-body"><tr><td colspan="8" class="admin-empty">Chưa tải trades.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <!-- VIC -->
@@ -310,10 +363,13 @@
 <script>
 const ADMIN_API_BASE_URL = window.PRJ008_CONFIG.apiBaseUrl;
 const admin = (id) => document.getElementById(id);
+let adminState = { portfolio: null, journals: {} };
 
 function adminToken(){ return admin("admin-token").value.trim(); }
 function adminMessage(message, state=""){ const el=admin("admin-status"); el.textContent=message; el.dataset.state=state; }
 function adminEscape(value){ return String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
+function adminLines(id){ return admin(id).value.split("\n").map(line => line.trim()).filter(Boolean); }
+function adminDate(){ return new Date().toISOString().slice(0, 10); }
 
 async function adminRequest(path, options={}){
   const headers = { ...(options.body ? {"Content-Type":"application/json"} : {}), ...(options.headers||{}) };
@@ -323,6 +379,20 @@ async function adminRequest(path, options={}){
   const body = await response.json().catch(() => ({}));
   if(!response.ok) throw new Error(body.detail || "HTTP "+response.status);
   return body;
+}
+
+async function loadAdminData(){
+  adminMessage("Đang tải...", "loading");
+  const [portfolio, journals] = await Promise.all([
+    adminRequest("/api/v1/stocks/portfolio"),
+    adminRequest("/api/v1/stocks/journals")
+  ]);
+  adminState = { portfolio, journals };
+  renderAdminHoldings(portfolio.holdings||[]);
+  renderAdminWatchlist(portfolio.watchlist||[]);
+  renderAdminJournals(journals||{});
+  renderAdminTrades(journals||{});
+  adminMessage("✓ Đã tải từ FastAPI / Neon PostgreSQL", "success");
 }
 
 function renderAdminHoldings(holdings){
@@ -340,7 +410,7 @@ function renderAdminHoldings(holdings){
 }
 
 async function loadAdminHoldings(){
-  try { adminMessage("Đang tải...", "loading"); const data=await adminRequest("/api/v1/stocks/portfolio"); renderAdminHoldings(data.holdings||[]); adminMessage("✓ Đã tải từ FastAPI / Neon PostgreSQL", "success"); }
+  try { await loadAdminData(); }
   catch(error){ adminMessage("✕ "+error.message, "error"); }
 }
 
@@ -368,13 +438,186 @@ async function saveHolding(event){
 
 async function deleteHolding(id){
   if(!confirm("Xoá holding này? Hành động này sẽ xoá cả target prices.")) return;
-  try { adminMessage("Đang xoá...", "loading"); await adminRequest("/api/v1/stocks/holdings/"+id,{method:"DELETE"}); await loadAdminHoldings(); }
+  try { adminMessage("Đang xoá...", "loading"); await adminRequest("/api/v1/stocks/holdings/"+id,{method:"DELETE"}); await loadAdminData(); }
   catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+function renderAdminWatchlist(watchlist){
+  const list = admin("admin-watchlist-list");
+  if(!watchlist.length){ list.innerHTML="<span class='admin-empty'>Chưa có watchlist.</span>"; return; }
+  list.innerHTML = watchlist.map(ticker => `<span class="admin-chip"><strong>${adminEscape(ticker)}</strong><button type="button" data-watch-delete="${adminEscape(ticker)}">Xoá</button></span>`).join("");
+  list.querySelectorAll("[data-watch-delete]").forEach(button => button.addEventListener("click", () => deleteWatchlistItem(button.dataset.watchDelete)));
+}
+
+async function saveWatchlistItem(event){
+  event.preventDefault();
+  const ticker = admin("watchlist-ticker").value.trim().toUpperCase();
+  if(!ticker){ adminMessage("✕ Ticker watchlist là bắt buộc", "error"); return; }
+  try {
+    adminMessage("Đang thêm watchlist...", "loading");
+    await adminRequest("/api/v1/stocks/watchlist", {method:"POST", body:JSON.stringify({ticker})});
+    admin("watchlist-ticker").value="";
+    await loadAdminData();
+  } catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+async function deleteWatchlistItem(ticker){
+  if(!confirm("Xoá "+ticker+" khỏi watchlist?")) return;
+  try {
+    adminMessage("Đang xoá watchlist...", "loading");
+    await adminRequest("/api/v1/stocks/watchlist/"+encodeURIComponent(ticker), {method:"DELETE"});
+    await loadAdminData();
+  } catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+function renderAdminJournals(journals){
+  const body = admin("admin-journals-body");
+  const rows = Object.values(journals);
+  if(!rows.length){ body.innerHTML="<tr><td colspan='5' class='admin-empty'>Chưa có journal.</td></tr>"; return; }
+  body.innerHTML = rows.map(journal => `<tr>
+    <td><span class="ticker-badge">${adminEscape(journal.ticker)}</span></td>
+    <td>${adminEscape(journal.buffett||"-").slice(0, 90)}</td>
+    <td>${(journal.bull||[]).length}</td>
+    <td>${(journal.bear||[]).length}</td>
+    <td class="admin-actions"><button type="button" class="admin-link" data-journal-edit="${adminEscape(journal.ticker)}">Sửa</button><button type="button" class="admin-link danger" data-journal-delete="${adminEscape(journal.ticker)}">Xoá</button></td>
+  </tr>`).join("");
+  body.querySelectorAll("[data-journal-edit]").forEach(button => button.addEventListener("click", () => editJournal(button.dataset.journalEdit)));
+  body.querySelectorAll("[data-journal-delete]").forEach(button => button.addEventListener("click", () => deleteJournal(button.dataset.journalDelete)));
+}
+
+function editJournal(ticker){
+  const journal = adminState.journals[ticker];
+  if(!journal) return;
+  admin("journal-ticker").value = journal.ticker;
+  admin("journal-buffett").value = journal.buffett || "";
+  admin("journal-bull").value = (journal.bull || []).join("\n");
+  admin("journal-bear").value = (journal.bear || []).join("\n");
+  admin("journal-ticker").focus();
+}
+
+async function saveJournal(event){
+  event.preventDefault();
+  const ticker = admin("journal-ticker").value.trim().toUpperCase();
+  if(!ticker){ adminMessage("✕ Ticker journal là bắt buộc", "error"); return; }
+  const exists = Boolean(adminState.journals[ticker]);
+  const payload = {
+    ticker,
+    buffett: admin("journal-buffett").value.trim(),
+    bull: adminLines("journal-bull"),
+    bear: adminLines("journal-bear")
+  };
+  try {
+    adminMessage("Đang lưu journal...", "loading");
+    await adminRequest(exists ? "/api/v1/stocks/journals/"+encodeURIComponent(ticker) : "/api/v1/stocks/journals", {
+      method: exists ? "PATCH" : "POST",
+      body: JSON.stringify(exists ? {buffett: payload.buffett, bull: payload.bull, bear: payload.bear} : payload)
+    });
+    await loadAdminData();
+  } catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+async function deleteJournal(ticker){
+  const target = ticker || admin("journal-ticker").value.trim().toUpperCase();
+  if(!target){ adminMessage("✕ Chọn ticker journal để xoá", "error"); return; }
+  if(!confirm("Xoá journal "+target+" và trades liên quan?")) return;
+  try {
+    adminMessage("Đang xoá journal...", "loading");
+    await adminRequest("/api/v1/stocks/journals/"+encodeURIComponent(target), {method:"DELETE"});
+    admin("journal-form").reset();
+    await loadAdminData();
+  } catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+function allTrades(journals){
+  return Object.values(journals).flatMap(journal => (journal.trades||[]).map(trade => ({...trade, ticker: trade.ticker || journal.ticker})));
+}
+
+function renderAdminTrades(journals){
+  const body = admin("admin-trades-body");
+  const rows = allTrades(journals);
+  if(!rows.length){ body.innerHTML="<tr><td colspan='8' class='admin-empty'>Chưa có trade.</td></tr>"; return; }
+  body.innerHTML = rows.map(trade => `<tr>
+    <td><span class="ticker-badge">${adminEscape(trade.ticker)}</span></td>
+    <td>${adminEscape(trade.date)}</td>
+    <td>${adminEscape(trade.type)}</td>
+    <td>${Number(trade.price).toLocaleString()}</td>
+    <td>${trade.stop_loss == null ? "-" : Number(trade.stop_loss).toLocaleString()}</td>
+    <td>${adminEscape(trade.pnl||"-")}</td>
+    <td>${adminEscape(trade.note||"-")}</td>
+    <td class="admin-actions"><button type="button" class="admin-link" data-trade-edit="${trade.id}">Sửa</button><button type="button" class="admin-link danger" data-trade-delete="${trade.id}">Xoá</button></td>
+  </tr>`).join("");
+  body.querySelectorAll("[data-trade-edit]").forEach(button => button.addEventListener("click", () => editTrade(Number(button.dataset.tradeEdit))));
+  body.querySelectorAll("[data-trade-delete]").forEach(button => button.addEventListener("click", () => deleteTrade(Number(button.dataset.tradeDelete))));
+}
+
+function editTrade(id){
+  const trade = allTrades(adminState.journals).find(item => item.id === id);
+  if(!trade) return;
+  admin("trade-id").value = trade.id;
+  admin("trade-ticker").value = trade.ticker;
+  admin("trade-ticker").disabled = true;
+  admin("trade-date").value = trade.date;
+  admin("trade-type").value = trade.type;
+  admin("trade-price").value = trade.price;
+  admin("trade-stop-loss").value = trade.stop_loss ?? "";
+  admin("trade-pnl").value = trade.pnl || "";
+  admin("trade-note").value = trade.note || "";
+  admin("trade-submit").textContent = "Lưu trade";
+  admin("trade-cancel").classList.remove("hidden");
+  admin("trade-date").focus();
+}
+
+function resetTradeForm(){
+  admin("trade-form").reset();
+  admin("trade-id").value = "";
+  admin("trade-ticker").disabled = false;
+  admin("trade-date").value = adminDate();
+  admin("trade-submit").textContent = "Thêm trade";
+  admin("trade-cancel").classList.add("hidden");
+}
+
+async function saveTrade(event){
+  event.preventDefault();
+  const id = admin("trade-id").value;
+  const payload = {
+    ticker: admin("trade-ticker").value.trim().toUpperCase(),
+    date: admin("trade-date").value,
+    type: admin("trade-type").value,
+    price: Number(admin("trade-price").value),
+    stop_loss: admin("trade-stop-loss").value ? Number(admin("trade-stop-loss").value) : null,
+    pnl: admin("trade-pnl").value.trim() || null,
+    note: admin("trade-note").value.trim() || null
+  };
+  if(!payload.ticker || !payload.date){ adminMessage("✕ Ticker và ngày trade là bắt buộc", "error"); return; }
+  try {
+    adminMessage("Đang lưu trade...", "loading");
+    await adminRequest(id ? "/api/v1/stocks/trades/"+id : "/api/v1/stocks/trades", {
+      method: id ? "PATCH" : "POST",
+      body: JSON.stringify(id ? Object.fromEntries(Object.entries(payload).filter(([key])=>key!=="ticker")) : payload)
+    });
+    resetTradeForm();
+    await loadAdminData();
+  } catch(error){ adminMessage("✕ "+error.message, "error"); }
+}
+
+async function deleteTrade(id){
+  if(!confirm("Xoá trade này?")) return;
+  try {
+    adminMessage("Đang xoá trade...", "loading");
+    await adminRequest("/api/v1/stocks/trades/"+id, {method:"DELETE"});
+    await loadAdminData();
+  } catch(error){ adminMessage("✕ "+error.message, "error"); }
 }
 
 admin("admin-load").addEventListener("click", loadAdminHoldings);
 admin("holding-form").addEventListener("submit", saveHolding);
 admin("holding-cancel").addEventListener("click", resetHoldingForm);
+admin("watchlist-form").addEventListener("submit", saveWatchlistItem);
+admin("journal-form").addEventListener("submit", saveJournal);
+admin("journal-delete").addEventListener("click", () => deleteJournal());
+admin("trade-form").addEventListener("submit", saveTrade);
+admin("trade-cancel").addEventListener("click", resetTradeForm);
+admin("trade-date").value = adminDate();
 if(location.hash === "#admin") admin("admin").scrollIntoView();
 </script>
 </body>

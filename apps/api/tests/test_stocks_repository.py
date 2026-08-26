@@ -24,12 +24,20 @@ from app.sqlalchemy_tables import (
 )
 from app.stocks_repository import (
     create_holding,
+    create_trade,
+    create_watchlist_item,
+    delete_journal,
     delete_holding,
+    delete_trade,
+    delete_watchlist_item,
     get_holding,
     get_journals,
     get_portfolio,
     holding_exists,
+    upsert_journal,
+    update_trade,
     update_holding,
+    watchlist_exists,
 )
 
 
@@ -155,9 +163,82 @@ class StocksRepositoryTests(unittest.TestCase):
         result = get_journals(self.session)
         self.assertEqual(result["ABC"]["snapshots"][0]["date"], "2026-08-05")
         self.assertEqual(result["ABC"]["trades"][0]["type"], "BUY")
+        self.assertEqual(result["ABC"]["trades"][0]["ticker"], "ABC")
+        self.assertIn("id", result["ABC"]["trades"][0])
         self.assertEqual(result["ABC"]["entry_plan"][0]["condition"], "breakout")
         self.assertEqual(result["ABC"]["bull"], ["up"])
         self.assertEqual(result["ABC"]["bear"], ["down"])
+
+    def test_watchlist_crud_updates_portfolio(self) -> None:
+        created = create_watchlist_item(self.session, "ABC")
+
+        self.assertEqual(created, {"ticker": "ABC"})
+        self.assertTrue(watchlist_exists(self.session, "ABC"))
+        self.assertEqual(get_portfolio(self.session)["watchlist"], ["ABC"])
+
+        self.assertTrue(delete_watchlist_item(self.session, "ABC"))
+        self.assertFalse(watchlist_exists(self.session, "ABC"))
+        self.assertEqual(get_portfolio(self.session)["watchlist"], [])
+
+    def test_trade_crud_creates_journal_when_missing(self) -> None:
+        created = create_trade(
+            self.session,
+            {
+                "ticker": "ABC",
+                "date": "2026-08-27",
+                "type": "BUY",
+                "price": 100,
+                "stop_loss": 90,
+                "pnl": "0",
+                "note": "test trade",
+            },
+        )
+
+        self.assertEqual(created["ticker"], "ABC")
+        self.assertEqual(created["type"], "BUY")
+        self.assertIn("id", created)
+        self.assertIn("ABC", get_journals(self.session))
+
+        updated = update_trade(
+            self.session,
+            created["id"],
+            {"price": 120, "type": "SELL", "note": "updated"},
+        )
+        self.assertIsNotNone(updated)
+        self.assertEqual(updated["price"], 120)
+        self.assertEqual(updated["type"], "SELL")
+        self.assertEqual(updated["note"], "updated")
+
+        self.assertTrue(delete_trade(self.session, created["id"]))
+        self.assertEqual(get_journals(self.session)["ABC"]["trades"], [])
+
+    def test_journal_upsert_and_delete(self) -> None:
+        created = upsert_journal(
+            self.session,
+            "ABC",
+            {
+                "buffett": "Buffett check",
+                "bull": ["strong cashflow", "clear catalyst"],
+                "bear": ["valuation risk"],
+            },
+        )
+
+        self.assertEqual(created["ticker"], "ABC")
+        self.assertEqual(created["buffett"], "Buffett check")
+        self.assertEqual(created["bull"], ["strong cashflow", "clear catalyst"])
+        self.assertEqual(created["bear"], ["valuation risk"])
+
+        updated = upsert_journal(
+            self.session,
+            "ABC",
+            {"buffett": "Updated", "bull": ["new bull"]},
+        )
+        self.assertEqual(updated["buffett"], "Updated")
+        self.assertEqual(updated["bull"], ["new bull"])
+        self.assertEqual(updated["bear"], ["valuation risk"])
+
+        self.assertTrue(delete_journal(self.session, "ABC"))
+        self.assertNotIn("ABC", get_journals(self.session))
 
 
 if __name__ == "__main__":

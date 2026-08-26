@@ -37,6 +37,34 @@ def _touch_portfolio(session: Session) -> None:
     )
 
 
+def _ensure_portfolio(session: Session) -> None:
+    if session.scalar(select(portfolios.c.id).where(portfolios.c.id == 1)) is None:
+        session.execute(
+            insert(portfolios).values(
+                id=1,
+                updated_at=date.today().isoformat(),
+                note="Managed through the API",
+            )
+        )
+
+
+def _ensure_stock(session: Session, ticker: str) -> None:
+    if session.scalar(select(stocks.c.ticker).where(stocks.c.ticker == ticker)) is None:
+        session.execute(insert(stocks).values(ticker=ticker))
+
+
+def _ensure_journal(session: Session, ticker: str) -> None:
+    _ensure_stock(session, ticker)
+    if session.scalar(select(journals.c.ticker).where(journals.c.ticker == ticker)) is None:
+        session.execute(
+            insert(journals).values(
+                ticker=ticker,
+                buffett="",
+                updated_at=date.today().isoformat(),
+            )
+        )
+
+
 def _holding_from_row(
     session: Session,
     row: Mapping[str, Any],
@@ -90,8 +118,8 @@ def create_holding(
     holding: dict[str, Any],
 ) -> dict[str, Any]:
     try:
-        if session.scalar(select(stocks.c.ticker).where(stocks.c.ticker == holding["ticker"])) is None:
-            session.execute(insert(stocks).values(ticker=holding["ticker"]))
+        _ensure_portfolio(session)
+        _ensure_stock(session, holding["ticker"])
 
         result = session.execute(
             insert(holdings).values(
@@ -158,6 +186,191 @@ def update_holding(
         raise
 
     return get_holding(session, holding_id)
+
+
+def watchlist_exists(session: Session, ticker: str) -> bool:
+    return session.scalar(
+        select(watchlist_items.c.ticker).where(
+            (watchlist_items.c.portfolio_id == 1) & (watchlist_items.c.ticker == ticker)
+        )
+    ) is not None
+
+
+def create_watchlist_item(session: Session, ticker: str) -> dict[str, str]:
+    try:
+        _ensure_portfolio(session)
+        _ensure_stock(session, ticker)
+        session.execute(insert(watchlist_items).values(portfolio_id=1, ticker=ticker))
+        _touch_portfolio(session)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    return {"ticker": ticker}
+
+
+def delete_watchlist_item(session: Session, ticker: str) -> bool:
+    try:
+        result = session.execute(
+            delete(watchlist_items).where(
+                (watchlist_items.c.portfolio_id == 1) & (watchlist_items.c.ticker == ticker)
+            )
+        )
+        if result.rowcount:
+            _touch_portfolio(session)
+            session.commit()
+            return True
+        session.rollback()
+        return False
+    except Exception:
+        session.rollback()
+        raise
+
+
+def get_trade(session: Session, trade_id: int) -> dict[str, Any] | None:
+    row = session.execute(
+        select(
+            trades.c.id,
+            trades.c.ticker,
+            trades.c.trade_date.label("date"),
+            trades.c.trade_type.label("type"),
+            trades.c.price,
+            trades.c.stop_loss,
+            trades.c.pnl,
+            trades.c.note,
+        ).where(trades.c.id == trade_id)
+    ).mappings().first()
+    return _as_dict(row) if row else None
+
+
+def create_trade(session: Session, trade: dict[str, Any]) -> dict[str, Any]:
+    try:
+        _ensure_journal(session, trade["ticker"])
+        result = session.execute(
+            insert(trades).values(
+                ticker=trade["ticker"],
+                trade_date=trade["date"],
+                trade_type=trade["type"],
+                price=trade["price"],
+                stop_loss=trade["stop_loss"],
+                pnl=trade["pnl"],
+                note=trade["note"],
+            )
+        )
+        trade_id = result.inserted_primary_key[0]
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+    created = get_trade(session, trade_id)
+    assert created is not None
+    return created
+
+
+def update_trade(
+    session: Session,
+    trade_id: int,
+    changes: dict[str, Any],
+) -> dict[str, Any] | None:
+    if get_trade(session, trade_id) is None:
+        return None
+
+    values = dict(changes)
+    if "date" in values:
+        values["trade_date"] = values.pop("date")
+    if "type" in values:
+        values["trade_type"] = values.pop("type")
+
+    try:
+        if values:
+            session.execute(update(trades).where(trades.c.id == trade_id).values(**values))
+            session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+    return get_trade(session, trade_id)
+
+
+def delete_trade(session: Session, trade_id: int) -> bool:
+    try:
+        result = session.execute(delete(trades).where(trades.c.id == trade_id))
+        if result.rowcount:
+            session.commit()
+            return True
+        session.rollback()
+        return False
+    except Exception:
+        session.rollback()
+        raise
+
+
+def journal_exists(session: Session, ticker: str) -> bool:
+    return session.scalar(select(journals.c.ticker).where(journals.c.ticker == ticker)) is not None
+
+
+def upsert_journal(
+    session: Session,
+    ticker: str,
+    changes: dict[str, Any],
+) -> dict[str, Any]:
+    try:
+        _ensure_stock(session, ticker)
+        exists = journal_exists(session, ticker)
+        values: dict[str, Any] = {"updated_at": date.today().isoformat()}
+        if "buffett" in changes:
+            values["buffett"] = changes["buffett"]
+
+        if exists:
+            session.execute(update(journals).where(journals.c.ticker == ticker).values(**values))
+        else:
+            values.setdefault("buffett", "")
+            session.execute(insert(journals).values(ticker=ticker, **values))
+
+        for side in ("bull", "bear"):
+            if side not in changes:
+                continue
+            session.execute(
+                delete(journal_theses).where(
+                    (journal_theses.c.ticker == ticker) & (journal_theses.c.side == side)
+                )
+            )
+            thesis_rows = [
+                {"ticker": ticker, "side": side, "item_order": order, "content": item}
+                for order, item in enumerate(changes[side], start=1)
+                if item.strip()
+            ]
+            if thesis_rows:
+                session.execute(insert(journal_theses), thesis_rows)
+
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+    return get_journals(session).get(ticker, {"ticker": ticker})
+
+
+def delete_journal(session: Session, ticker: str) -> bool:
+    try:
+        if not journal_exists(session, ticker):
+            session.rollback()
+            return False
+        for table in (
+            journal_snapshots,
+            trades,
+            journal_entry_plans,
+            journal_positions,
+            journal_theses,
+        ):
+            session.execute(delete(table).where(table.c.ticker == ticker))
+        session.execute(delete(journals).where(journals.c.ticker == ticker))
+        session.commit()
+        return True
+    except Exception:
+        session.rollback()
+        raise
 
 
 def delete_holding(session: Session, holding_id: int) -> bool:
@@ -251,6 +464,8 @@ def get_journals(session: Session) -> dict[str, Any]:
             _as_dict(row)
             for row in session.execute(
                 select(
+                    trades.c.id,
+                    trades.c.ticker,
                     trades.c.trade_date.label("date"),
                     trades.c.trade_type.label("type"),
                     trades.c.price,

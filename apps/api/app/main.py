@@ -15,11 +15,20 @@ from app.database import initialize_database
 from app.sqlalchemy_database import get_session
 from app.stocks_repository import (
     create_holding,
+    create_trade,
+    create_watchlist_item,
+    delete_journal,
     delete_holding,
+    delete_trade,
+    delete_watchlist_item,
     get_journals,
     get_portfolio,
     holding_exists,
+    journal_exists,
+    upsert_journal,
+    update_trade,
     update_holding,
+    watchlist_exists,
 )
 
 
@@ -49,6 +58,52 @@ class HoldingUpdate(BaseModel):
     status: str | None = Field(default=None, min_length=1, max_length=40)
     note: str | None = None
     targets: list[TargetPrice] | None = None
+
+
+class WatchlistCreate(BaseModel):
+    """Validated payload for adding a watched ticker."""
+
+    ticker: str = Field(min_length=1, max_length=12)
+
+
+class JournalUpsert(BaseModel):
+    """Validated payload for creating or updating a journal."""
+
+    ticker: str = Field(min_length=1, max_length=12)
+    buffett: str | None = ""
+    bull: list[str] = Field(default_factory=list)
+    bear: list[str] = Field(default_factory=list)
+
+
+class JournalUpdate(BaseModel):
+    """Partial validated payload for updating a journal."""
+
+    buffett: str | None = None
+    bull: list[str] | None = None
+    bear: list[str] | None = None
+
+
+class TradeCreate(BaseModel):
+    """Validated payload for creating a journal trade."""
+
+    ticker: str = Field(min_length=1, max_length=12)
+    date: str = Field(min_length=1)
+    type: str = Field(min_length=1, max_length=20)
+    price: int = Field(ge=0)
+    stop_loss: int | None = Field(default=None, ge=0)
+    pnl: str | None = None
+    note: str | None = None
+
+
+class TradeUpdate(BaseModel):
+    """Partial validated payload for updating a journal trade."""
+
+    date: str | None = Field(default=None, min_length=1)
+    type: str | None = Field(default=None, min_length=1, max_length=20)
+    price: int | None = Field(default=None, ge=0)
+    stop_loss: int | None = Field(default=None, ge=0)
+    pnl: str | None = None
+    note: str | None = None
 
 
 PostLimit = Annotated[int, Query(ge=1, le=20)]
@@ -168,4 +223,139 @@ def delete_portfolio_holding(holding_id: int) -> Response:
     with get_session() as session:
         if not delete_holding(session, holding_id):
             raise HTTPException(status_code=404, detail="holding not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.post(
+    "/api/v1/stocks/watchlist",
+    status_code=status.HTTP_201_CREATED,
+    tags=["stocks"],
+    dependencies=[Depends(require_admin_token)],
+)
+def create_portfolio_watchlist_item(payload: WatchlistCreate) -> dict[str, Any]:
+    """Add a ticker to the portfolio watchlist."""
+    ticker = payload.ticker.strip().upper()
+    if not ticker:
+        raise HTTPException(status_code=422, detail="ticker must not be blank")
+
+    with get_session() as session:
+        if watchlist_exists(session, ticker):
+            raise HTTPException(status_code=409, detail="watchlist ticker already exists")
+        return {"watchlist_item": create_watchlist_item(session, ticker)}
+
+
+@app.delete(
+    "/api/v1/stocks/watchlist/{ticker}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["stocks"],
+    dependencies=[Depends(require_admin_token)],
+)
+def delete_portfolio_watchlist_item(ticker: str) -> Response:
+    """Remove a ticker from the portfolio watchlist."""
+    with get_session() as session:
+        if not delete_watchlist_item(session, ticker.strip().upper()):
+            raise HTTPException(status_code=404, detail="watchlist ticker not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.post(
+    "/api/v1/stocks/journals",
+    status_code=status.HTTP_201_CREATED,
+    tags=["stocks"],
+    dependencies=[Depends(require_admin_token)],
+)
+def create_stock_journal(payload: JournalUpsert) -> dict[str, Any]:
+    """Create a journal with thesis fields."""
+    values = payload.model_dump()
+    ticker = values.pop("ticker").strip().upper()
+    if not ticker:
+        raise HTTPException(status_code=422, detail="ticker must not be blank")
+
+    with get_session() as session:
+        if journal_exists(session, ticker):
+            raise HTTPException(status_code=409, detail="journal ticker already exists")
+        return {"journal": upsert_journal(session, ticker, values)}
+
+
+@app.patch(
+    "/api/v1/stocks/journals/{ticker}",
+    tags=["stocks"],
+    dependencies=[Depends(require_admin_token)],
+)
+def update_stock_journal(ticker: str, payload: JournalUpdate) -> dict[str, Any]:
+    """Update a journal's editable thesis fields."""
+    normalized_ticker = ticker.strip().upper()
+    changes = payload.model_dump(exclude_unset=True)
+
+    with get_session() as session:
+        if not journal_exists(session, normalized_ticker):
+            raise HTTPException(status_code=404, detail="journal not found")
+        return {"journal": upsert_journal(session, normalized_ticker, changes)}
+
+
+@app.delete(
+    "/api/v1/stocks/journals/{ticker}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["stocks"],
+    dependencies=[Depends(require_admin_token)],
+)
+def delete_stock_journal(ticker: str) -> Response:
+    """Delete a journal and its child rows."""
+    with get_session() as session:
+        if not delete_journal(session, ticker.strip().upper()):
+            raise HTTPException(status_code=404, detail="journal not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.post(
+    "/api/v1/stocks/trades",
+    status_code=status.HTTP_201_CREATED,
+    tags=["stocks"],
+    dependencies=[Depends(require_admin_token)],
+)
+def create_stock_trade(payload: TradeCreate) -> dict[str, Any]:
+    """Create a trade row for a ticker journal."""
+    values = payload.model_dump()
+    values["ticker"] = values["ticker"].strip().upper()
+    values["type"] = values["type"].strip().upper()
+    if not values["ticker"]:
+        raise HTTPException(status_code=422, detail="ticker must not be blank")
+    if not values["type"]:
+        raise HTTPException(status_code=422, detail="type must not be blank")
+
+    with get_session() as session:
+        return {"trade": create_trade(session, values)}
+
+
+@app.patch(
+    "/api/v1/stocks/trades/{trade_id}",
+    tags=["stocks"],
+    dependencies=[Depends(require_admin_token)],
+)
+def update_stock_trade(trade_id: int, payload: TradeUpdate) -> dict[str, Any]:
+    """Update selected fields on a trade row."""
+    changes = payload.model_dump(exclude_unset=True)
+    if "type" in changes and changes["type"] is not None:
+        changes["type"] = changes["type"].strip().upper()
+        if not changes["type"]:
+            raise HTTPException(status_code=422, detail="type must not be blank")
+
+    with get_session() as session:
+        updated = update_trade(session, trade_id, changes)
+        if updated is None:
+            raise HTTPException(status_code=404, detail="trade not found")
+        return {"trade": updated}
+
+
+@app.delete(
+    "/api/v1/stocks/trades/{trade_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["stocks"],
+    dependencies=[Depends(require_admin_token)],
+)
+def delete_stock_trade(trade_id: int) -> Response:
+    """Delete one trade row."""
+    with get_session() as session:
+        if not delete_trade(session, trade_id):
+            raise HTTPException(status_code=404, detail="trade not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)

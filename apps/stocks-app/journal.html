@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="assets/css/pages/journal.css">
+<script src="assets/js/config.js"></script>
 </head>
 <body>
 <nav>
@@ -60,6 +61,34 @@
 
 <script>
 let appData = null;
+const JOURNAL_API_BASE_URL = window.PRJ008_CONFIG.apiBaseUrl;
+
+async function fetchJson(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("HTTP " + response.status);
+  return response.json();
+}
+
+function normalizeApiData(portfolio, journals) {
+  const normalizedJournals = {};
+  for (const [ticker, journal] of Object.entries(journals)) {
+    normalizedJournals[ticker] = {
+      ...journal,
+      snapshots: (journal.snapshots || []).map(snapshot => ({
+        ...snapshot,
+        rec: snapshot.recommendation,
+        chg: snapshot.change_percent == null ? "" : `${snapshot.change_percent > 0 ? "+" : ""}${snapshot.change_percent}%`
+      })),
+      entryPlan: (journal.entry_plan || []).map(plan => ({
+        cond: plan.condition,
+        entry: plan.entry_text,
+        sl: plan.stop_loss_action,
+        target: plan.target_text
+      }))
+    };
+  }
+  return { updated: portfolio.updated, portfolio, journals: normalizedJournals };
+}
 
 // Normalize journal entry from data.json to the shape show() expects
 function normalize(ticker, data) {
@@ -67,7 +96,7 @@ function normalize(ticker, data) {
   const holdings = data.portfolio.holdings || [];
   const h = holdings.find(x => x.ticker === ticker);
   const pos = j.position || {};
-  const statusRaw = (pos['Trạng thái'] || pos['Trang thai'] || '').replace(/\s/g,' ');
+  const statusRaw = (pos.status || pos['Trạng thái'] || pos['Trang thai'] || '').replace(/\s/g,' ');
   const isHolding = statusRaw.includes('GIỮ') || statusRaw.includes('GIU') || !!h;
   const sector = (data.portfolio.watchlist||[]).includes(ticker)
     ? (j.buffett || '').split('—')[0] : '';
@@ -79,7 +108,7 @@ function normalize(ticker, data) {
     sector:     sector.trim(),
     status:     statusRaw || (isHolding ? 'ĐANG GIỮ' : 'THEO DÕI'),
     statusClass: isHolding ? 'badge-hold' : 'badge-watch',
-    qty:        h ? parseInt((pos['Số lượng']||'').replace(/\D/g,'')) || h.quantity : null,
+    qty:        h ? Number(pos.quantity) || parseInt((pos['Số lượng']||'').replace(/\D/g,'')) || h.quantity : null,
     cost:       h ? h.avg_cost : null,
     capital:    h ? h.avg_cost * (parseInt((pos['Số lượng']||'').replace(/\D/g,''))||h.quantity) : null,
     entryDate:  h ? h.entry_date : null,
@@ -214,8 +243,15 @@ function renderMain(d) {
 }
 
 function loadData() {
-  fetch('./data/data.json?t=' + Date.now())
-    .then(r => r.json())
+  Promise.all([
+    fetchJson(JOURNAL_API_BASE_URL + "/api/v1/stocks/portfolio"),
+    fetchJson(JOURNAL_API_BASE_URL + "/api/v1/stocks/journals")
+  ])
+    .then(([portfolio, journals]) => normalizeApiData(portfolio, journals))
+    .catch(apiError => {
+      console.warn("FastAPI unavailable, using data.json fallback:", apiError);
+      return fetchJson('./data/data.json?t=' + Date.now());
+    })
     .then(data => {
       appData = data;
       buildSidebar(data);
@@ -227,7 +263,7 @@ function loadData() {
     })
     .catch(e => {
       document.getElementById('main-content').innerHTML =
-        `<div class="empty"><div class="em-icon">⚠️</div><div class="em-text">Không load được data.json<br><small>${e}</small></div></div>`;
+        `<div class="empty"><div class="em-icon">⚠️</div><div class="em-text">Không load được dữ liệu<br><small>${e}</small></div></div>`;
     });
 }
 
