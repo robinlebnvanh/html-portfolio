@@ -1,32 +1,38 @@
 [
   {
     "id": 1,
+    "number": "01",
     "name": "Investment Dashboard",
-    "desc": "Dashboard theo dõi danh mục đầu tư chứng khoán VN cá nhân. Phân tích kỹ thuật, journal, watchlist.",
-    "tech": ["HTML", "CSS", "JavaScript", "Python"],
+    "desc": "A personal operating system for a Vietnamese equities portfolio, bringing analysis, journaling and watchlists into one deliberate workspace.",
+    "tech": ["JavaScript", "Python", "Data visualisation"],
     "category": "frontend",
     "link": "../stocks-app/",
     "github": "https://github.com/robinlebnvanh",
-    "date": "2026-06"
+    "date": "2026",
+    "visual": "dashboard"
   },
   {
     "id": 2,
-    "name": "AI Agent Personal",
-    "desc": "Xây dựng AI agents cá nhân bằng OpenClaw. Tự động hóa công việc hàng ngày.",
-    "tech": ["Python", "OpenClaw", "AI"],
+    "number": "02",
+    "name": "Personal AI Agent",
+    "desc": "A private assistant designed around real routines, connecting information, recurring tasks and context-aware workflows.",
+    "tech": ["Python", "OpenClaw", "Automation"],
     "category": "tool",
     "link": "#",
     "github": "https://github.com/robinlebnvanh",
-    "date": "2026-07"
+    "date": "2026",
+    "visual": "agent"
   },
   {
     "id": 3,
-    "name": "Nail Salon Website",
-    "desc": "Website giới thiệu dịch vụ làm móng, đặt lịch hẹn và quản lý khách hàng cho tiệm nail.",
+    "number": "03",
+    "name": "Fame Lux Nails & Beauty",
+    "desc": "A refined UK-market nail atelier site, balancing an editorial visual language with a considered booking journey.",
     "tech": ["HTML", "CSS", "JavaScript"],
     "category": "frontend",
     "link": "../nail-landing-page/",
     "github": "https://github.com/robinlebnvanh",
-    "date": "2026-08"
+    "date": "2026",
+    "visual": "atelier"
   }
 ]

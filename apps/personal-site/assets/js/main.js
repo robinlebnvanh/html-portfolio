@@ -1,139 +1,122 @@
-// ===== 1. FETCH + RENDER PROJECTS =====
 let allProjects = [];
 
-fetch('./data/projects.json')
-  .then(res => res.json())
-  .then(projects => {
-    allProjects = projects;
-    renderProjects('all');
-  })
-  .catch(() => {
-    document.getElementById('projects-grid').innerHTML =
-      '<p style="color:var(--muted)">Chưa có dự án nào.</p>';
-  });
+const projectGrid = document.getElementById('projects-grid');
+const skillsList = document.getElementById('skills-list');
+const themeToggle = document.getElementById('theme-toggle');
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[char]);
+}
 
 function renderProjects(filter) {
-  const filtered = filter === 'all'
-    ? allProjects
-    : allProjects.filter(p => p.category === filter);
+  const filtered = filter === 'all' ? allProjects : allProjects.filter(project => project.category === filter);
 
-  const grid = document.getElementById('projects-grid');
-  if (filtered.length === 0) {
-    grid.innerHTML = '<p style="color:var(--muted)">Không có dự án nào.</p>';
+  if (!filtered.length) {
+    projectGrid.innerHTML = '<p class="empty-state">No projects in this category yet.</p>';
     return;
   }
-  grid.innerHTML = filtered.map((p, i) => `
-    <div class="card reveal" style="transition-delay:${i * 0.1}s">
-      <h3>${p.name}</h3>
-      <p>${p.desc}</p>
-      <div class="tags">
-        ${p.tech.map(t => `<span class="tag">${t}</span>`).join('')}
-      </div>
-      <a href="${p.link || '#'}" target="_blank">Xem dự án →</a>
-    </div>
+
+  projectGrid.innerHTML = filtered.map((project, index) => `
+    <article class="project-card reveal" style="transition-delay: ${index * 90}ms">
+      <div class="project-visual ${escapeHtml(project.visual || 'dashboard')}" aria-hidden="true"></div>
+      <div class="card-meta"><span>${escapeHtml(project.number)}</span><span>${escapeHtml(project.date)}</span></div>
+      <h3>${escapeHtml(project.name)}</h3>
+      <p>${escapeHtml(project.desc)}</p>
+      <div class="tags">${project.tech.map(tech => `<span class="tag">${escapeHtml(tech)}</span>`).join('')}</div>
+      <a class="project-link" href="${escapeHtml(project.link || '#')}" target="_blank" rel="noreferrer">View project <span aria-hidden="true">↗</span></a>
+    </article>
   `).join('');
-  // Đợi 1 tick để DOM cập nhật xong rồi mới observe
-  setTimeout(initReveal, 50);
+
+  requestAnimationFrame(initReveal);
 }
 
+async function loadContent() {
+  try {
+    const [projectsResponse, aboutResponse] = await Promise.all([
+      fetch('./data/projects.json'),
+      fetch('./data/about.json')
+    ]);
 
-// ===== 2. FETCH + RENDER SKILLS =====
-fetch('./data/about.json')
-  .then(res => res.json())
-  .then(about => {
-    const skillsList = document.getElementById('skills-list');
-    if (!skillsList) return;
-    skillsList.innerHTML = about.skills.map(s => `
-      <div class="skill-item">
-        <div class="skill-label">
-          <span>${s.name}</span>
-          <span>${s.level}%</span>
-        </div>
-        <div class="skill-bar">
-          <div class="skill-fill" style="width: ${s.level}%"></div>
-        </div>
-      </div>
+    if (!projectsResponse.ok || !aboutResponse.ok) throw new Error('Content could not be loaded.');
+
+    allProjects = await projectsResponse.json();
+    const about = await aboutResponse.json();
+    skillsList.innerHTML = about.skills.map(skill => `
+      <li class="skill-item"><span>${escapeHtml(skill.name)}</span><span class="skill-level">${escapeHtml(skill.level)}%</span></li>
     `).join('');
-  })
-  .catch(() => {});
-
-
-// ===== 3. DARK MODE =====
-if (localStorage.getItem('theme') === 'light') {
-  document.body.classList.add('light');
+    renderProjects('all');
+  } catch (error) {
+    projectGrid.innerHTML = '<p class="empty-state">Selected work is temporarily unavailable.</p>';
+  }
 }
 
-document.getElementById('theme-toggle').addEventListener('click', () => {
-  document.body.classList.toggle('light');
-  const isLight = document.body.classList.contains('light');
-  localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  document.getElementById('theme-toggle').textContent = isLight ? '☀️' : '🌙';
-});
-
-
-// ===== 4. FILTER =====
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderProjects(btn.dataset.filter);
-  });
-});
-
-
-// ===== SCROLL ANIMATIONS =====
-const revealObserver = new IntersectionObserver((entries) => {
+const revealObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       entry.target.classList.add('visible');
-      revealObserver.unobserve(entry.target); // Unobserve sau khi đã hiện
+      revealObserver.unobserve(entry.target);
     }
   });
-}, { threshold: 0.1 });
+}, { threshold: 0.12 });
 
 function initReveal() {
-  document.querySelectorAll('.reveal').forEach(el => {
-    // Nếu element đã trong viewport → hiện luôn, không cần observe
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight) {
-      el.classList.add('visible');
+  document.querySelectorAll('.reveal:not(.visible)').forEach(element => {
+    if (element.getBoundingClientRect().top < window.innerHeight * .95) {
+      element.classList.add('visible');
     } else {
-      revealObserver.observe(el);
+      revealObserver.observe(element);
     }
   });
 }
 
-// Gọi khi DOM load xong (cho h2 và các element tĩnh)
-document.addEventListener('DOMContentLoaded', initReveal);
+function updateThemeLabel() {
+  const isDark = document.body.classList.contains('dark');
+  themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+  themeToggle.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+}
 
-// ===== CONTACT FORM =====
+if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+updateThemeLabel();
+themeToggle.addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  updateThemeLabel();
+});
+
+document.querySelectorAll('.filter-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(item => item.classList.remove('active'));
+    button.classList.add('active');
+    renderProjects(button.dataset.filter);
+  });
+});
+
 const contactForm = document.getElementById('contact-form');
-if (contactForm) {
-  contactForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const status = document.getElementById('form-status');
-    const btn = contactForm.querySelector('button[type=submit]');
+contactForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const status = document.getElementById('form-status');
+  const button = contactForm.querySelector('button[type="submit"]');
+  button.disabled = true;
+  button.innerHTML = 'Sending <span aria-hidden="true">…</span>';
 
-    btn.textContent = 'Đang gửi...';
-    btn.disabled = true;
-
-    const res = await fetch('https://formspree.io/f/maqzgroj', {  // ← đổi endpoint
+  try {
+    const response = await fetch('https://formspree.io/f/maqzgroj', {
       method: 'POST',
       body: new FormData(contactForm),
-      headers: { 'Accept': 'application/json' }
+      headers: { Accept: 'application/json' }
     });
+    if (!response.ok) throw new Error('Form submission failed.');
+    status.textContent = 'Thank you. I will get back to you shortly.';
+    contactForm.reset();
+  } catch (error) {
+    status.textContent = 'Something went wrong. Please email me directly instead.';
+  } finally {
+    button.disabled = false;
+    button.innerHTML = 'Send enquiry <span aria-hidden="true">↗</span>';
+  }
+});
 
-    if (res.ok) {
-      status.textContent = '✅ Gửi thành công! Mình sẽ reply sớm.';
-      status.style.color = '#34d399';
-      contactForm.reset();
-    } else {
-      status.textContent = '❌ Lỗi — thử lại sau nhé.';
-      status.style.color = '#f87171';
-    }
-
-    status.style.display = 'block';
-    btn.textContent = 'Gửi →';
-    btn.disabled = false;
-  });
-}
+document.addEventListener('DOMContentLoaded', initReveal);
+loadContent();
