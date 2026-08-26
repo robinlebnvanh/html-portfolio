@@ -28,7 +28,7 @@
     <div class="admin-heading">
       <div>
         <div id="admin-title" class="section-title">🔐 Admin — Quản lý holdings</div>
-        <p class="admin-help">Dữ liệu được ghi vào SQLite qua FastAPI. Token chỉ giữ trong tab hiện tại.</p>
+        <p class="admin-help">Dữ liệu được ghi vào Neon PostgreSQL qua FastAPI. Token chỉ giữ trong tab hiện tại.</p>
       </div>
       <span id="admin-status" class="admin-status" role="status" aria-live="polite">Chưa kết nối</span>
     </div>
@@ -340,7 +340,7 @@ function renderAdminHoldings(holdings){
 }
 
 async function loadAdminHoldings(){
-  try { adminMessage("Đang tải...", "loading"); const data=await adminRequest("/api/v1/stocks/portfolio"); renderAdminHoldings(data.holdings||[]); adminMessage("✓ Đã tải từ FastAPI / SQLite", "success"); }
+  try { adminMessage("Đang tải...", "loading"); const data=await adminRequest("/api/v1/stocks/portfolio"); renderAdminHoldings(data.holdings||[]); adminMessage("✓ Đã tải từ FastAPI / Neon PostgreSQL", "success"); }
   catch(error){ adminMessage("✕ "+error.message, "error"); }
 }
 
