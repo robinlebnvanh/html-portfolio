@@ -137,9 +137,69 @@ Returns published posts with pagination:
 
 Returns one published post with full `content`. Unknown slugs return `404`.
 
+### Admin blog endpoints
+
+Blog management uses the same admin Bearer token as the stocks Admin UI. These
+endpoints read and write the `blog_posts` database table.
+
+#### GET `/api/v1/admin/blog/posts`
+
+Returns draft and published posts for the admin UI. Optional
+`status_filter=all|draft|published` narrows the result. The response includes
+full `content` and `status`:
+
+```json
+{
+  "posts": [
+    {
+      "id": 1,
+      "slug": "backend-blog-api",
+      "title": "Building a backend-powered blog",
+      "summary": "Why this portfolio stores blog posts in SQLite and serves them through FastAPI.",
+      "content": "Full article content",
+      "category": "backend",
+      "tags": ["FastAPI", "SQLite", "Portfolio"],
+      "status": "published",
+      "published_at": "2026-08-05",
+      "updated_at": "2026-08-27 10:00:00"
+    }
+  ],
+  "total": 1
+}
+```
+
+#### POST `/api/v1/admin/blog/posts`
+
+Creates a post and returns HTTP `201`.
+
+```json
+{
+  "slug": "database-backed-blog",
+  "title": "Building a database-backed blog",
+  "summary": "How the portfolio blog is managed through FastAPI and PostgreSQL.",
+  "content": "Full post content",
+  "category": "backend",
+  "tags": ["FastAPI", "PostgreSQL"],
+  "status": "draft",
+  "published_at": null
+}
+```
+
+Duplicate slugs return `409`. Publishing without `published_at` sets today's
+date.
+
+#### PATCH `/api/v1/admin/blog/posts/{post_id}`
+
+Updates any supplied post fields and returns the updated post. Unknown IDs
+return `404`; duplicate slugs return `409`.
+
+#### DELETE `/api/v1/admin/blog/posts/{post_id}`
+
+Deletes one post. It returns `204` on success and `404` for an unknown ID.
+
 ## Authentication (L3-07)
 
-The read endpoints and `/health` are public. All holdings write endpoints
+The read endpoints and `/health` are public. All admin/write endpoints
 require an `Authorization` header using the Bearer scheme:
 
 ```text

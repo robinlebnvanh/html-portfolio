@@ -10,9 +10,14 @@ from pathlib import Path
 from sqlalchemy import insert
 
 from app.blog_repository import (
+    blog_slug_exists,
+    create_blog_post,
+    delete_blog_post,
     get_published_post,
+    list_admin_posts,
     list_published_posts,
     seed_default_blog_posts,
+    update_blog_post,
 )
 from app.database import initialize_database
 from app.sqlalchemy_database import get_engine, get_session, get_session_factory
@@ -83,6 +88,52 @@ class BlogRepositoryTests(unittest.TestCase):
         self.assertEqual(post["content"], "Full content")
         self.assertEqual(post["tags"], ["FastAPI"])
         self.assertIsNone(get_published_post(self.session, "draft-post"))
+
+    def test_admin_crud_manages_database_posts(self) -> None:
+        created = create_blog_post(
+            self.session,
+            {
+                "slug": "admin-draft",
+                "title": "Admin draft",
+                "summary": "Managed through the admin API",
+                "content": "Draft content",
+                "category": "backend",
+                "tags": ["FastAPI", "CRUD"],
+                "status": "draft",
+                "published_at": None,
+            },
+        )
+
+        self.assertEqual(created["status"], "draft")
+        self.assertEqual(created["tags"], ["FastAPI", "CRUD"])
+        self.assertTrue(blog_slug_exists(self.session, "admin-draft"))
+        self.assertEqual(list_admin_posts(self.session)["total"], 1)
+        self.assertEqual(list_published_posts(self.session, limit=4, offset=0)["total"], 0)
+
+        updated = update_blog_post(
+            self.session,
+            created["id"],
+            {
+                "slug": "admin-published",
+                "title": "Admin published",
+                "summary": "Visible after publishing",
+                "content": "Published content",
+                "category": "portfolio",
+                "tags": ["PostgreSQL"],
+                "status": "published",
+                "published_at": "2026-08-27",
+            },
+        )
+
+        self.assertIsNotNone(updated)
+        self.assertEqual(updated["slug"], "admin-published")
+        self.assertEqual(updated["status"], "published")
+        self.assertEqual(updated["tags"], ["PostgreSQL"])
+        self.assertEqual(list_published_posts(self.session, limit=4, offset=0)["total"], 1)
+
+        self.assertTrue(delete_blog_post(self.session, created["id"]))
+        self.assertFalse(delete_blog_post(self.session, created["id"]))
+        self.assertEqual(list_admin_posts(self.session)["total"], 0)
 
 
 if __name__ == "__main__":

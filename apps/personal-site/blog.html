@@ -1,46 +1,145 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blog — Robin Le</title>
+  <meta name="description" content="Robin Log is a database-backed blog about building full-stack products, automation, deployment, and portfolio-grade software.">
+  <meta property="og:title" content="Robin Log | Database-backed Blog">
+  <meta property="og:description" content="Notes and case logs from Robin Le's product studio, served from FastAPI and PostgreSQL.">
+  <meta property="og:type" content="website">
+  <title>Robin Log | Database-backed Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
   <script src="assets/js/config.js"></script>
 </head>
 <body>
-
-  <header>
-    <nav>
-      <a class="logo" href="index.html">Robin Le</a>
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="Primary navigation">
+      <a class="brand" href="index.html" aria-label="Robin Le home">Robin <span>Le</span></a>
       <ul class="nav-links">
         <li><a href="index.html#about">About</a></li>
-        <li><a href="index.html#projects">Projects</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="index.html#contact">Contact</a></li>
+        <li><a href="index.html#studio">Studio</a></li>
+        <li><a href="index.html#projects">Work</a></li>
+        <li><a href="blog.html">Notes</a></li>
       </ul>
-      <button id="theme-toggle">🌙</button>
+      <div class="nav-actions">
+        <a class="nav-contact" href="index.html#contact">Start a project <span aria-hidden="true">↗</span></a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch colour theme"><span aria-hidden="true">◐</span></button>
+      </div>
     </nav>
   </header>
 
-  <main>
-    <section class="page-hero">
-      <p class="eyebrow">Robin Log</p>
-      <h1>Blog</h1>
-      <p class="tagline">Ghi lại quá trình học, build và deploy các project web.</p>
+  <main class="blog-main">
+    <section class="blog-hero page-shell" aria-labelledby="blog-title">
+      <p class="eyebrow">Robin Log / Database-backed blog</p>
+      <h1 id="blog-title">Field notes from building practical web products.</h1>
+      <p>Build logs, architecture decisions, deployment notes, and product lessons served from FastAPI and the `blog_posts` database table.</p>
+      <div class="blog-hero-actions">
+        <a class="button button-primary" href="#latest-posts">Read latest posts <span aria-hidden="true">↓</span></a>
+        <button class="text-link blog-admin-toggle" id="blog-admin-toggle" type="button">Admin tools <span aria-hidden="true">↗</span></button>
+      </div>
     </section>
 
-    <section class="blog-section">
-      <div class="section-header">
-        <h2>Latest Posts</h2>
-        <p id="blog-status" class="data-status" role="status" aria-live="polite">Đang tải bài viết...</p>
+    <section class="blog-proof" aria-label="Blog system proof points">
+      <div class="page-shell blog-proof-grid">
+        <div><span>Storage</span><strong>Database-owned posts</strong></div>
+        <div><span>API</span><strong>FastAPI public read + admin CRUD</strong></div>
+        <div><span>Workflow</span><strong>Draft, publish, edit, delete</strong></div>
       </div>
-      <div class="projects-grid" id="blog-posts"></div>
-      <button class="btn blog-load-button" id="load-more-posts" type="button">Load more</button>
+    </section>
+
+    <section id="blog-admin-panel" class="blog-admin-panel page-shell" hidden aria-labelledby="blog-admin-title">
+      <div class="section-kicker"><span>Admin</span><span>Blog management</span></div>
+      <div class="blog-admin-layout">
+        <div>
+          <h2 id="blog-admin-title">Manage posts from the database.</h2>
+          <p class="blog-muted">Use the same `ADMIN_API_TOKEN` as the stocks admin UI. The token stays in this browser session and is sent only as a Bearer header.</p>
+          <div class="admin-token-row">
+            <label class="form-group">
+              <span>Admin API token</span>
+              <input id="blog-admin-token" type="password" autocomplete="off" placeholder="Paste token for this session">
+            </label>
+            <button class="button button-primary" id="blog-admin-load" type="button">Load posts</button>
+          </div>
+          <p id="blog-admin-status" class="form-status" role="status" aria-live="polite"></p>
+          <div id="blog-admin-list" class="blog-admin-list"></div>
+        </div>
+
+        <form id="blog-editor-form" class="blog-editor-form">
+          <input id="blog-post-id" type="hidden">
+          <div class="editor-grid">
+            <label class="form-group">
+              <span>Slug</span>
+              <input id="blog-slug" type="text" placeholder="database-backed-blog" required>
+            </label>
+            <label class="form-group">
+              <span>Status</span>
+              <select id="blog-status-field">
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </label>
+          </div>
+          <label class="form-group">
+            <span>Title</span>
+            <input id="blog-title-field" type="text" placeholder="What the post teaches" required>
+          </label>
+          <label class="form-group">
+            <span>Summary</span>
+            <textarea id="blog-summary" rows="3" placeholder="Short reader-facing summary" required></textarea>
+          </label>
+          <div class="editor-grid">
+            <label class="form-group">
+              <span>Category</span>
+              <input id="blog-category" type="text" placeholder="backend" required>
+            </label>
+            <label class="form-group">
+              <span>Published date</span>
+              <input id="blog-published-at" type="date">
+            </label>
+          </div>
+          <label class="form-group">
+            <span>Tags</span>
+            <input id="blog-tags" type="text" placeholder="FastAPI, PostgreSQL, Portfolio">
+          </label>
+          <label class="form-group">
+            <span>Content</span>
+            <textarea id="blog-content" rows="10" placeholder="Write the post content. Separate paragraphs with blank lines." required></textarea>
+          </label>
+          <div class="editor-actions">
+            <button class="button button-light" type="submit">Save post <span aria-hidden="true">↗</span></button>
+            <button class="text-link" id="blog-editor-reset" type="button">New draft</button>
+            <button class="text-link danger-link" id="blog-delete-post" type="button" hidden>Delete</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="latest-posts" class="blog-section page-shell" aria-labelledby="latest-posts-title">
+      <div class="section-kicker"><span>Latest</span><span>Published posts</span></div>
+      <div class="blog-section-heading">
+        <h2 id="latest-posts-title">Published notes</h2>
+        <p id="blog-status" class="data-status" role="status" aria-live="polite">Loading posts...</p>
+      </div>
+      <div class="blog-layout">
+        <div>
+          <div class="blog-posts-grid" id="blog-posts"></div>
+          <button class="button blog-load-button" id="load-more-posts" type="button">Load more</button>
+        </div>
+        <article id="blog-reader" class="blog-reader" aria-live="polite">
+          <p class="mono-label">Reader</p>
+          <h3>Select a post</h3>
+          <p>Choose a published note to read the full database-backed article here.</p>
+        </article>
+      </div>
     </section>
   </main>
 
-  <footer>
-    <p>© 2026 Robin Le · Built with HTML/CSS/JS</p>
+  <footer class="site-footer page-shell">
+    <p>© 2026 Robin Le</p>
+    <a href="index.html#projects">Back to work <span aria-hidden="true">↑</span></a>
   </footer>
 
   <script src="assets/js/blog.js"></script>
