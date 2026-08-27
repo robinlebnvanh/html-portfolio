@@ -1,0 +1,138 @@
+{
+  "business": {
+    "name": "Maison Vow",
+    "meta": "Wedding planning",
+    "pageTitle": "Maison Vow | Wedding Planner Demo",
+    "storageKey": "wedding-planner-demo-leads",
+    "successMessage": "Proposal inquiry saved to the lead workflow.",
+    "source": "wedding-planner-demo",
+    "kicker": "Planning / Vendors / Timeline",
+    "title": "Calm wedding planning for couples who want the day to feel effortless.",
+    "intro": "A planner website demo for clear packages, vendor coordination, proposal inquiries, and a practical path toward admin-managed client pipelines.",
+    "heroImage": "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1800&q=84",
+    "positioningTitle": "A structured planning path without making the couple manage the project.",
+    "positioningCopy": "Couples need clarity, timing, vendor confidence, and a calm decision process. This demo frames the planner as the operator who turns ideas into a managed wedding workflow.",
+    "bookingCopy": "The first inquiry captures the date, venue status, guest count, planning package, budget range, and where the couple needs the most support."
+  },
+  "audiences": [
+    "Busy engaged couples",
+    "Destination wedding clients",
+    "Families coordinating vendors",
+    "Couples needing wedding-week support"
+  ],
+  "proof": [
+    {
+      "value": "12 mo",
+      "label": "Planning timeline"
+    },
+    {
+      "value": "20+",
+      "label": "Vendor touchpoints"
+    },
+    {
+      "value": "Local",
+      "label": "Proposal inquiry demo"
+    }
+  ],
+  "services": [
+    {
+      "name": "Wedding Week Control",
+      "price": "From $1,200",
+      "summary": "Final-month coordination for couples who planned the details but need a calm operator to run the wedding week.",
+      "features": [
+        "Final timeline and checklist audit",
+        "Vendor confirmation and run sheet",
+        "Rehearsal and wedding-day coordination",
+        "Emergency contact and issue log"
+      ]
+    },
+    {
+      "name": "Partial Planning",
+      "price": "From $3,400",
+      "summary": "Focused support for couples who have a venue or concept but need help with vendors, budget, and execution.",
+      "features": [
+        "Planning roadmap and budget review",
+        "Vendor shortlist and coordination",
+        "Monthly planning check-ins",
+        "Wedding-week command centre"
+      ]
+    },
+    {
+      "name": "Full-Service Planning",
+      "price": "From $6,800",
+      "summary": "End-to-end planning for couples who want the creative direction, vendor management, timeline, and guest experience handled.",
+      "features": [
+        "Concept and guest experience design",
+        "Budget, vendor, and contract tracking",
+        "Production timeline and family logistics",
+        "Wedding-day team coordination"
+      ]
+    }
+  ],
+  "process": [
+    {
+      "step": "01",
+      "title": "Map the current planning state",
+      "body": "The inquiry captures date, venue, guest count, booked vendors, budget range, and the decisions creating the most pressure."
+    },
+    {
+      "step": "02",
+      "title": "Build the planning command centre",
+      "body": "The planner converts loose details into a timeline, vendor tracker, budget view, responsibilities, and follow-up schedule."
+    },
+    {
+      "step": "03",
+      "title": "Run the wedding week",
+      "body": "The workflow can later expand into proposal status, task checklists, vendor notes, reminders, and event-day issue tracking."
+    }
+  ],
+  "testimonials": [
+    {
+      "quote": "We stopped feeling like project managers and started enjoying the wedding again.",
+      "name": "Planning couple",
+      "context": "Partial planning"
+    },
+    {
+      "quote": "Every vendor knew where to be, when to arrive, and who to call. The day felt calm.",
+      "name": "Bride and groom",
+      "context": "Wedding week control"
+    },
+    {
+      "quote": "The proposal made the scope clear before we committed. That built trust quickly.",
+      "name": "Destination client",
+      "context": "Full-service planning inquiry"
+    }
+  ],
+  "gallery": [
+    {
+      "title": "Ceremony planning",
+      "image": "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Table design direction",
+      "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Vendor coordination",
+      "image": "https://images.unsplash.com/photo-1505236858219-8359eb29e329?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Wedding-week details",
+      "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc9?auto=format&fit=crop&w=900&q=82"
+    }
+  ],
+  "faq": [
+    {
+      "question": "What should couples prepare before the first call?",
+      "answer": "Share the date, city, guest count, venue status, rough budget, and the planning decisions that feel most unclear."
+    },
+    {
+      "question": "Is wedding-week coordination enough?",
+      "answer": "It works when the couple has already booked most vendors and needs execution support. Partial or full planning is better when vendor selection, budget, or design direction is still open."
+    },
+    {
+      "question": "Can this become a real planner CRM?",
+      "answer": "Yes. P2-11 can move proposal inquiries into FastAPI/PostgreSQL, then Admin Console can manage statuses, notes, vendor touchpoints, and follow-up."
+    }
+  ]
+}

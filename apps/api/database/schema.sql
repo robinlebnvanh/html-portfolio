@@ -141,3 +141,18 @@ CREATE TABLE IF NOT EXISTS portfolio_content (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS service_leads (
+    id INTEGER PRIMARY KEY,
+    source TEXT NOT NULL,
+    business_name TEXT NOT NULL,
+    customer_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    preferred_date TEXT NOT NULL,
+    package_name TEXT NOT NULL,
+    message TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'proposal_sent', 'booked', 'closed')),
+    admin_note TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

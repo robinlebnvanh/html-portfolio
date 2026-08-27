@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Case study: Service Business Website Kit, a reusable website and inquiry workflow foundation for studios, salons, planners, and service operators.">
+  <title>Service Business Website Kit Case Study | Robin Le</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="Case study navigation">
+      <a class="brand" href="../index.html" aria-label="Robin Le home">Robin <span>Le</span></a>
+      <ul class="nav-links">
+        <li><a href="../index.html#projects">Work</a></li>
+        <li><a href="../index.html#studio">Studio</a></li>
+        <li><a href="../blog.html">Notes</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a class="nav-contact" href="../index.html#contact">Start a project <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="case-main">
+    <section class="case-hero page-shell" aria-labelledby="case-title">
+      <p class="eyebrow">Case study / Productized service foundation</p>
+      <h1 id="case-title">Service Business Website Kit</h1>
+      <p>A reusable website structure for appointment-based service businesses that need clear packages, visual proof, qualified inquiries, and a path toward admin-managed leads.</p>
+      <div class="case-links">
+        <a class="button button-primary" href="../../service-business-kit/">Open live kit <span aria-hidden="true">↗</span></a>
+        <a class="text-link" href="https://github.com/robinlebnvanh/html-portfolio" target="_blank" rel="noreferrer">View source <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="case-summary page-shell" aria-label="Project summary">
+      <div><span>Audience</span><strong>Studios, salons, planners, and local experts</strong></div>
+      <div><span>Role</span><strong>Product strategy, UX system, frontend build</strong></div>
+      <div><span>Stack</span><strong>HTML, CSS, JavaScript, JSON data</strong></div>
+      <div><span>Status</span><strong>Reusable static kit with local lead capture</strong></div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>01</span><span>Problem</span></div>
+      <div class="case-grid">
+        <h2>Service businesses often need the same core website before they need custom software.</h2>
+        <p>Photography studios, wedding planners, beauty salons, and appointment-led experts all need a polished offer, trust signals, package clarity, and a qualified inquiry path. Building each site from scratch would waste time and make future delivery harder to support.</p>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>02</span><span>Solution</span></div>
+      <div class="case-grid">
+        <h2>A data-driven static kit that separates content from layout.</h2>
+        <div>
+          <ul class="case-list">
+            <li>Core page structure covers hero, services, process, proof, gallery, booking inquiry, and FAQ.</li>
+            <li>Business content lives in `data/site.json`, so a new niche can reuse the layout with different copy and imagery.</li>
+            <li>The inquiry form stores local demo leads now and can later connect to FastAPI and PostgreSQL.</li>
+            <li>The design is intentionally service-business oriented instead of generic portfolio or SaaS styling.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>03</span><span>Reusable modules</span></div>
+      <div class="case-metrics">
+        <article class="case-metric"><span>01</span><p>Package cards support price, summary, features, and direct inquiry CTA.</p></article>
+        <article class="case-metric"><span>02</span><p>Proof sections combine buyer reassurance, workflow clarity, testimonials, and gallery context.</p></article>
+        <article class="case-metric"><span>03</span><p>Lead capture creates the next backend target without adding payment or calendar complexity too early.</p></article>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>04</span><span>Trade-offs</span></div>
+      <div class="case-grid">
+        <h2>The first version proves reuse and UX before backend persistence.</h2>
+        <p>The local inquiry flow is useful for demo evidence, but it is not production storage. The next product step should add FastAPI lead persistence, Admin Console lead review, status updates, and export/backup before any payment integration.</p>
+      </div>
+    </section>
+
+    <section class="case-section case-next page-shell">
+      <div class="section-kicker"><span>05</span><span>Commercial step</span></div>
+      <div class="case-grid">
+        <h2>Use this as the base for Photography Studio and Wedding Planner demos.</h2>
+        <p>The kit creates a repeatable offer: launch a premium service website first, then upsell booking workflow, lead management, proposal support, reminders, and reporting through the existing Admin Console direction.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer page-shell">
+    <a href="fame-lux-nails.html">Previous case study <span aria-hidden="true">←</span></a>
+    <a href="../index.html#projects">Back to selected work <span aria-hidden="true">↑</span></a>
+  </footer>
+</body>
+</html>

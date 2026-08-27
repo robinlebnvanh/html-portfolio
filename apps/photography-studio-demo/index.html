@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vow & Bloom Studio is a photography studio demo for wedding, newborn, maternity, and family booking inquiries.">
+  <meta property="og:title" content="Vow &amp; Bloom Studio | Photography Demo">
+  <meta property="og:description" content="A photography studio demo built from the reusable Service Business Website Kit.">
+  <meta property="og:type" content="website">
+  <title>Vow &amp; Bloom Studio | Photography Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../service-business-kit/assets/css/style.css">
+  <script src="../service-business-kit/assets/js/config.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="Home">
+        <span id="brand-name">Vow &amp; Bloom</span>
+        <small id="brand-meta">Photography studio</small>
+      </a>
+      <button id="menu-toggle" class="icon-button menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
+        <span></span>
+        <span></span>
+      </button>
+      <div id="nav-links" class="nav-links">
+        <a href="#services">Sessions</a>
+        <a href="#proof">Process</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#booking">Booking</a>
+      </div>
+      <a class="nav-cta" href="#booking">Check availability</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div id="hero-image" class="hero-media" role="img"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content page-shell">
+        <p id="hero-kicker" class="kicker">Wedding / Baby / Maternity</p>
+        <h1 id="hero-title">Warm documentary photography for once-in-a-lifetime seasons.</h1>
+        <p id="hero-intro" class="hero-intro">A booking-ready studio website demo for emotional galleries, clear packages, and qualified session inquiries.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#booking">Request a session</a>
+          <a class="button button-secondary" href="#services">View packages</a>
+        </div>
+      </div>
+      <div id="proof-strip" class="proof-strip page-shell" aria-label="Proof points"></div>
+    </section>
+
+    <section class="section intro-section" aria-labelledby="intro-title">
+      <div class="page-shell intro-grid">
+        <div>
+          <p class="section-label">Studio promise</p>
+          <h2 id="intro-title">Soft direction, real emotion, and a calmer booking path.</h2>
+        </div>
+        <div class="intro-copy">
+          <p id="intro-copy">Families and couples need to trust the photographer before they share an important day. This demo makes the offer clear, shows the mood quickly, and captures the right inquiry details.</p>
+          <div id="audience-list" class="audience-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="section muted-section" aria-labelledby="services-title">
+      <div class="page-shell">
+        <div class="section-head">
+          <p class="section-label">Collections</p>
+          <h2 id="services-title">Session packages built for clear decisions.</h2>
+        </div>
+        <div id="services-grid" class="services-grid"></div>
+      </div>
+    </section>
+
+    <section id="proof" class="section" aria-labelledby="process-title">
+      <div class="page-shell split-section">
+        <div>
+          <p class="section-label">Experience</p>
+          <h2 id="process-title">A simple journey from inquiry to delivered gallery.</h2>
+        </div>
+        <div id="process-list" class="process-list"></div>
+      </div>
+    </section>
+
+    <section class="section testimonials-section" aria-labelledby="testimonials-title">
+      <div class="page-shell">
+        <div class="section-head">
+          <p class="section-label">Client notes</p>
+          <h2 id="testimonials-title">Reassurance for people booking emotional work.</h2>
+        </div>
+        <div id="testimonials-grid" class="testimonials-grid"></div>
+      </div>
+    </section>
+
+    <section id="gallery" class="section gallery-section" aria-labelledby="gallery-title">
+      <div class="page-shell">
+        <div class="section-head">
+          <p class="section-label">Portfolio</p>
+          <h2 id="gallery-title">A visual moodboard for wedding and family stories.</h2>
+        </div>
+        <div id="gallery-grid" class="gallery-grid"></div>
+      </div>
+    </section>
+
+    <section id="booking" class="booking-section" aria-labelledby="booking-title">
+      <div class="page-shell booking-layout">
+        <div class="booking-copy">
+          <p class="section-label section-label-light">Session inquiry</p>
+          <h2 id="booking-title">Tell us the date, story, and people involved.</h2>
+          <p id="booking-copy">The first inquiry captures the session type, preferred date, location, and emotional priority before moving into contract, deposit, or calendar confirmation.</p>
+          <div id="lead-summary" class="lead-summary" aria-live="polite"></div>
+        </div>
+        <form id="booking-form" class="booking-form">
+          <div class="field-grid">
+            <label>
+              <span>Name</span>
+              <input name="name" type="text" autocomplete="name" required>
+            </label>
+            <label>
+              <span>Email</span>
+              <input name="email" type="email" autocomplete="email" required>
+            </label>
+          </div>
+          <div class="field-grid">
+            <label>
+              <span>Preferred date</span>
+              <input name="date" type="date" required>
+            </label>
+            <label>
+              <span>Collection</span>
+              <select id="package-select" name="package" required></select>
+            </label>
+          </div>
+          <label>
+            <span>Story context</span>
+            <textarea name="message" rows="5" placeholder="Wedding venue, baby's age, maternity week, family size, or the feeling you want in the gallery." required></textarea>
+          </label>
+          <button class="button button-light" type="submit">Send session inquiry</button>
+          <p id="form-status" class="form-status" role="status"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="section faq-section" aria-labelledby="faq-title">
+      <div class="page-shell split-section">
+        <div>
+          <p class="section-label">FAQ</p>
+          <h2 id="faq-title">Questions before booking a personal session.</h2>
+        </div>
+        <div id="faq-list" class="faq-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="page-shell footer-grid">
+      <p id="footer-name">Vow &amp; Bloom Studio</p>
+      <a href="../personal-site/">Back to Robin Le portfolio</a>
+    </div>
+  </footer>
+
+  <script src="../service-business-kit/assets/js/main.js"></script>
+</body>
+</html>

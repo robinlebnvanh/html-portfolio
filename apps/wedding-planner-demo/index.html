@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Maison Vow is a wedding planner demo for planning packages, vendor coordination, timelines, and proposal inquiries.">
+  <meta property="og:title" content="Maison Vow | Wedding Planner Demo">
+  <meta property="og:description" content="A wedding planner website demo built from the reusable Service Business Website Kit.">
+  <meta property="og:type" content="website">
+  <title>Maison Vow | Wedding Planner Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../service-business-kit/assets/css/style.css">
+  <script src="../service-business-kit/assets/js/config.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="Home">
+        <span id="brand-name">Maison Vow</span>
+        <small id="brand-meta">Wedding planning</small>
+      </a>
+      <button id="menu-toggle" class="icon-button menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
+        <span></span>
+        <span></span>
+      </button>
+      <div id="nav-links" class="nav-links">
+        <a href="#services">Packages</a>
+        <a href="#proof">Timeline</a>
+        <a href="#gallery">Moodboard</a>
+        <a href="#booking">Inquiry</a>
+      </div>
+      <a class="nav-cta" href="#booking">Start planning</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div id="hero-image" class="hero-media" role="img"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content page-shell">
+        <p id="hero-kicker" class="kicker">Planning / Vendors / Timeline</p>
+        <h1 id="hero-title">Calm wedding planning for couples who want the day to feel effortless.</h1>
+        <p id="hero-intro" class="hero-intro">A planner website demo for clear packages, vendor coordination, proposal inquiries, and a practical path toward admin-managed client pipelines.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#booking">Request a proposal</a>
+          <a class="button button-secondary" href="#services">View planning packages</a>
+        </div>
+      </div>
+      <div id="proof-strip" class="proof-strip page-shell" aria-label="Proof points"></div>
+    </section>
+
+    <section class="section intro-section" aria-labelledby="intro-title">
+      <div class="page-shell intro-grid">
+        <div>
+          <p class="section-label">Planning promise</p>
+          <h2 id="intro-title">A structured planning path without making the couple manage the project.</h2>
+        </div>
+        <div class="intro-copy">
+          <p id="intro-copy">Couples need clarity, timing, vendor confidence, and a calm decision process. This demo frames the planner as the operator who turns ideas into a managed wedding workflow.</p>
+          <div id="audience-list" class="audience-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="section muted-section" aria-labelledby="services-title">
+      <div class="page-shell">
+        <div class="section-head">
+          <p class="section-label">Planning packages</p>
+          <h2 id="services-title">Choose the level of support the wedding actually needs.</h2>
+        </div>
+        <div id="services-grid" class="services-grid"></div>
+      </div>
+    </section>
+
+    <section id="proof" class="section" aria-labelledby="process-title">
+      <div class="page-shell split-section">
+        <div>
+          <p class="section-label">Planning timeline</p>
+          <h2 id="process-title">From first call to wedding-week command centre.</h2>
+        </div>
+        <div id="process-list" class="process-list"></div>
+      </div>
+    </section>
+
+    <section class="section testimonials-section" aria-labelledby="testimonials-title">
+      <div class="page-shell">
+        <div class="section-head">
+          <p class="section-label">Couple notes</p>
+          <h2 id="testimonials-title">Confidence for high-stakes personal events.</h2>
+        </div>
+        <div id="testimonials-grid" class="testimonials-grid"></div>
+      </div>
+    </section>
+
+    <section id="gallery" class="section gallery-section" aria-labelledby="gallery-title">
+      <div class="page-shell">
+        <div class="section-head">
+          <p class="section-label">Moodboard</p>
+          <h2 id="gallery-title">Visual direction for modern, intimate celebrations.</h2>
+        </div>
+        <div id="gallery-grid" class="gallery-grid"></div>
+      </div>
+    </section>
+
+    <section id="booking" class="booking-section" aria-labelledby="booking-title">
+      <div class="page-shell booking-layout">
+        <div class="booking-copy">
+          <p class="section-label section-label-light">Proposal inquiry</p>
+          <h2 id="booking-title">Share the date, guest count, and planning pressure points.</h2>
+          <p id="booking-copy">The first inquiry captures the date, venue status, guest count, planning package, budget range, and where the couple needs the most support.</p>
+          <div id="lead-summary" class="lead-summary" aria-live="polite"></div>
+        </div>
+        <form id="booking-form" class="booking-form">
+          <div class="field-grid">
+            <label>
+              <span>Name</span>
+              <input name="name" type="text" autocomplete="name" required>
+            </label>
+            <label>
+              <span>Email</span>
+              <input name="email" type="email" autocomplete="email" required>
+            </label>
+          </div>
+          <div class="field-grid">
+            <label>
+              <span>Wedding date</span>
+              <input name="date" type="date" required>
+            </label>
+            <label>
+              <span>Planning package</span>
+              <select id="package-select" name="package" required></select>
+            </label>
+          </div>
+          <label>
+            <span>Planning context</span>
+            <textarea name="message" rows="5" placeholder="Venue status, guest count, city, budget range, vendors already booked, and where planning feels heavy." required></textarea>
+          </label>
+          <button class="button button-light" type="submit">Send proposal inquiry</button>
+          <p id="form-status" class="form-status" role="status"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="section faq-section" aria-labelledby="faq-title">
+      <div class="page-shell split-section">
+        <div>
+          <p class="section-label">FAQ</p>
+          <h2 id="faq-title">Questions before hiring a planner.</h2>
+        </div>
+        <div id="faq-list" class="faq-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="page-shell footer-grid">
+      <p id="footer-name">Maison Vow</p>
+      <a href="../personal-site/">Back to Robin Le portfolio</a>
+    </div>
+  </footer>
+
+  <script src="../service-business-kit/assets/js/main.js"></script>
+</body>
+</html>

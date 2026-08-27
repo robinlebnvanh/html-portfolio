@@ -46,6 +46,7 @@
           <a class="nav-item" href="#blog">Blog</a>
           <a class="nav-item" href="#stocks">Stocks</a>
           <a class="nav-item" href="#portfolio">Portfolio</a>
+          <a class="nav-item" href="#leads">Leads</a>
           <a class="nav-item" href="#system">System</a>
         </nav>
         <button id="logout-button" class="ghost-button" type="button">Sign out</button>
@@ -80,6 +81,11 @@
             <strong>Login</strong>
             <p>Email/password login with a signed access token for this browser session.</p>
           </article>
+          <article class="metric-card">
+            <span>Service leads</span>
+            <strong id="lead-count-value">-</strong>
+            <p id="lead-count-detail">Loaded from the authenticated lead endpoint.</p>
+          </article>
           </div>
 
           <div class="module-grid" aria-label="Admin modules">
@@ -108,6 +114,15 @@
               <p>Manage profile, selected projects, case-study metadata, and product-studio offer copy.</p>
             </div>
             <a class="module-action" href="#portfolio">Manage portfolio</a>
+          </article>
+
+          <article class="module-card">
+            <div>
+              <span class="module-kicker">P2-11</span>
+              <h3>Service leads</h3>
+              <p>Review booking and proposal inquiries from service-business demo sites.</p>
+            </div>
+            <a class="module-action" href="#leads">Manage leads</a>
           </article>
 
           <article class="module-card">
@@ -303,6 +318,49 @@
               <button id="portfolio-reset" class="module-action" type="button">Reset form</button>
             </div>
           </form>
+        </section>
+
+        <section id="leads" class="admin-section" data-section="leads" hidden aria-labelledby="leads-title">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Lead management</p>
+              <h3 id="leads-title">Manage service inquiries</h3>
+            </div>
+            <div class="form-actions">
+              <label class="field compact-field">
+                <span>Status</span>
+                <select id="lead-status-filter">
+                  <option value="all">All</option>
+                  <option value="new">New</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="proposal_sent">Proposal sent</option>
+                  <option value="booked">Booked</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </label>
+              <button id="leads-load" class="module-action" type="button">Load leads</button>
+            </div>
+          </div>
+          <p id="leads-status" class="status-text" role="status" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table class="admin-table leads-table">
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Customer</th>
+                  <th>Date</th>
+                  <th>Package</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th>Admin note</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leads-body">
+                <tr><td colspan="8" class="empty-cell">Load leads to review service inquiries.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section id="system" class="admin-section" data-section="system" hidden aria-labelledby="system-title">

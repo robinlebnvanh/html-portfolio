@@ -1,0 +1,138 @@
+{
+  "business": {
+    "name": "Everline Studio",
+    "meta": "Service website kit",
+    "pageTitle": "Everline Studio | Service Business Website Kit",
+    "storageKey": "service-business-kit-leads",
+    "successMessage": "Inquiry saved to the lead workflow.",
+    "source": "service-business-kit",
+    "kicker": "Appointment-led studio",
+    "title": "Premium service packages with booking-ready workflows.",
+    "intro": "A focused website structure for studios, salons, planners, and local experts that need trust, package clarity, and qualified inquiries.",
+    "heroImage": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1800&q=84",
+    "positioningTitle": "Designed for service teams that sell trust before checkout.",
+    "positioningCopy": "The page prioritizes service clarity, booking intent, real proof, and a lightweight lead workflow before adding complex payments or scheduling integrations.",
+    "bookingCopy": "Tell us the service, date, and goal. The studio can qualify the request before moving into payment or calendar confirmation."
+  },
+  "audiences": [
+    "Photography studios",
+    "Wedding planners",
+    "Beauty and wellness salons",
+    "Appointment-based local experts"
+  ],
+  "proof": [
+    {
+      "value": "3-step",
+      "label": "Inquiry workflow"
+    },
+    {
+      "value": "7 blocks",
+      "label": "Reusable page structure"
+    },
+    {
+      "value": "Local",
+      "label": "Lead capture demo"
+    }
+  ],
+  "services": [
+    {
+      "name": "Starter Presence",
+      "price": "From $900",
+      "summary": "A polished single-page site for a small studio that needs credibility and inquiry capture.",
+      "features": [
+        "Positioning and offer copy",
+        "Service menu and pricing blocks",
+        "Contact and inquiry form",
+        "Mobile-first responsive build"
+      ]
+    },
+    {
+      "name": "Booking-Ready Site",
+      "price": "From $1,800",
+      "summary": "A conversion-focused service site with stronger proof, lead qualification, and admin-ready data structure.",
+      "features": [
+        "Package comparison",
+        "Gallery and testimonial sections",
+        "Lead capture data model",
+        "Admin Console integration path"
+      ]
+    },
+    {
+      "name": "Operations Starter",
+      "price": "From $3,200",
+      "summary": "A website plus lightweight operating workflow for teams that need to manage inquiries after launch.",
+      "features": [
+        "Lead status workflow",
+        "FastAPI persistence path",
+        "Follow-up notes and next actions",
+        "Production evidence package"
+      ]
+    }
+  ],
+  "process": [
+    {
+      "step": "01",
+      "title": "Capture a qualified inquiry",
+      "body": "The form collects contact, preferred date, package, and business context instead of a generic message."
+    },
+    {
+      "step": "02",
+      "title": "Review fit before commitment",
+      "body": "The operator can review the request, clarify details, and decide whether payment or scheduling is appropriate."
+    },
+    {
+      "step": "03",
+      "title": "Confirm the next action",
+      "body": "The workflow can later expand into admin statuses, proposal drafts, reminders, and calendar/payment integrations."
+    }
+  ],
+  "testimonials": [
+    {
+      "quote": "The offer finally felt clear. Clients knew what to ask for before the first call.",
+      "name": "Studio owner",
+      "context": "Photography package refresh"
+    },
+    {
+      "quote": "The inquiry form filtered serious buyers from casual messages without making the page feel heavy.",
+      "name": "Service operator",
+      "context": "Beauty booking flow"
+    },
+    {
+      "quote": "The structure made it easy to adapt the same system for another niche.",
+      "name": "Delivery lead",
+      "context": "Reusable site rollout"
+    }
+  ],
+  "gallery": [
+    {
+      "title": "Consultation-ready service",
+      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Premium appointment setting",
+      "image": "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Calm client experience",
+      "image": "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Clear package presentation",
+      "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=82"
+    }
+  ],
+  "faq": [
+    {
+      "question": "Can this kit become a real client site?",
+      "answer": "Yes. The page structure is intentionally generic enough for studios, planners, salons, and service experts while keeping the content data separate from layout code."
+    },
+    {
+      "question": "Why start with inquiry capture before payment?",
+      "answer": "Most custom services need qualification before checkout. A verified request workflow is easier to sell and support before adding payment complexity."
+    },
+    {
+      "question": "Where does backend integration fit?",
+      "answer": "The current local lead demo can later connect to FastAPI, PostgreSQL, and the existing Admin Console once the workflow is proven."
+    }
+  ]
+}

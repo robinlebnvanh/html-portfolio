@@ -205,3 +205,24 @@ portfolio_content = sa.Table(
     sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
     sa.CheckConstraint("id = 1", name="ck_portfolio_content_singleton"),
 )
+
+service_leads = sa.Table(
+    "service_leads",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("source", sa.String(length=80), nullable=False),
+    sa.Column("business_name", sa.String(length=160), nullable=False),
+    sa.Column("customer_name", sa.String(length=160), nullable=False),
+    sa.Column("email", sa.String(length=254), nullable=False),
+    sa.Column("preferred_date", sa.String(length=20), nullable=False),
+    sa.Column("package_name", sa.String(length=160), nullable=False),
+    sa.Column("message", sa.Text, nullable=False),
+    sa.Column("status", sa.String(length=30), nullable=False, server_default="new"),
+    sa.Column("admin_note", sa.Text),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+    sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+    sa.CheckConstraint(
+        "status IN ('new', 'contacted', 'proposal_sent', 'booked', 'closed')",
+        name="ck_service_leads_status",
+    ),
+)

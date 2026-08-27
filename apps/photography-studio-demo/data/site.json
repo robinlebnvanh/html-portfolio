@@ -1,0 +1,138 @@
+{
+  "business": {
+    "name": "Vow & Bloom Studio",
+    "meta": "Photography studio",
+    "pageTitle": "Vow & Bloom Studio | Photography Demo",
+    "storageKey": "photography-studio-demo-leads",
+    "successMessage": "Session inquiry saved to the lead workflow.",
+    "source": "photography-studio-demo",
+    "kicker": "Wedding / Baby / Maternity",
+    "title": "Warm documentary photography for once-in-a-lifetime seasons.",
+    "intro": "A booking-ready studio website demo for emotional galleries, clear packages, and qualified session inquiries.",
+    "heroImage": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1800&q=84",
+    "positioningTitle": "Soft direction, real emotion, and a calmer booking path.",
+    "positioningCopy": "Families and couples need to trust the photographer before they share an important day. This demo makes the offer clear, shows the mood quickly, and captures the right inquiry details.",
+    "bookingCopy": "The first inquiry captures the session type, preferred date, location, and emotional priority before moving into contract, deposit, or calendar confirmation."
+  },
+  "audiences": [
+    "Engaged couples",
+    "New parents",
+    "Expecting mothers",
+    "Families planning milestone sessions"
+  ],
+  "proof": [
+    {
+      "value": "72h",
+      "label": "Preview gallery window"
+    },
+    {
+      "value": "3",
+      "label": "Core session collections"
+    },
+    {
+      "value": "Local",
+      "label": "Inquiry capture demo"
+    }
+  ],
+  "services": [
+    {
+      "name": "Wedding Story",
+      "price": "From $1,600",
+      "summary": "Full-day wedding coverage for couples who want calm direction, candid emotion, and a complete story of the day.",
+      "features": [
+        "Planning call and timeline review",
+        "Ceremony, portraits, and reception coverage",
+        "72-hour preview gallery",
+        "Edited online gallery delivery"
+      ]
+    },
+    {
+      "name": "Newborn & Baby",
+      "price": "From $420",
+      "summary": "A gentle home or studio session focused on soft details, family connection, and the baby's natural rhythm.",
+      "features": [
+        "60-90 minute relaxed session",
+        "Parent and sibling portraits",
+        "Simple styling guidance",
+        "Edited gallery with print options"
+      ]
+    },
+    {
+      "name": "Maternity Portraits",
+      "price": "From $380",
+      "summary": "A quiet maternity session for expecting mothers, couples, and families who want elegant, intimate images.",
+      "features": [
+        "Studio or outdoor location planning",
+        "Wardrobe and mood direction",
+        "Partner and family add-ons",
+        "Edited gallery for announcement use"
+      ]
+    }
+  ],
+  "process": [
+    {
+      "step": "01",
+      "title": "Share the date and story",
+      "body": "The inquiry collects the session type, date, people involved, location idea, and the feeling the client wants from the gallery."
+    },
+    {
+      "step": "02",
+      "title": "Confirm fit and creative direction",
+      "body": "The studio reviews timing, availability, style match, package fit, and any sensitive moments that need careful planning."
+    },
+    {
+      "step": "03",
+      "title": "Book, photograph, and deliver",
+      "body": "The next workflow can add contract, deposit, calendar confirmation, preview gallery, final gallery, and print follow-up."
+    }
+  ],
+  "testimonials": [
+    {
+      "quote": "The process felt calm from the first email. We knew exactly what to prepare and what would happen next.",
+      "name": "Wedding client",
+      "context": "Full-day story collection"
+    },
+    {
+      "quote": "Our baby session never felt rushed. The gallery captured tiny details we would have missed.",
+      "name": "New parent",
+      "context": "Newborn home session"
+    },
+    {
+      "quote": "The maternity portraits were elegant without feeling staged. The direction was gentle and clear.",
+      "name": "Expecting mother",
+      "context": "Outdoor maternity session"
+    }
+  ],
+  "gallery": [
+    {
+      "title": "Wedding ceremony emotion",
+      "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Quiet couple portrait",
+      "image": "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Newborn detail session",
+      "image": "https://images.unsplash.com/photo-1546015720-b8b30df5aa27?auto=format&fit=crop&w=900&q=82"
+    },
+    {
+      "title": "Maternity light and movement",
+      "image": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=82"
+    }
+  ],
+  "faq": [
+    {
+      "question": "When should couples book wedding coverage?",
+      "answer": "Six to twelve months ahead is ideal for popular dates. The inquiry flow captures date and venue first so availability can be checked quickly."
+    },
+    {
+      "question": "When is the best time for maternity portraits?",
+      "answer": "Most maternity sessions work well around weeks 28-34, when the shape is visible but the session can still feel comfortable."
+    },
+    {
+      "question": "Can this become a real studio booking system?",
+      "answer": "Yes. The current demo captures local inquiries; P2-11 can move those leads into FastAPI, PostgreSQL, and Admin Console status management."
+    }
+  ]
+}

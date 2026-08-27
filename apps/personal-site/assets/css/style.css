@@ -105,6 +105,15 @@ h2 { margin: 0; font-size: clamp(36px, 4.5vw, 64px); font-weight: 600; line-heig
 .project-visual.atelier { background: #8c7563; }
 .project-visual.atelier::before { inset: 0; background: linear-gradient(110deg, rgba(34, 28, 25, .45), transparent 55%), linear-gradient(45deg, transparent 32%, rgba(247, 226, 207, .62) 33% 42%, transparent 43%); }
 .project-visual.atelier::after { width: 52%; height: 78%; right: 18%; bottom: -25%; border: 13px solid rgba(248, 230, 212, .72); border-radius: 50% 50% 0 0; transform: rotate(25deg); }
+.project-visual.servicekit { background: #20364b; }
+.project-visual.servicekit::before { inset: 26px; border: 1px solid rgba(255, 249, 238, .3); background: linear-gradient(90deg, rgba(255, 249, 238, .14) 0 30%, transparent 30% 34%, rgba(255, 249, 238, .1) 34% 64%, transparent 64% 68%, rgba(255, 249, 238, .16) 68%); }
+.project-visual.servicekit::after { width: 54%; height: 42%; right: 34px; bottom: 32px; border: 2px solid rgba(239, 176, 142, .86); background: linear-gradient(135deg, rgba(239, 176, 142, .36), rgba(183, 213, 161, .22)); box-shadow: -80px -54px 0 -24px rgba(239, 176, 142, .72), -112px 6px 0 -32px rgba(228, 239, 218, .78); }
+.project-visual.photography { background: #46584f; }
+.project-visual.photography::before { inset: 0; background: linear-gradient(135deg, rgba(19, 28, 24, .55), transparent 58%), radial-gradient(circle at 42% 34%, rgba(255, 248, 232, .82) 0 10%, transparent 11%), linear-gradient(115deg, transparent 0 34%, rgba(255, 248, 232, .34) 35% 52%, transparent 53%); }
+.project-visual.photography::after { width: 118px; height: 118px; right: 44px; bottom: 34px; border: 13px solid rgba(255, 248, 232, .78); border-radius: 50%; box-shadow: -124px -18px 0 -34px rgba(239, 176, 142, .8), -76px 54px 0 -42px rgba(183, 213, 161, .78); }
+.project-visual.planner { background: #6d3f5f; }
+.project-visual.planner::before { inset: 28px 34px; border: 1px solid rgba(255, 248, 232, .32); background: linear-gradient(180deg, rgba(255, 248, 232, .18) 0 18%, transparent 18% 24%, rgba(255, 248, 232, .12) 24% 44%, transparent 44% 50%, rgba(255, 248, 232, .16) 50% 74%, transparent 74%); }
+.project-visual.planner::after { width: 58%; height: 12px; left: 50%; bottom: 42px; border-radius: 999px; background: #efb08e; box-shadow: -88px -70px 0 -1px rgba(255, 248, 232, .78), 0 -70px 0 -1px rgba(183, 213, 161, .78), 88px -70px 0 -1px rgba(255, 248, 232, .78); transform: translateX(-50%); }
 .card-meta { display: flex; justify-content: space-between; color: var(--ink-soft); }
 .project-card h3 { margin: 16px 0 12px; font-family: "Playfair Display", Georgia, serif; font-size: 28px; font-weight: 600; line-height: 1.15; }
 .project-card p { margin: 0; min-height: 100px; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }

@@ -16,6 +16,8 @@ const apiStatusValue = $('api-status-value');
 const apiStatusDetail = $('api-status-detail');
 const blogCountValue = $('blog-count-value');
 const blogCountDetail = $('blog-count-detail');
+const leadCountValue = $('lead-count-value');
+const leadCountDetail = $('lead-count-detail');
 const apiBaseUrlValue = $('api-base-url');
 const sections = [...document.querySelectorAll('[data-section]')];
 const navItems = [...document.querySelectorAll('.nav-item')];
@@ -23,6 +25,7 @@ const navItems = [...document.querySelectorAll('.nav-item')];
 let blogPosts = [];
 let stockState = { portfolio: null, journals: {} };
 let portfolioContent = null;
+let serviceLeads = [];
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, char => ({
@@ -135,6 +138,19 @@ async function loadBlogAdminSummary() {
   }
 }
 
+async function loadLeadAdminSummary() {
+  setStatus(leadCountValue, '-');
+  setStatus(leadCountDetail, 'Loading authenticated lead summary...');
+  try {
+    const payload = await adminRequest('/api/v1/admin/leads');
+    setStatus(leadCountValue, String(payload.total ?? payload.leads?.length ?? 0), 'success');
+    setStatus(leadCountDetail, 'Token accepted by the admin lead endpoint.', 'success');
+  } catch (error) {
+    setStatus(leadCountValue, 'Blocked', 'error');
+    setStatus(leadCountDetail, error.message, 'error');
+  }
+}
+
 async function loginAdmin(email, password) {
   const response = await fetch(`${apiBaseUrl}/api/v1/auth/login`, {
     method: 'POST',
@@ -154,7 +170,7 @@ async function validateSession() {
 
 async function loadDashboard() {
   apiBaseUrlValue.textContent = apiBaseUrl;
-  await Promise.all([checkHealth(), loadBlogAdminSummary()]);
+  await Promise.all([checkHealth(), loadBlogAdminSummary(), loadLeadAdminSummary()]);
 }
 
 function tagsFromInput(value) {
@@ -684,6 +700,70 @@ async function savePortfolioContent(event) {
   }
 }
 
+function leadStatusOptions(current) {
+  return ['new', 'contacted', 'proposal_sent', 'booked', 'closed'].map(statusValue => `
+    <option value="${statusValue}" ${statusValue === current ? 'selected' : ''}>${statusValue.replace('_', ' ')}</option>
+  `).join('');
+}
+
+function renderLeads(leads) {
+  const body = $('leads-body');
+  if (!leads.length) {
+    body.innerHTML = '<tr><td colspan="8" class="empty-cell">No service leads for this filter.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = leads.map(lead => `
+    <tr>
+      <td>${escapeHtml(lead.source)}<br><span class="empty-note">${escapeHtml(lead.business_name)}</span></td>
+      <td><strong>${escapeHtml(lead.customer_name)}</strong><br><span class="empty-note">${escapeHtml(lead.email)}</span></td>
+      <td>${escapeHtml(lead.preferred_date)}</td>
+      <td>${escapeHtml(lead.package_name)}</td>
+      <td>${escapeHtml(lead.message).slice(0, 180)}</td>
+      <td>
+        <select class="lead-status-select" data-lead-status="${lead.id}">
+          ${leadStatusOptions(lead.status)}
+        </select>
+      </td>
+      <td><textarea class="lead-note-input" data-lead-note="${lead.id}" placeholder="Next action">${escapeHtml(lead.admin_note || '')}</textarea></td>
+      <td class="row-actions"><button type="button" data-lead-save="${lead.id}">Save</button></td>
+    </tr>
+  `).join('');
+}
+
+async function loadLeads() {
+  try {
+    const filter = $('lead-status-filter').value;
+    setStatus($('leads-status'), 'Loading service leads...');
+    const payload = await adminRequest(`/api/v1/admin/leads?status_filter=${encodeURIComponent(filter)}`);
+    serviceLeads = payload.leads || [];
+    renderLeads(serviceLeads);
+    setStatus($('leads-status'), `Loaded ${payload.total ?? serviceLeads.length} service leads.`, 'success');
+    await loadLeadAdminSummary();
+  } catch (error) {
+    setStatus($('leads-status'), error.message, 'error');
+  }
+}
+
+async function saveLead(leadId) {
+  const statusSelect = document.querySelector(`[data-lead-status="${leadId}"]`);
+  const noteInput = document.querySelector(`[data-lead-note="${leadId}"]`);
+  try {
+    setStatus($('leads-status'), 'Saving lead...');
+    await adminRequest(`/api/v1/admin/leads/${leadId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status: statusSelect.value,
+        admin_note: noteInput.value,
+      }),
+    });
+    await loadLeads();
+    setStatus($('leads-status'), 'Lead updated.', 'success');
+  } catch (error) {
+    setStatus($('leads-status'), error.message, 'error');
+  }
+}
+
 loginForm.addEventListener('submit', async event => {
   event.preventDefault();
   const email = emailInput.value.trim();
@@ -770,6 +850,13 @@ $('portfolio-load').addEventListener('click', loadPortfolioContent);
 $('portfolio-form').addEventListener('submit', savePortfolioContent);
 $('portfolio-reset').addEventListener('click', () => {
   if (portfolioContent) fillPortfolioForm(portfolioContent);
+});
+
+$('leads-load').addEventListener('click', loadLeads);
+$('lead-status-filter').addEventListener('change', loadLeads);
+$('leads-body').addEventListener('click', event => {
+  const saveButton = event.target.closest('[data-lead-save]');
+  if (saveButton) saveLead(Number(saveButton.dataset.leadSave));
 });
 
 fillBlogForm(null);

@@ -24,6 +24,12 @@ from app.blog_repository import (
 )
 from app.auth import bearer_scheme, require_admin_token
 from app.database import initialize_database
+from app.lead_repository import (
+    VALID_LEAD_STATUSES,
+    create_lead,
+    list_leads,
+    update_lead,
+)
 from app.portfolio_content_repository import (
     get_portfolio_content,
     seed_default_portfolio_content,
@@ -212,9 +218,29 @@ class PortfolioContentPayload(BaseModel):
     projects: list[PortfolioProject] = Field(min_length=1, max_length=12)
 
 
+class LeadCreate(BaseModel):
+    """Validated public payload for a service-business inquiry."""
+
+    source: str = Field(min_length=1, max_length=80)
+    business_name: str = Field(min_length=1, max_length=160)
+    customer_name: str = Field(min_length=1, max_length=160)
+    email: str = Field(min_length=3, max_length=254)
+    preferred_date: str = Field(min_length=1, max_length=20)
+    package_name: str = Field(min_length=1, max_length=160)
+    message: str = Field(min_length=1, max_length=2000)
+
+
+class LeadUpdate(BaseModel):
+    """Admin-owned lead workflow fields."""
+
+    status: Literal["new", "contacted", "proposal_sent", "booked", "closed"] | None = None
+    admin_note: str | None = Field(default=None, max_length=2000)
+
+
 PostLimit = Annotated[int, Query(ge=1, le=20)]
 PostOffset = Annotated[int, Query(ge=0)]
 AdminPostStatus = Annotated[Literal["all", "draft", "published"], Query()]
+LeadStatusFilter = Annotated[Literal["all", "new", "contacted", "proposal_sent", "booked", "closed"], Query()]
 
 
 app = FastAPI(
@@ -352,6 +378,28 @@ def public_portfolio_content() -> dict[str, Any]:
         return {"content": get_portfolio_content(session)}
 
 
+def clean_lead_payload(values: dict[str, Any]) -> dict[str, Any]:
+    """Trim public lead payloads before persistence."""
+
+    cleaned = dict(values)
+    for key, value in cleaned.items():
+        if isinstance(value, str):
+            cleaned[key] = value.strip()
+            if not cleaned[key]:
+                raise HTTPException(status_code=422, detail=f"{key} must not be blank")
+    return cleaned
+
+
+@app.post("/api/v1/leads", status_code=status.HTTP_201_CREATED, tags=["leads"])
+def create_service_lead(payload: LeadCreate) -> dict[str, Any]:
+    """Capture one inquiry from a service-business demo site."""
+
+    values = clean_lead_payload(payload.model_dump())
+    with get_session() as session:
+        lead = create_lead(session, values)
+    return {"lead": lead}
+
+
 @app.get(
     "/api/v1/admin/portfolio/content",
     tags=["portfolio-admin"],
@@ -376,6 +424,41 @@ def update_admin_portfolio_content(payload: PortfolioContentPayload) -> dict[str
         project["tech"] = [item.strip() for item in project["tech"] if item.strip()]
     with get_session() as session:
         return {"content": update_portfolio_content(session, values)}
+
+
+@app.get(
+    "/api/v1/admin/leads",
+    tags=["leads-admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def admin_leads(status_filter: LeadStatusFilter = "all") -> dict[str, Any]:
+    """Return service-business leads for the Admin Console."""
+
+    with get_session() as session:
+        return list_leads(
+            session,
+            status_filter=None if status_filter == "all" else status_filter,
+        )
+
+
+@app.patch(
+    "/api/v1/admin/leads/{lead_id}",
+    tags=["leads-admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def update_admin_lead(lead_id: int, payload: LeadUpdate) -> dict[str, Any]:
+    """Update one service-business lead workflow status."""
+
+    values = payload.model_dump(exclude_unset=True)
+    if "status" in values and values["status"] not in VALID_LEAD_STATUSES:
+        raise HTTPException(status_code=422, detail="invalid lead status")
+    if "admin_note" in values and isinstance(values["admin_note"], str):
+        values["admin_note"] = values["admin_note"].strip() or None
+    with get_session() as session:
+        lead = update_lead(session, lead_id, values)
+    if lead is None:
+        raise HTTPException(status_code=404, detail="lead not found")
+    return {"lead": lead}
 
 
 def normalize_blog_slug(slug: str) -> str:

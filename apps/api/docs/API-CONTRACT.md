@@ -315,6 +315,74 @@ Updates any supplied trade fields except ticker. Unknown trades return `404`.
 
 Deletes one trade row. Unknown trades return `404`.
 
+## Service lead endpoints (P2-11)
+
+Service-business demo sites can submit booking or proposal inquiries through
+the public lead endpoint. Admin review stays behind the same Bearer-protected
+Admin Console boundary as the other write workflows.
+
+### POST `/api/v1/leads`
+
+Creates one service-business inquiry and returns HTTP `201`:
+
+```json
+{
+  "source": "wedding-planner-demo",
+  "business_name": "Maison Vow",
+  "customer_name": "Smoke Client",
+  "email": "smoke@example.com",
+  "preferred_date": "2026-10-10",
+  "package_name": "Partial Planning",
+  "message": "Need vendor coordination and planning timeline."
+}
+```
+
+The endpoint returns `{ "lead": ... }`. New leads start with status `new`.
+Blank trimmed fields return `422`.
+
+### GET `/api/v1/admin/leads`
+
+Returns service leads for the Admin Console. It requires the admin Bearer token
+and accepts `status_filter=all|new|contacted|proposal_sent|booked|closed`.
+
+```json
+{
+  "total": 1,
+  "leads": [
+    {
+      "id": 1,
+      "source": "wedding-planner-demo",
+      "business_name": "Maison Vow",
+      "customer_name": "Smoke Client",
+      "email": "smoke@example.com",
+      "preferred_date": "2026-10-10",
+      "package_name": "Partial Planning",
+      "message": "Need vendor coordination and planning timeline.",
+      "status": "new",
+      "admin_note": null,
+      "created_at": "2026-08-28T00:00:00",
+      "updated_at": "2026-08-28T00:00:00"
+    }
+  ]
+}
+```
+
+Missing or invalid admin credentials return `401`.
+
+### PATCH `/api/v1/admin/leads/{lead_id}`
+
+Updates admin-owned workflow fields:
+
+```json
+{
+  "status": "proposal_sent",
+  "admin_note": "Send planning proposal."
+}
+```
+
+Allowed statuses are `new`, `contacted`, `proposal_sent`, `booked`, and
+`closed`. Unknown IDs return `404`.
+
 ## Source mapping
 
 The initial seed source is `apps/stocks-app/data/data.json`. L3-04 loads this fixture into SQLite and the FastAPI read endpoints map the relational rows back to this contract.

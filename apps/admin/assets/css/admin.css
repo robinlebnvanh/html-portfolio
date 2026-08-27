@@ -30,7 +30,9 @@ a {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -413,6 +415,10 @@ h3 {
   min-width: min(100%, 280px);
 }
 
+.compact-field {
+  min-width: 170px;
+}
+
 .danger-button {
   min-height: 44px;
   border: 1px solid rgba(168, 61, 61, 0.3);
@@ -533,6 +539,28 @@ h3 {
 .danger-link,
 .row-actions .danger-link {
   color: var(--danger);
+}
+
+.leads-table {
+  min-width: 1120px;
+}
+
+.lead-note-input {
+  width: 220px;
+  min-height: 76px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.lead-status-select {
+  width: 150px;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #fff;
 }
 
 [hidden] {

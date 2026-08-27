@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Case study: Wedding Planner Demo, a niche service website and lead workflow built from the reusable Service Business Website Kit.">
+  <title>Wedding Planner Demo Case Study | Robin Le</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="Case study navigation">
+      <a class="brand" href="../index.html" aria-label="Robin Le home">Robin <span>Le</span></a>
+      <ul class="nav-links">
+        <li><a href="../index.html#projects">Work</a></li>
+        <li><a href="../index.html#studio">Studio</a></li>
+        <li><a href="../blog.html">Notes</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a class="nav-contact" href="../index.html#contact">Start a project <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="case-main">
+    <section class="case-hero page-shell" aria-labelledby="case-title">
+      <p class="eyebrow">Case study / Wedding planning</p>
+      <h1 id="case-title">Wedding Planner Demo</h1>
+      <p>A niche-specific planner website for packages, planning timelines, vendor coordination, proposal inquiries, and lead follow-up.</p>
+      <div class="case-links">
+        <a class="button button-primary" href="../../wedding-planner-demo/">Open live demo <span aria-hidden="true">↗</span></a>
+        <a class="text-link" href="service-business-kit.html">View kit case study <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="case-summary page-shell" aria-label="Project summary">
+      <div><span>Audience</span><strong>Busy couples, families, and destination clients</strong></div>
+      <div><span>Role</span><strong>Niche positioning, package UX, lead workflow</strong></div>
+      <div><span>Stack</span><strong>HTML shell, shared CSS/JS, JSON content, FastAPI lead path</strong></div>
+      <div><span>Status</span><strong>Reusable-kit demo with proposal inquiry capture</strong></div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>01</span><span>Problem</span></div>
+      <div class="case-grid">
+        <h2>Wedding clients need confidence that planning pressure will become a managed workflow.</h2>
+        <p>A planner site has to clarify package fit, timeline responsibility, vendor coordination, and the next step before a couple is ready to book a proposal call.</p>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>02</span><span>Solution</span></div>
+      <div class="case-grid">
+        <h2>Reuse the service kit, then specialize it for wedding planning operations.</h2>
+        <div>
+          <ul class="case-list">
+            <li>The demo reuses the Service Business Website Kit's shared CSS and JavaScript.</li>
+            <li>`data/site.json` changes the brand, package model, planning timeline, proof points, testimonials, moodboard, and FAQ.</li>
+            <li>The inquiry form is ready for the shared lead API introduced in P2-11.</li>
+            <li>The commercial path is planner website first, then proposal pipeline, vendor tracker, reminders, and event-week dashboard.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>03</span><span>Workflow</span></div>
+      <div class="case-metrics">
+        <article class="case-metric"><span>01</span><p>Capture date, venue status, guest count, budget range, and planning pressure points.</p></article>
+        <article class="case-metric"><span>02</span><p>Move the lead into admin status: new, contacted, proposal sent, booked, or closed.</p></article>
+        <article class="case-metric"><span>03</span><p>Expand later into vendor notes, reminders, proposal templates, and wedding-week operations.</p></article>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>04</span><span>Trade-offs</span></div>
+      <div class="case-grid">
+        <h2>The first version focuses on the lead path, not a full wedding planning platform.</h2>
+        <p>Payments, calendar sync, vendor portals, and client login can wait. The smallest valuable workflow is inquiry capture, admin review, status update, and follow-up note.</p>
+      </div>
+    </section>
+
+    <section class="case-section case-next page-shell">
+      <div class="section-kicker"><span>05</span><span>Commercial step</span></div>
+      <div class="case-grid">
+        <h2>This becomes a reusable offer for planners and creative service businesses.</h2>
+        <p>The same kit can support photography, wedding planning, salons, and other appointment-based businesses while the backend lead workflow stays shared.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer page-shell">
+    <a href="photography-studio.html">Previous case study <span aria-hidden="true">←</span></a>
+    <a href="../index.html#projects">Back to selected work <span aria-hidden="true">↑</span></a>
+  </footer>
+</body>
+</html>
