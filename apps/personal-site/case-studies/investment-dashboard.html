@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Case study: Investment Dashboard, a full-stack portfolio operating system with FastAPI, PostgreSQL, and authenticated admin workflows.">
+  <title>Investment Dashboard Case Study | Robin Le</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-shell" aria-label="Case study navigation">
+      <a class="brand" href="../index.html" aria-label="Robin Le home">Robin <span>Le</span></a>
+      <ul class="nav-links">
+        <li><a href="../index.html#projects">Work</a></li>
+        <li><a href="../index.html#studio">Studio</a></li>
+        <li><a href="../blog.html">Notes</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a class="nav-contact" href="../index.html#contact">Start a project <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="case-main">
+    <section class="case-hero page-shell" aria-labelledby="case-title">
+      <p class="eyebrow">Case study / Full-stack product</p>
+      <h1 id="case-title">Investment Dashboard</h1>
+      <p>A private portfolio operating system that turns scattered holdings, journals, watchlists, and admin tasks into a focused web app.</p>
+      <div class="case-links">
+        <a class="button button-primary" href="../../stocks-app/">Open live demo <span aria-hidden="true">↗</span></a>
+        <a class="text-link" href="https://github.com/robinlebnvanh/html-portfolio" target="_blank" rel="noreferrer">View source <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="case-summary page-shell" aria-label="Project summary">
+      <div><span>Audience</span><strong>Private investor / portfolio operator</strong></div>
+      <div><span>Role</span><strong>Product thinking, frontend, backend, deployment</strong></div>
+      <div><span>Stack</span><strong>HTML, CSS, JavaScript, FastAPI, SQLAlchemy, PostgreSQL</strong></div>
+      <div><span>Status</span><strong>Live demo with production API and admin flows</strong></div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>01</span><span>Problem</span></div>
+      <div class="case-grid">
+        <h2>Portfolio decisions were spread across static files, manual notes, and repeat calculations.</h2>
+        <p>The product needed one reliable place to read holdings, review trade journals, track watchlist ideas, and update operational data without editing JSON by hand.</p>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>02</span><span>Solution</span></div>
+      <div class="case-grid">
+        <h2>A static frontend backed by a clear API boundary.</h2>
+        <div>
+          <ul class="case-list">
+            <li>Dashboard reads portfolio and journal data through FastAPI, with static fallback for resilience.</li>
+            <li>Admin UI supports authenticated CRUD for holdings, watchlist items, journals, and trades.</li>
+            <li>Production persistence uses PostgreSQL through SQLAlchemy and Alembic migrations.</li>
+            <li>Runtime config keeps frontend API URL and backend CORS explicit across local and production environments.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>03</span><span>Evidence</span></div>
+      <div class="case-metrics">
+        <article class="case-metric"><span>13</span><p>Backend unit tests passed for expanded stocks CRUD.</p></article>
+        <article class="case-metric"><span>401</span><p>Unauthenticated write requests are rejected by the production API.</p></article>
+        <article class="case-metric"><span>Live</span><p>Render API, Neon PostgreSQL, and GitHub Pages frontend are connected.</p></article>
+      </div>
+    </section>
+
+    <section class="case-section page-shell">
+      <div class="section-kicker"><span>04</span><span>Trade-offs</span></div>
+      <div class="case-grid">
+        <h2>Keep the first product reliable before expanding the surface area.</h2>
+        <p>The current admin model uses a bearer token entered in the browser for a private operator workflow. That is acceptable for this learning-stage private app, but a commercial multi-user product would need real login, account ownership, audit logs, and role-based access control.</p>
+      </div>
+    </section>
+
+    <section class="case-section case-next page-shell">
+      <div class="section-kicker"><span>05</span><span>Commercial step</span></div>
+      <div class="case-grid">
+        <h2>Turn the dashboard pattern into lightweight operating dashboards for small service businesses.</h2>
+        <p>The reusable product shape is clear: leads, appointments, notes, revenue snapshots, reminders, and admin workflows for operators who need less complexity than a full CRM.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer page-shell">
+    <a href="../index.html#projects">Back to work <span aria-hidden="true">←</span></a>
+    <a href="fame-lux-nails.html">Next case study <span aria-hidden="true">→</span></a>
+  </footer>
+</body>
+</html>

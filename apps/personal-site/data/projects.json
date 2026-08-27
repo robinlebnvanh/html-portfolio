@@ -8,11 +8,11 @@
     "outcome": "Demonstrates FastAPI, PostgreSQL persistence, production configuration, and authenticated admin workflows.",
     "tech": ["JavaScript", "FastAPI", "PostgreSQL"],
     "category": "tool",
-    "link": "../stocks-app/",
+    "link": "case-studies/investment-dashboard.html",
     "github": "https://github.com/robinlebnvanh",
     "date": "Live demo",
     "visual": "dashboard",
-    "linkLabel": "Open live app"
+    "linkLabel": "Read case study"
   },
   {
     "id": 2,
@@ -23,11 +23,11 @@
     "outcome": "The next productized path is a booking-ready service website package with menu, lead capture, reminders, and dashboard follow-up.",
     "tech": ["HTML", "CSS", "Conversion UX"],
     "category": "frontend",
-    "link": "../nail-landing-page/",
+    "link": "case-studies/fame-lux-nails.html",
     "github": "https://github.com/robinlebnvanh",
     "date": "Service MVP",
     "visual": "atelier",
-    "linkLabel": "View service demo"
+    "linkLabel": "Read case study"
   },
   {
     "id": 3,
@@ -38,10 +38,10 @@
     "outcome": "Frames automation as a sellable workflow layer: intake, reminders, drafting, reporting, and human-in-the-loop execution.",
     "tech": ["Python", "OpenClaw", "Automation"],
     "category": "tool",
-    "link": "blog.html",
+    "link": "case-studies/personal-ai-agent.html",
     "github": "https://github.com/robinlebnvanh",
     "date": "Product concept",
     "visual": "agent",
-    "linkLabel": "Read notes"
+    "linkLabel": "Read case study"
   }
 ]
