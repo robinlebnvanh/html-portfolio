@@ -1,5 +1,7 @@
 let allProjects = [];
 
+const config = window.PRJ008_CONFIG || {};
+const apiBaseUrl = config.apiBaseUrl || '';
 const projectGrid = document.getElementById('projects-grid');
 const skillsList = document.getElementById('skills-list');
 const themeToggle = document.getElementById('theme-toggle');
@@ -26,7 +28,7 @@ function renderProjects(filter) {
       <p class="project-audience">${escapeHtml(project.audience || 'Product audience')}</p>
       <p>${escapeHtml(project.desc)}</p>
       <p class="project-outcome">${escapeHtml(project.outcome || 'Case study details are being prepared.')}</p>
-      <div class="tags">${project.tech.map(tech => `<span class="tag">${escapeHtml(tech)}</span>`).join('')}</div>
+      <div class="tags">${(project.tech || []).map(tech => `<span class="tag">${escapeHtml(tech)}</span>`).join('')}</div>
       <div class="project-actions">
         <a class="project-link" href="${escapeHtml(project.link || '#')}">${escapeHtml(project.linkLabel || 'View project')} <span aria-hidden="true">↗</span></a>
         ${project.demoLink ? `<a class="project-link project-link-secondary" href="${escapeHtml(project.demoLink)}">${escapeHtml(project.demoLabel || 'Open demo')} <span aria-hidden="true">↗</span></a>` : ''}
@@ -37,23 +39,88 @@ function renderProjects(filter) {
   requestAnimationFrame(initReveal);
 }
 
+function setText(id, value) {
+  const element = document.getElementById(id);
+  if (element && value) element.textContent = value;
+}
+
+function renderSkills(skills = []) {
+  skillsList.innerHTML = skills.map(skill => `
+    <li class="skill-item"><span>${escapeHtml(skill.name)}</span><span class="skill-level">${escapeHtml(skill.level)}%</span></li>
+  `).join('');
+}
+
+function renderOffers(offers = []) {
+  const container = document.getElementById('studio-offers');
+  if (!container || !offers.length) return;
+  container.innerHTML = offers.map(offer => `
+    <article class="studio-card reveal">
+      <p class="mono-label">${escapeHtml(offer.kicker)}</p>
+      <h3>${escapeHtml(offer.title)}</h3>
+      <p>${escapeHtml(offer.description)}</p>
+    </article>
+  `).join('');
+}
+
+function applyPortfolioContent(content) {
+  setText('hero-eyebrow', content.hero_eyebrow);
+  setText('hero-title', content.hero_title);
+  setText('hero-intro', content.hero_intro);
+  setText('hero-location', content.hero_location);
+  setText('hero-experience', content.hero_experience);
+  setText('about-title', content.about_title);
+  setText('studio-title', content.studio_title);
+  setText('studio-intro', content.studio_intro);
+  setText('contact-title', content.contact_title);
+  setText('contact-intro', content.contact_intro);
+
+  const aboutBody = document.getElementById('about-body');
+  if (aboutBody && Array.isArray(content.about_body)) {
+    aboutBody.innerHTML = content.about_body.map(paragraph => `<p>${escapeHtml(paragraph)}</p>`).join('');
+  }
+
+  const githubLink = document.getElementById('github-link');
+  if (githubLink && content.github_url) githubLink.href = content.github_url;
+
+  const contactLink = document.getElementById('contact-email-link');
+  if (contactLink && content.contact_email) {
+    contactLink.href = `mailto:${content.contact_email}`;
+    contactLink.innerHTML = `${escapeHtml(content.contact_email)} <span aria-hidden="true">↗</span>`;
+  }
+
+  renderSkills(content.skills || []);
+  renderOffers(content.offers || []);
+  allProjects = content.projects || [];
+  renderProjects('all');
+}
+
+async function loadManagedPortfolioContent() {
+  if (!apiBaseUrl) throw new Error('API base URL is not configured.');
+  const response = await fetch(`${apiBaseUrl}/api/v1/portfolio/content`);
+  if (!response.ok) throw new Error('Managed portfolio content could not be loaded.');
+  const payload = await response.json();
+  applyPortfolioContent(payload.content);
+}
+
 async function loadContent() {
   try {
-    const [projectsResponse, aboutResponse] = await Promise.all([
-      fetch('./data/projects.json'),
-      fetch('./data/about.json')
-    ]);
-
-    if (!projectsResponse.ok || !aboutResponse.ok) throw new Error('Content could not be loaded.');
-
-    allProjects = await projectsResponse.json();
-    const about = await aboutResponse.json();
-    skillsList.innerHTML = about.skills.map(skill => `
-      <li class="skill-item"><span>${escapeHtml(skill.name)}</span><span class="skill-level">${escapeHtml(skill.level)}%</span></li>
-    `).join('');
-    renderProjects('all');
+    await loadManagedPortfolioContent();
   } catch (error) {
-    projectGrid.innerHTML = '<p class="empty-state">Selected work is temporarily unavailable.</p>';
+    try {
+      const [projectsResponse, aboutResponse] = await Promise.all([
+        fetch('./data/projects.json'),
+        fetch('./data/about.json')
+      ]);
+
+      if (!projectsResponse.ok || !aboutResponse.ok) throw new Error('Content could not be loaded.');
+
+      allProjects = await projectsResponse.json();
+      const about = await aboutResponse.json();
+      renderSkills(about.skills);
+      renderProjects('all');
+    } catch (error) {
+      projectGrid.innerHTML = '<p class="empty-state">Selected work is temporarily unavailable.</p>';
+    }
   }
 }
 

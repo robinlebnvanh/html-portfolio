@@ -119,3 +119,25 @@ CREATE TABLE IF NOT EXISTS admin_users (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at TEXT
 );
+
+CREATE TABLE IF NOT EXISTS portfolio_content (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    hero_eyebrow TEXT NOT NULL,
+    hero_title TEXT NOT NULL,
+    hero_intro TEXT NOT NULL,
+    hero_location TEXT NOT NULL,
+    hero_experience TEXT NOT NULL,
+    about_title TEXT NOT NULL,
+    about_body TEXT NOT NULL,
+    github_url TEXT NOT NULL,
+    studio_title TEXT NOT NULL,
+    studio_intro TEXT NOT NULL,
+    offers TEXT NOT NULL,
+    contact_title TEXT NOT NULL,
+    contact_intro TEXT NOT NULL,
+    contact_email TEXT NOT NULL,
+    skills TEXT NOT NULL,
+    projects TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

@@ -24,6 +24,11 @@ from app.blog_repository import (
 )
 from app.auth import bearer_scheme, require_admin_token
 from app.database import initialize_database
+from app.portfolio_content_repository import (
+    get_portfolio_content,
+    seed_default_portfolio_content,
+    update_portfolio_content,
+)
 from app.sqlalchemy_database import get_session
 from app.stocks_repository import (
     create_holding,
@@ -151,6 +156,62 @@ class AdminLoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=1024)
 
 
+class PortfolioSkill(BaseModel):
+    """Editable skill shown on the public portfolio."""
+
+    name: str = Field(min_length=1, max_length=80)
+    level: int = Field(ge=0, le=100)
+
+
+class PortfolioOffer(BaseModel):
+    """Editable product-studio offer shown on the public portfolio."""
+
+    kicker: str = Field(min_length=1, max_length=40)
+    title: str = Field(min_length=1, max_length=120)
+    description: str = Field(min_length=1, max_length=500)
+
+
+class PortfolioProject(BaseModel):
+    """Editable selected-work card shown on the public portfolio."""
+
+    id: int = Field(ge=1)
+    number: str = Field(min_length=1, max_length=12)
+    name: str = Field(min_length=1, max_length=120)
+    audience: str = Field(min_length=1, max_length=160)
+    desc: str = Field(min_length=1, max_length=700)
+    outcome: str = Field(min_length=1, max_length=700)
+    tech: list[str] = Field(default_factory=list)
+    category: Literal["frontend", "tool"] = "tool"
+    link: str = Field(min_length=1, max_length=300)
+    demoLink: str | None = Field(default=None, max_length=300)
+    github: str | None = Field(default=None, max_length=300)
+    date: str = Field(min_length=1, max_length=80)
+    visual: str = Field(min_length=1, max_length=40)
+    linkLabel: str = Field(min_length=1, max_length=80)
+    demoLabel: str | None = Field(default=None, max_length=80)
+
+
+class PortfolioContentPayload(BaseModel):
+    """Editable content for the public personal-site portfolio."""
+
+    hero_eyebrow: str = Field(min_length=1, max_length=120)
+    hero_title: str = Field(min_length=1, max_length=220)
+    hero_intro: str = Field(min_length=1, max_length=1000)
+    hero_location: str = Field(min_length=1, max_length=120)
+    hero_experience: str = Field(min_length=1, max_length=120)
+    about_title: str = Field(min_length=1, max_length=220)
+    about_body: list[str] = Field(min_length=1, max_length=6)
+    github_url: str = Field(min_length=1, max_length=300)
+    studio_title: str = Field(min_length=1, max_length=220)
+    studio_intro: str = Field(min_length=1, max_length=1000)
+    offers: list[PortfolioOffer] = Field(min_length=1, max_length=6)
+    contact_title: str = Field(min_length=1, max_length=220)
+    contact_intro: str = Field(min_length=1, max_length=1000)
+    contact_email: str = Field(min_length=3, max_length=254)
+    skills: list[PortfolioSkill] = Field(min_length=1, max_length=12)
+    projects: list[PortfolioProject] = Field(min_length=1, max_length=12)
+
+
 PostLimit = Annotated[int, Query(ge=1, le=20)]
 PostOffset = Annotated[int, Query(ge=0)]
 AdminPostStatus = Annotated[Literal["all", "draft", "published"], Query()]
@@ -182,6 +243,7 @@ app.add_middleware(
 initialize_database()
 with get_session() as startup_session:
     seed_default_blog_posts(startup_session)
+    seed_default_portfolio_content(startup_session)
     ensure_bootstrap_admin_user(startup_session)
 
 
@@ -281,6 +343,39 @@ def blog_post(slug: str) -> dict[str, Any]:
     if post is None:
         raise HTTPException(status_code=404, detail="blog post not found")
     return {"post": post}
+
+
+@app.get("/api/v1/portfolio/content", tags=["portfolio"])
+def public_portfolio_content() -> dict[str, Any]:
+    """Return managed public portfolio content."""
+    with get_session() as session:
+        return {"content": get_portfolio_content(session)}
+
+
+@app.get(
+    "/api/v1/admin/portfolio/content",
+    tags=["portfolio-admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def admin_portfolio_content() -> dict[str, Any]:
+    """Return editable portfolio content for the Admin Console."""
+    with get_session() as session:
+        return {"content": get_portfolio_content(session)}
+
+
+@app.patch(
+    "/api/v1/admin/portfolio/content",
+    tags=["portfolio-admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def update_admin_portfolio_content(payload: PortfolioContentPayload) -> dict[str, Any]:
+    """Replace managed portfolio content through the authenticated admin API."""
+    values = payload.model_dump()
+    values["about_body"] = [item.strip() for item in values["about_body"] if item.strip()]
+    for project in values["projects"]:
+        project["tech"] = [item.strip() for item in project["tech"] if item.strip()]
+    with get_session() as session:
+        return {"content": update_portfolio_content(session, values)}
 
 
 def normalize_blog_slug(slug: str) -> str:

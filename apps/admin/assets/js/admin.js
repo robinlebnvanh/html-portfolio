@@ -22,6 +22,7 @@ const navItems = [...document.querySelectorAll('.nav-item')];
 
 let blogPosts = [];
 let stockState = { portfolio: null, journals: {} };
+let portfolioContent = null;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, char => ({
@@ -162,6 +163,16 @@ function tagsFromInput(value) {
 
 function linesFromTextarea(id) {
   return $(id).value.split('\n').map(line => line.trim()).filter(Boolean);
+}
+
+function splitRows(id, expectedParts) {
+  return linesFromTextarea(id).map((line, index) => {
+    const parts = line.split('|').map(part => part.trim());
+    if (parts.length < expectedParts || parts.some(part => !part)) {
+      throw new Error(`Line ${index + 1} in ${id} must use ${expectedParts} pipe-separated values.`);
+    }
+    return parts;
+  });
 }
 
 function today() {
@@ -565,6 +576,114 @@ async function deleteTrade(id) {
   }
 }
 
+function skillsToText(skills = []) {
+  return skills.map(skill => `${skill.name} | ${skill.level}`).join('\n');
+}
+
+function offersToText(offers = []) {
+  return offers.map(offer => `${offer.kicker} | ${offer.title} | ${offer.description}`).join('\n');
+}
+
+function parseSkills() {
+  return splitRows('portfolio-skills', 2).map(([name, levelText]) => {
+    const level = Number(levelText);
+    if (!Number.isInteger(level) || level < 0 || level > 100) {
+      throw new Error('Skill levels must be whole numbers from 0 to 100.');
+    }
+    return { name, level };
+  });
+}
+
+function parseOffers() {
+  return splitRows('portfolio-offers', 3).map(([kicker, title, ...descriptionParts]) => ({
+    kicker,
+    title,
+    description: descriptionParts.join(' | '),
+  }));
+}
+
+function parseProjects() {
+  try {
+    const projects = JSON.parse($('portfolio-projects').value);
+    if (!Array.isArray(projects) || !projects.length) {
+      throw new Error('Projects JSON must be a non-empty array.');
+    }
+    return projects.map(project => ({
+      ...project,
+      tech: Array.isArray(project.tech) ? project.tech : [],
+    }));
+  } catch (error) {
+    throw new Error(`Projects JSON is invalid: ${error.message}`);
+  }
+}
+
+function fillPortfolioForm(content) {
+  portfolioContent = content;
+  $('portfolio-hero-eyebrow').value = content.hero_eyebrow || '';
+  $('portfolio-hero-title').value = content.hero_title || '';
+  $('portfolio-hero-intro').value = content.hero_intro || '';
+  $('portfolio-hero-location').value = content.hero_location || '';
+  $('portfolio-hero-experience').value = content.hero_experience || '';
+  $('portfolio-about-title').value = content.about_title || '';
+  $('portfolio-about-body').value = (content.about_body || []).join('\n');
+  $('portfolio-github-url').value = content.github_url || '';
+  $('portfolio-skills').value = skillsToText(content.skills || []);
+  $('portfolio-studio-title').value = content.studio_title || '';
+  $('portfolio-studio-intro').value = content.studio_intro || '';
+  $('portfolio-offers').value = offersToText(content.offers || []);
+  $('portfolio-projects').value = JSON.stringify(content.projects || [], null, 2);
+  $('portfolio-contact-title').value = content.contact_title || '';
+  $('portfolio-contact-intro').value = content.contact_intro || '';
+  $('portfolio-contact-email').value = content.contact_email || '';
+}
+
+function portfolioPayload() {
+  return {
+    hero_eyebrow: $('portfolio-hero-eyebrow').value.trim(),
+    hero_title: $('portfolio-hero-title').value.trim(),
+    hero_intro: $('portfolio-hero-intro').value.trim(),
+    hero_location: $('portfolio-hero-location').value.trim(),
+    hero_experience: $('portfolio-hero-experience').value.trim(),
+    about_title: $('portfolio-about-title').value.trim(),
+    about_body: linesFromTextarea('portfolio-about-body'),
+    github_url: $('portfolio-github-url').value.trim(),
+    studio_title: $('portfolio-studio-title').value.trim(),
+    studio_intro: $('portfolio-studio-intro').value.trim(),
+    offers: parseOffers(),
+    contact_title: $('portfolio-contact-title').value.trim(),
+    contact_intro: $('portfolio-contact-intro').value.trim(),
+    contact_email: $('portfolio-contact-email').value.trim(),
+    skills: parseSkills(),
+    projects: parseProjects(),
+  };
+}
+
+async function loadPortfolioContent() {
+  try {
+    setStatus($('portfolio-status'), 'Loading portfolio content...');
+    const payload = await adminRequest('/api/v1/admin/portfolio/content');
+    fillPortfolioForm(payload.content);
+    setStatus($('portfolio-status'), 'Loaded managed portfolio content.', 'success');
+  } catch (error) {
+    setStatus($('portfolio-status'), error.message, 'error');
+  }
+}
+
+async function savePortfolioContent(event) {
+  event.preventDefault();
+  try {
+    setStatus($('portfolio-status'), 'Saving portfolio content...');
+    const payload = await adminRequest('/api/v1/admin/portfolio/content', {
+      method: 'PATCH',
+      body: JSON.stringify(portfolioPayload()),
+    });
+    fillPortfolioForm(payload.content);
+    setStatus($('portfolio-status'), 'Portfolio content saved.', 'success');
+  } catch (error) {
+    setStatus($('portfolio-status'), error.message, 'error');
+  }
+}
+
 loginForm.addEventListener('submit', async event => {
   event.preventDefault();
   const email = emailInput.value.trim();
@@ -645,6 +764,12 @@ $('trades-body').addEventListener('click', event => {
   const deleteButton = event.target.closest('[data-trade-delete]');
   if (editButton) editTrade(Number(editButton.dataset.tradeEdit));
   if (deleteButton) deleteTrade(Number(deleteButton.dataset.tradeDelete));
+});
+
+$('portfolio-load').addEventListener('click', loadPortfolioContent);
+$('portfolio-form').addEventListener('submit', savePortfolioContent);
+$('portfolio-reset').addEventListener('click', () => {
+  if (portfolioContent) fillPortfolioForm(portfolioContent);
 });
 
 fillBlogForm(null);

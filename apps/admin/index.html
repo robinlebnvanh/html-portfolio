@@ -77,8 +77,8 @@
           </article>
           <article class="metric-card">
             <span>Auth model</span>
-            <strong>Token</strong>
-            <p>Temporary single-operator login using the existing Bearer-token boundary.</p>
+            <strong>Login</strong>
+            <p>Email/password login with a signed access token for this browser session.</p>
           </article>
           </div>
 
@@ -103,11 +103,11 @@
 
           <article class="module-card">
             <div>
-              <span class="module-kicker">Planned for P2-07.4</span>
+              <span class="module-kicker">P2-07.4</span>
               <h3>Portfolio content</h3>
               <p>Manage profile, selected projects, case-study metadata, and product-studio offer copy.</p>
             </div>
-            <button class="module-action disabled" type="button" disabled>Planned</button>
+            <a class="module-action" href="#portfolio">Manage portfolio</a>
           </article>
 
           <article class="module-card">
@@ -251,11 +251,58 @@
         </section>
 
         <section id="portfolio" class="admin-section" data-section="portfolio" hidden aria-labelledby="portfolio-title">
-          <div class="system-panel">
-            <p class="eyebrow">Planned</p>
-            <h3 id="portfolio-title">Portfolio content management</h3>
-            <p>Profile, selected projects, case-study metadata, and product-studio offer copy will move here in P2-07.4 after the data ownership model is defined.</p>
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Portfolio CMS</p>
+              <h3 id="portfolio-title">Manage public-site content</h3>
+            </div>
+            <button id="portfolio-load" class="module-action" type="button">Load content</button>
           </div>
+          <p id="portfolio-status" class="status-text" role="status" aria-live="polite"></p>
+          <form id="portfolio-form" class="editor-panel">
+            <div class="admin-block">
+              <h4>Hero</h4>
+              <label class="field"><span>Eyebrow</span><input id="portfolio-hero-eyebrow" required maxlength="120"></label>
+              <label class="field"><span>Title</span><textarea id="portfolio-hero-title" rows="2" required maxlength="220"></textarea></label>
+              <label class="field"><span>Intro</span><textarea id="portfolio-hero-intro" rows="3" required></textarea></label>
+              <div class="form-grid">
+                <label class="field"><span>Location</span><input id="portfolio-hero-location" required maxlength="120"></label>
+                <label class="field"><span>Experience</span><input id="portfolio-hero-experience" required maxlength="120"></label>
+              </div>
+            </div>
+
+            <div class="admin-block">
+              <h4>About</h4>
+              <label class="field"><span>Title</span><textarea id="portfolio-about-title" rows="2" required maxlength="220"></textarea></label>
+              <label class="field"><span>Body</span><textarea id="portfolio-about-body" rows="5" required placeholder="One paragraph per line"></textarea></label>
+              <label class="field"><span>GitHub URL</span><input id="portfolio-github-url" required maxlength="300"></label>
+              <label class="field"><span>Skills</span><textarea id="portfolio-skills" rows="5" required placeholder="Product delivery | 90"></textarea></label>
+            </div>
+
+            <div class="admin-block">
+              <h4>Product studio</h4>
+              <label class="field"><span>Title</span><textarea id="portfolio-studio-title" rows="2" required maxlength="220"></textarea></label>
+              <label class="field"><span>Intro</span><textarea id="portfolio-studio-intro" rows="3" required></textarea></label>
+              <label class="field"><span>Offers</span><textarea id="portfolio-offers" rows="7" required placeholder="Offer 01 | Booking-ready service website | Description"></textarea></label>
+            </div>
+
+            <div class="admin-block">
+              <h4>Selected work</h4>
+              <label class="field"><span>Projects JSON</span><textarea id="portfolio-projects" rows="16" required spellcheck="false"></textarea></label>
+            </div>
+
+            <div class="admin-block">
+              <h4>Contact</h4>
+              <label class="field"><span>Title</span><textarea id="portfolio-contact-title" rows="2" required maxlength="220"></textarea></label>
+              <label class="field"><span>Intro</span><textarea id="portfolio-contact-intro" rows="3" required></textarea></label>
+              <label class="field"><span>Email</span><input id="portfolio-contact-email" type="email" required maxlength="254"></label>
+            </div>
+
+            <div class="form-actions">
+              <button class="primary-button" type="submit">Save portfolio content</button>
+              <button id="portfolio-reset" class="module-action" type="button">Reset form</button>
+            </div>
+          </form>
         </section>
 
         <section id="system" class="admin-section" data-section="system" hidden aria-labelledby="system-title">
