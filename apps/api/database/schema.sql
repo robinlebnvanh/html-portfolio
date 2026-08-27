@@ -110,3 +110,12 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS admin_users (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('admin')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TEXT
+);

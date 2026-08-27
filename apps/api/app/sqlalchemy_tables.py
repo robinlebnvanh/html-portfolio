@@ -167,3 +167,16 @@ blog_posts = sa.Table(
     sa.CheckConstraint("status IN ('draft', 'published')", name="ck_blog_posts_status"),
     sa.UniqueConstraint("slug", name="uq_blog_posts_slug"),
 )
+
+admin_users = sa.Table(
+    "admin_users",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("email", sa.String, nullable=False),
+    sa.Column("password_hash", sa.Text, nullable=False),
+    sa.Column("role", sa.String, nullable=False, server_default="admin"),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+    sa.Column("last_login_at", sa.DateTime(timezone=True)),
+    sa.CheckConstraint("role IN ('admin')", name="ck_admin_users_role"),
+    sa.UniqueConstraint("email", name="uq_admin_users_email"),
+)

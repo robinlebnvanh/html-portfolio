@@ -6,6 +6,12 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from app.admin_auth import (
+    authenticate_admin_user,
+    create_access_token,
+    ensure_bootstrap_admin_user,
+    verify_access_token,
+)
 from app.blog_repository import (
     blog_slug_exists,
     create_blog_post,
@@ -16,7 +22,7 @@ from app.blog_repository import (
     seed_default_blog_posts,
     update_blog_post,
 )
-from app.auth import require_admin_token
+from app.auth import bearer_scheme, require_admin_token
 from app.database import initialize_database
 from app.sqlalchemy_database import get_session
 from app.stocks_repository import (
@@ -138,6 +144,13 @@ class BlogPostUpdate(BaseModel):
     published_at: str | None = None
 
 
+class AdminLoginRequest(BaseModel):
+    """Credentials for Admin Console login."""
+
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=1, max_length=1024)
+
+
 PostLimit = Annotated[int, Query(ge=1, le=20)]
 PostOffset = Annotated[int, Query(ge=0)]
 AdminPostStatus = Annotated[Literal["all", "draft", "published"], Query()]
@@ -169,12 +182,74 @@ app.add_middleware(
 initialize_database()
 with get_session() as startup_session:
     seed_default_blog_posts(startup_session)
+    ensure_bootstrap_admin_user(startup_session)
 
 
 @app.get("/health", tags=["system"])
 def health() -> dict[str, str]:
     """Return the process health status."""
     return {"status": "ok", "service": "prj008-api"}
+
+
+@app.post("/api/v1/auth/login", tags=["auth"])
+def admin_login(payload: AdminLoginRequest) -> dict[str, Any]:
+    """Authenticate an admin user and return a short-lived access token."""
+    with get_session() as session:
+        user = authenticate_admin_user(session, payload.email, payload.password)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid admin credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    try:
+        access_token = create_access_token(user)
+    except RuntimeError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(error),
+        ) from error
+    return {"access_token": access_token, "token_type": "bearer", "user": user}
+
+
+@app.get("/api/v1/auth/me", tags=["auth"])
+def admin_me(
+    credentials: Annotated[
+        Any,
+        Depends(bearer_scheme),
+    ],
+) -> dict[str, Any]:
+    """Return the current signed-token admin session."""
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="admin bearer token required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    claims = verify_access_token(credentials.credentials)
+    if claims is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid admin bearer token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return {
+        "user": {
+            "id": int(claims["sub"]),
+            "email": claims["email"],
+            "role": claims["role"],
+        }
+    }
+
+
+@app.post(
+    "/api/v1/auth/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["auth"],
+)
+def admin_logout() -> Response:
+    """Acknowledge logout for the stateless browser session token."""
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.get("/api/v1/stocks/portfolio", tags=["stocks"])

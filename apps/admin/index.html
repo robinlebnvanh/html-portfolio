@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Private PRJ008 Admin Console for managing Robin Le's portfolio operations.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>PRJ008 Admin Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/admin.css">
+  <script src="assets/js/config.js"></script>
+</head>
+<body>
+  <main class="admin-app">
+    <section id="login-view" class="login-view" aria-labelledby="login-title">
+      <div class="login-panel">
+        <p class="eyebrow">PRJ008 / Private operator surface</p>
+        <h1 id="login-title">Admin Console</h1>
+        <p class="login-copy">Sign in with the admin account created by the FastAPI backend. The browser keeps the access token only for this tab session.</p>
+
+        <form id="login-form" class="login-form">
+          <label class="field">
+            <span>Email</span>
+            <input id="admin-email" type="email" autocomplete="username" placeholder="admin@example.com" required>
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="admin-password" type="password" autocomplete="current-password" placeholder="Enter password" required>
+          </label>
+          <button class="primary-button" type="submit">Sign in</button>
+          <p id="login-status" class="status-text" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <section id="dashboard-view" class="dashboard-view" hidden>
+      <aside class="sidebar" aria-label="Admin navigation">
+        <a class="admin-brand" href="index.html" aria-label="PRJ008 Admin home">
+          <span>PRJ008</span>
+          <strong>Admin</strong>
+        </a>
+        <nav class="admin-nav">
+          <a class="nav-item active" href="#overview" aria-current="page">Overview</a>
+          <a class="nav-item" href="#blog">Blog</a>
+          <a class="nav-item" href="#stocks">Stocks</a>
+          <a class="nav-item" href="#portfolio">Portfolio</a>
+          <a class="nav-item" href="#system">System</a>
+        </nav>
+        <button id="logout-button" class="ghost-button" type="button">Sign out</button>
+      </aside>
+
+      <div class="workspace">
+        <header class="workspace-header">
+          <div>
+            <p class="eyebrow">Private dashboard</p>
+            <h2>Operator overview</h2>
+          </div>
+          <div class="header-actions">
+            <a class="text-link" href="../personal-site/" target="_blank" rel="noreferrer">Public site</a>
+            <a class="text-link" href="../stocks-app/" target="_blank" rel="noreferrer">Stocks app</a>
+          </div>
+        </header>
+
+        <section id="overview" class="admin-section is-active" aria-label="Admin overview" data-section="overview">
+          <div class="dashboard-grid">
+          <article class="metric-card">
+            <span>API</span>
+            <strong id="api-status-value">Checking</strong>
+            <p id="api-status-detail">Calling the configured FastAPI health endpoint.</p>
+          </article>
+          <article class="metric-card">
+            <span>Blog posts</span>
+            <strong id="blog-count-value">-</strong>
+            <p id="blog-count-detail">Loaded from the authenticated admin blog endpoint.</p>
+          </article>
+          <article class="metric-card">
+            <span>Auth model</span>
+            <strong>Token</strong>
+            <p>Temporary single-operator login using the existing Bearer-token boundary.</p>
+          </article>
+          </div>
+
+          <div class="module-grid" aria-label="Admin modules">
+          <article class="module-card">
+            <div>
+              <span class="module-kicker">P2-07.2</span>
+              <h3>Blog CMS</h3>
+              <p>Create, edit, publish, draft, and delete database-owned blog posts.</p>
+            </div>
+            <a class="module-action" href="#blog">Manage blog</a>
+          </article>
+
+          <article class="module-card">
+            <div>
+              <span class="module-kicker">P2-07.2</span>
+              <h3>Stocks operations</h3>
+              <p>Manage holdings, watchlist, journals, and trades through the FastAPI boundary.</p>
+            </div>
+            <a class="module-action" href="#stocks">Manage stocks</a>
+          </article>
+
+          <article class="module-card">
+            <div>
+              <span class="module-kicker">Planned for P2-07.4</span>
+              <h3>Portfolio content</h3>
+              <p>Manage profile, selected projects, case-study metadata, and product-studio offer copy.</p>
+            </div>
+            <button class="module-action disabled" type="button" disabled>Planned</button>
+          </article>
+
+          <article class="module-card">
+            <div>
+              <span class="module-kicker">P2-07.1 checkpoint</span>
+              <h3>System status</h3>
+              <p>Show API URL, health status, token session state, and the next auth checkpoint.</p>
+            </div>
+            <button id="refresh-status" class="module-action" type="button">Refresh status</button>
+          </article>
+          </div>
+        </section>
+
+        <section id="blog" class="admin-section" data-section="blog" hidden aria-labelledby="blog-admin-title">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Blog CMS</p>
+              <h3 id="blog-admin-title">Manage database posts</h3>
+            </div>
+            <button id="blog-load" class="module-action" type="button">Load posts</button>
+          </div>
+          <p id="blog-status" class="status-text" role="status" aria-live="polite"></p>
+          <div class="admin-split">
+            <div class="list-panel">
+              <div id="blog-list" class="item-list"></div>
+            </div>
+            <form id="blog-form" class="editor-panel">
+              <input id="blog-id" type="hidden">
+              <div class="form-grid">
+                <label class="field"><span>Slug</span><input id="blog-slug" required placeholder="database-backed-blog"></label>
+                <label class="field"><span>Status</span><select id="blog-post-status"><option value="draft">Draft</option><option value="published">Published</option></select></label>
+              </div>
+              <label class="field"><span>Title</span><input id="blog-title-field" required placeholder="What the post teaches"></label>
+              <label class="field"><span>Summary</span><textarea id="blog-summary" rows="3" required placeholder="Short reader-facing summary"></textarea></label>
+              <div class="form-grid">
+                <label class="field"><span>Category</span><input id="blog-category" required placeholder="backend"></label>
+                <label class="field"><span>Published date</span><input id="blog-published-at" type="date"></label>
+              </div>
+              <label class="field"><span>Tags</span><input id="blog-tags" placeholder="FastAPI, PostgreSQL, Portfolio"></label>
+              <label class="field"><span>Content</span><textarea id="blog-content" rows="12" required placeholder="Write the post content. Separate paragraphs with blank lines."></textarea></label>
+              <div class="form-actions">
+                <button id="blog-save" class="primary-button" type="submit">Save post</button>
+                <button id="blog-new" class="module-action" type="button">New draft</button>
+                <button id="blog-delete" class="danger-button" type="button" hidden>Delete</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section id="stocks" class="admin-section" data-section="stocks" hidden aria-labelledby="stocks-admin-title">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Stocks operations</p>
+              <h3 id="stocks-admin-title">Manage portfolio data</h3>
+            </div>
+            <button id="stocks-load" class="module-action" type="button">Load stocks data</button>
+          </div>
+          <p id="stocks-status" class="status-text" role="status" aria-live="polite"></p>
+
+          <div class="admin-block">
+            <h4>Holdings</h4>
+            <form id="holding-form" class="editor-panel compact">
+              <input id="holding-id" type="hidden">
+              <div class="form-grid three">
+                <label class="field"><span>Ticker *</span><input id="holding-ticker" required maxlength="12" placeholder="VIC"></label>
+                <label class="field"><span>Quantity *</span><input id="holding-quantity" required type="number" min="0" step="1" placeholder="100"></label>
+                <label class="field"><span>Avg cost *</span><input id="holding-avg-cost" required type="number" min="0" step="1" placeholder="192000"></label>
+                <label class="field"><span>Entry date *</span><input id="holding-entry-date" required type="date"></label>
+                <label class="field"><span>Stop-loss</span><input id="holding-stop-loss" type="number" min="0" step="1" placeholder="186000"></label>
+                <label class="field"><span>Status *</span><select id="holding-status" required><option value="HOLDING">HOLDING</option><option value="WATCHING">WATCHING</option><option value="CLOSED">CLOSED</option></select></label>
+              </div>
+              <label class="field"><span>Targets</span><input id="holding-targets" placeholder="210000, 219900"></label>
+              <label class="field"><span>Note</span><textarea id="holding-note" rows="2" placeholder="Thesis or watch condition"></textarea></label>
+              <div class="form-actions">
+                <button id="holding-submit" class="primary-button" type="submit">Add holding</button>
+                <button id="holding-cancel" class="module-action" type="button" hidden>Cancel edit</button>
+              </div>
+            </form>
+            <div class="table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Ticker</th><th>Qty</th><th>Avg cost</th><th>Entry</th><th>Status</th><th>Targets</th><th>Actions</th></tr></thead>
+                <tbody id="holdings-body"><tr><td colspan="7" class="empty-cell">Load stocks data to manage holdings.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="admin-block">
+            <h4>Watchlist</h4>
+            <form id="watchlist-form" class="inline-form">
+              <label class="field"><span>Ticker</span><input id="watchlist-ticker" maxlength="12" placeholder="ACB"></label>
+              <button class="primary-button" type="submit">Add watchlist</button>
+            </form>
+            <div id="watchlist-list" class="chip-list"></div>
+          </div>
+
+          <div class="admin-block">
+            <h4>Journals</h4>
+            <form id="journal-form" class="editor-panel compact">
+              <label class="field"><span>Ticker *</span><input id="journal-ticker" required maxlength="12" placeholder="VIC"></label>
+              <label class="field"><span>Buffett check</span><textarea id="journal-buffett" rows="3" placeholder="Overall thesis"></textarea></label>
+              <label class="field"><span>Bull case</span><textarea id="journal-bull" rows="4" placeholder="One point per line"></textarea></label>
+              <label class="field"><span>Bear case</span><textarea id="journal-bear" rows="4" placeholder="One point per line"></textarea></label>
+              <div class="form-actions">
+                <button class="primary-button" type="submit">Save journal</button>
+                <button id="journal-delete" class="danger-button" type="button">Delete journal</button>
+              </div>
+            </form>
+            <div class="table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Ticker</th><th>Buffett check</th><th>Bull</th><th>Bear</th><th>Actions</th></tr></thead>
+                <tbody id="journals-body"><tr><td colspan="5" class="empty-cell">Load stocks data to manage journals.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="admin-block">
+            <h4>Trades</h4>
+            <form id="trade-form" class="editor-panel compact">
+              <input id="trade-id" type="hidden">
+              <div class="form-grid three">
+                <label class="field"><span>Ticker *</span><input id="trade-ticker" required maxlength="12" placeholder="VIC"></label>
+                <label class="field"><span>Date *</span><input id="trade-date" required type="date"></label>
+                <label class="field"><span>Type *</span><select id="trade-type" required><option value="MUA">MUA</option><option value="BAN">BAN</option><option value="BUY">BUY</option><option value="SELL">SELL</option></select></label>
+                <label class="field"><span>Price *</span><input id="trade-price" required type="number" min="0" step="1" placeholder="192000"></label>
+                <label class="field"><span>Stop-loss</span><input id="trade-stop-loss" type="number" min="0" step="1" placeholder="186000"></label>
+                <label class="field"><span>P&L</span><input id="trade-pnl" placeholder="+1.2M"></label>
+              </div>
+              <label class="field"><span>Note</span><textarea id="trade-note" rows="2" placeholder="Reason to buy/sell"></textarea></label>
+              <div class="form-actions">
+                <button id="trade-submit" class="primary-button" type="submit">Add trade</button>
+                <button id="trade-cancel" class="module-action" type="button" hidden>Cancel edit</button>
+              </div>
+            </form>
+            <div class="table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Ticker</th><th>Date</th><th>Type</th><th>Price</th><th>Stop</th><th>P&L</th><th>Note</th><th>Actions</th></tr></thead>
+                <tbody id="trades-body"><tr><td colspan="8" class="empty-cell">Load stocks data to manage trades.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="portfolio" class="admin-section" data-section="portfolio" hidden aria-labelledby="portfolio-title">
+          <div class="system-panel">
+            <p class="eyebrow">Planned</p>
+            <h3 id="portfolio-title">Portfolio content management</h3>
+            <p>Profile, selected projects, case-study metadata, and product-studio offer copy will move here in P2-07.4 after the data ownership model is defined.</p>
+          </div>
+        </section>
+
+        <section id="system" class="admin-section" data-section="system" hidden aria-labelledby="system-title">
+        <div class="system-panel">
+          <div>
+            <p class="eyebrow">System</p>
+            <h3 id="system-title">Runtime boundary</h3>
+          </div>
+          <dl class="runtime-list">
+            <div>
+              <dt>Frontend</dt>
+              <dd>/apps/admin/ static app</dd>
+            </div>
+            <div>
+              <dt>API base URL</dt>
+              <dd id="api-base-url">-</dd>
+            </div>
+            <div>
+              <dt>Token storage</dt>
+              <dd>sessionStorage access token only</dd>
+            </div>
+            <div>
+              <dt>Auth model</dt>
+              <dd>Email/password login + signed admin access token</dd>
+            </div>
+          </dl>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

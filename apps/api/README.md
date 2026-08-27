@@ -83,6 +83,9 @@ fixture used by the seed step:
 docker build -f apps/api/Dockerfile -t prj008-api .
 docker run --rm -p 8001:8001 \
   -e ADMIN_API_TOKEN="replace-with-a-long-random-token" \
+  -e ADMIN_EMAIL="admin@example.com" \
+  -e ADMIN_PASSWORD="replace-with-a-strong-password" \
+  -e ADMIN_AUTH_SECRET="replace-with-a-random-signing-secret" \
   -e API_ALLOWED_ORIGINS="https://your-frontend.example" \
   prj008-api
 ```
@@ -93,14 +96,23 @@ SQLite data. Never use `allow_origins=["*"]` with authenticated writes.
 
 ## Admin authentication
 
-Read endpoints remain public. The holdings `POST`, `PATCH`, and `DELETE`
-endpoints require an admin bearer token supplied through the
-`ADMIN_API_TOKEN` environment variable.
+Read endpoints remain public. Admin write endpoints accept either:
+
+- A short-lived Admin Console access token returned by
+  `POST /api/v1/auth/login`.
+- The legacy `ADMIN_API_TOKEN` Bearer token, kept temporarily for compatibility.
+
+The first admin user is bootstrapped from `ADMIN_EMAIL` and `ADMIN_PASSWORD`
+only when the `admin_users` table is empty. `ADMIN_AUTH_SECRET` signs browser
+access tokens after login.
 
 PowerShell:
 
 ```powershell
 $env:ADMIN_API_TOKEN = "replace-with-a-long-random-token"
+$env:ADMIN_EMAIL = "admin@example.com"
+$env:ADMIN_PASSWORD = "replace-with-a-strong-password"
+$env:ADMIN_AUTH_SECRET = "replace-with-a-random-signing-secret"
 python -m uvicorn app.main:app --reload --port 8001
 ```
 
@@ -108,10 +120,21 @@ Command Prompt:
 
 ```bat
 set ADMIN_API_TOKEN=replace-with-a-long-random-token
+set ADMIN_EMAIL=admin@example.com
+set ADMIN_PASSWORD=replace-with-a-strong-password
+set ADMIN_AUTH_SECRET=replace-with-a-random-signing-secret
 python -m uvicorn app.main:app --reload --port 8001
 ```
 
-Send the token with every write request:
+Login and send the returned access token with admin requests:
+
+```bash
+curl -X POST http://localhost:8001/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"replace-with-a-strong-password"}'
+```
+
+Legacy token example:
 
 ```bash
 curl -X POST http://localhost:8001/api/v1/stocks/holdings \
@@ -121,7 +144,8 @@ curl -X POST http://localhost:8001/api/v1/stocks/holdings \
 ```
 
 Missing or invalid credentials return `401`. If the server was started
-without `ADMIN_API_TOKEN`, an otherwise valid write request returns `503`.
+without `ADMIN_API_TOKEN` or `ADMIN_AUTH_SECRET`, an otherwise valid write
+request returns `503`.
 
 Run the authentication unit checks from the `apps/api` directory:
 

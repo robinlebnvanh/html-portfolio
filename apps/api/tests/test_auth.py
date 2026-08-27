@@ -4,6 +4,7 @@ from unittest.mock import patch
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
+from app.admin_auth import create_access_token
 from app.auth import require_admin_token
 
 
@@ -25,6 +26,13 @@ class AdminTokenTests(unittest.TestCase):
     def test_valid_credentials_are_accepted(self):
         with patch.dict("os.environ", {"ADMIN_API_TOKEN": "expected"}):
             self.assertIsNone(require_admin_token(self.credentials("expected")))
+
+    def test_signed_access_token_is_accepted(self):
+        with patch.dict("os.environ", {"ADMIN_AUTH_SECRET": "secret"}, clear=True):
+            token = create_access_token(
+                {"id": 1, "email": "admin@example.com", "role": "admin"},
+            )
+            self.assertIsNone(require_admin_token(self.credentials(token)))
 
     def test_missing_server_configuration_fails_closed(self):
         with patch.dict("os.environ", {}, clear=True):
