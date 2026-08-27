@@ -16,4 +16,4 @@ RUN useradd --create-home --uid 10001 appuser \
 USER appuser
 
 EXPOSE 8001
-CMD ["sh", "-c", "if [ ! -f database/prj008.sqlite3 ]; then python -m scripts.seed_database; fi; exec python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "if [ -z \"$DATABASE_URL\" ] && [ ! -f database/prj008.sqlite3 ]; then SHOULD_SEED=1; fi; python -m alembic upgrade head; if [ \"$SHOULD_SEED\" = \"1\" ]; then python -m scripts.seed_database; fi; exec python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
