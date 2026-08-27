@@ -9,10 +9,12 @@
     "tech": ["JavaScript", "FastAPI", "PostgreSQL"],
     "category": "tool",
     "link": "case-studies/investment-dashboard.html",
+    "demoLink": "../stocks-app/",
     "github": "https://github.com/robinlebnvanh",
     "date": "Live demo",
     "visual": "dashboard",
-    "linkLabel": "Read case study"
+    "linkLabel": "Read case study",
+    "demoLabel": "Open demo"
   },
   {
     "id": 2,
@@ -24,10 +26,12 @@
     "tech": ["HTML", "CSS", "Conversion UX"],
     "category": "frontend",
     "link": "case-studies/fame-lux-nails.html",
+    "demoLink": "../nail-landing-page/",
     "github": "https://github.com/robinlebnvanh",
     "date": "Service MVP",
     "visual": "atelier",
-    "linkLabel": "Read case study"
+    "linkLabel": "Read case study",
+    "demoLabel": "Open demo"
   },
   {
     "id": 3,
@@ -39,9 +43,11 @@
     "tech": ["Python", "OpenClaw", "Automation"],
     "category": "tool",
     "link": "case-studies/personal-ai-agent.html",
+    "demoLink": "blog.html",
     "github": "https://github.com/robinlebnvanh",
     "date": "Product concept",
     "visual": "agent",
-    "linkLabel": "Read case study"
+    "linkLabel": "Read case study",
+    "demoLabel": "Read notes"
   }
 ]

@@ -27,7 +27,10 @@ function renderProjects(filter) {
       <p>${escapeHtml(project.desc)}</p>
       <p class="project-outcome">${escapeHtml(project.outcome || 'Case study details are being prepared.')}</p>
       <div class="tags">${project.tech.map(tech => `<span class="tag">${escapeHtml(tech)}</span>`).join('')}</div>
-      <a class="project-link" href="${escapeHtml(project.link || '#')}">${escapeHtml(project.linkLabel || 'View project')} <span aria-hidden="true">↗</span></a>
+      <div class="project-actions">
+        <a class="project-link" href="${escapeHtml(project.link || '#')}">${escapeHtml(project.linkLabel || 'View project')} <span aria-hidden="true">↗</span></a>
+        ${project.demoLink ? `<a class="project-link project-link-secondary" href="${escapeHtml(project.demoLink)}">${escapeHtml(project.demoLabel || 'Open demo')} <span aria-hidden="true">↗</span></a>` : ''}
+      </div>
     </article>
   `).join('');
 

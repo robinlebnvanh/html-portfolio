@@ -112,7 +112,9 @@ h2 { margin: 0; font-size: clamp(36px, 4.5vw, 64px); font-weight: 600; line-heig
 .project-card .project-outcome { min-height: 0; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ink); font-weight: 600; }
 .tags { display: flex; flex-wrap: wrap; gap: 7px; margin: 22px 0; }
 .tag { padding: 4px 7px; color: var(--ink-soft); border: 1px solid var(--line); font-family: "DM Mono", monospace; font-size: 10px; }
-.project-link { display: inline-flex; gap: 7px; align-items: center; width: max-content; margin-top: auto; color: var(--accent); }
+.project-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: auto; }
+.project-link { display: inline-flex; gap: 7px; align-items: center; width: max-content; color: var(--accent); }
+.project-link-secondary { color: var(--ink-soft); }
 .project-link:hover { color: var(--ink); }
 
 .contact-section { padding: 115px 0; color: #f3f0e8; background: var(--dark); }
