@@ -23,9 +23,11 @@ function renderProjects(filter) {
       <div class="project-visual ${escapeHtml(project.visual || 'dashboard')}" aria-hidden="true"></div>
       <div class="card-meta"><span>${escapeHtml(project.number)}</span><span>${escapeHtml(project.date)}</span></div>
       <h3>${escapeHtml(project.name)}</h3>
+      <p class="project-audience">${escapeHtml(project.audience || 'Product audience')}</p>
       <p>${escapeHtml(project.desc)}</p>
+      <p class="project-outcome">${escapeHtml(project.outcome || 'Case study details are being prepared.')}</p>
       <div class="tags">${project.tech.map(tech => `<span class="tag">${escapeHtml(tech)}</span>`).join('')}</div>
-      <a class="project-link" href="${escapeHtml(project.link || '#')}" target="_blank" rel="noreferrer">View project <span aria-hidden="true">↗</span></a>
+      <a class="project-link" href="${escapeHtml(project.link || '#')}" target="_blank" rel="noreferrer">${escapeHtml(project.linkLabel || 'View project')} <span aria-hidden="true">↗</span></a>
     </article>
   `).join('');
 

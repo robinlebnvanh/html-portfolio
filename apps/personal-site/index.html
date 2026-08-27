@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Robin Le is a software engineer and delivery lead building thoughtful digital products and practical automation.">
-  <title>Robin Le | Software Engineer</title>
+  <meta name="description" content="Robin Le is a senior software engineer building full-stack portfolio products, automation, and sellable tools for service businesses.">
+  <meta property="og:title" content="Robin Le | Senior Software Engineer &amp; Product Studio">
+  <meta property="og:description" content="Portfolio-grade full-stack projects, practical automation, and productized tools for real service-business workflows.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/images/robin-workspace-hero.png">
+  <title>Robin Le | Senior Software Engineer &amp; Product Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
@@ -16,11 +20,12 @@
       <a class="brand" href="#top" aria-label="Robin Le home">Robin <span>Le</span></a>
       <ul class="nav-links">
         <li><a href="#about">About</a></li>
-        <li><a href="#projects">Selected work</a></li>
+        <li><a href="#studio">Studio</a></li>
+        <li><a href="#projects">Work</a></li>
         <li><a href="blog.html">Notes</a></li>
       </ul>
       <div class="nav-actions">
-        <a class="nav-contact" href="#contact">Let’s talk <span aria-hidden="true">↗</span></a>
+        <a class="nav-contact" href="#contact">Start a project <span aria-hidden="true">↗</span></a>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch colour theme"><span aria-hidden="true">◐</span></button>
       </div>
     </nav>
@@ -28,19 +33,36 @@
 
   <main id="top">
     <section id="hero" aria-labelledby="hero-title">
-      <div class="hero-image" role="img" aria-label="A considered workspace with laptop, notebook and lamp"></div>
+      <div class="hero-image" role="img" aria-label="A focused product workspace with laptop, notebook and warm lighting"></div>
       <div class="hero-content page-shell">
-        <p class="eyebrow hero-eyebrow">Software engineer · Delivery lead</p>
-        <h1 id="hero-title">Building quiet, <em>useful</em> digital products.</h1>
-        <p class="hero-intro">I turn complex workflows into focused experiences, from reliable platforms to practical AI automation.</p>
+        <p class="eyebrow hero-eyebrow">Senior software engineer / Product studio</p>
+        <h1 id="hero-title">Building full-stack tools people can actually use.</h1>
+        <p class="hero-intro">I turn service-business workflows into reliable web products: booking flows, operating dashboards, admin tools, automation, and clear case studies that prove the work.</p>
         <div class="hero-actions">
-          <a href="#projects" class="button button-primary">Explore selected work <span aria-hidden="true">↓</span></a>
-          <a href="mailto:bnvanh@gmail.com" class="text-link">Email me <span aria-hidden="true">↗</span></a>
+          <a href="#studio" class="button button-primary">View product studio <span aria-hidden="true">↓</span></a>
+          <a href="#projects" class="text-link">See proof of work <span aria-hidden="true">↗</span></a>
         </div>
       </div>
       <div class="hero-foot page-shell">
-        <p>Based in Vietnam · Working globally</p>
-        <p>10+ years in product delivery</p>
+        <p>Vietnam based / Remote-ready</p>
+        <p>10+ years shipping software</p>
+      </div>
+    </section>
+
+    <section class="proof-strip" aria-label="Portfolio proof points">
+      <div class="page-shell proof-grid">
+        <div>
+          <span>Focus</span>
+          <strong>Service business tooling</strong>
+        </div>
+        <div>
+          <span>Stack</span>
+          <strong>Static UI + FastAPI + PostgreSQL</strong>
+        </div>
+        <div>
+          <span>Output</span>
+          <strong>Live demos, docs, case studies</strong>
+        </div>
       </div>
     </section>
 
@@ -48,9 +70,9 @@
       <div class="section-kicker"><span>01</span><span>About</span></div>
       <div class="about-layout">
         <div class="about-copy reveal">
-          <h2 id="about-title">A pragmatic approach to digital craft.</h2>
-          <p>I am Robin, a software engineer and project leader with over a decade of experience taking products from an ambiguous brief to a dependable release.</p>
-          <p>My practice sits between technical detail, product judgement and clear collaboration. I value systems that feel inevitable to the people who use them.</p>
+          <h2 id="about-title">Senior delivery mindset, hands-on product execution.</h2>
+          <p>I am Robin, a software engineer and delivery lead with over a decade of experience moving work from unclear business need to stable release.</p>
+          <p>My current portfolio is intentionally shaped as a product studio: every demo must identify a customer, a workflow pain, a usable MVP, and a credible path to paid implementation.</p>
           <a class="text-link" href="https://github.com/robinlebnvanh" target="_blank" rel="noreferrer">View GitHub profile <span aria-hidden="true">↗</span></a>
         </div>
         <aside class="expertise reveal" aria-label="Core expertise">
@@ -60,12 +82,39 @@
       </div>
     </section>
 
+    <section id="studio" class="section studio-section" aria-labelledby="studio-title">
+      <div class="page-shell">
+        <div class="section-kicker"><span>02</span><span>Product studio</span></div>
+        <div class="studio-heading reveal">
+          <h2 id="studio-title">Portfolio projects designed to become sellable offers.</h2>
+          <p>The studio direction is practical: small tools for businesses that sell appointments, services, creative packages, or recurring client work.</p>
+        </div>
+        <div class="studio-grid">
+          <article class="studio-card reveal">
+            <p class="mono-label">Offer 01</p>
+            <h3>Booking-ready service website</h3>
+            <p>Landing page, service menu, enquiry flow, availability signal, analytics, and conversion-focused content for salons, studios, and local experts.</p>
+          </article>
+          <article class="studio-card reveal">
+            <p class="mono-label">Offer 02</p>
+            <h3>Lightweight operations dashboard</h3>
+            <p>Admin UI for leads, appointments, notes, simple revenue tracking, and follow-up reminders without forcing a small team into a heavy CRM.</p>
+          </article>
+          <article class="studio-card reveal">
+            <p class="mono-label">Offer 03</p>
+            <h3>Automation starter kit</h3>
+            <p>Practical workflow automation for intake, email replies, content drafts, status checks, and reporting, with security and human approval points.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section id="projects" class="section section-work" aria-labelledby="projects-title">
       <div class="page-shell">
-        <div class="section-kicker"><span>02</span><span>Selected work</span></div>
+        <div class="section-kicker"><span>03</span><span>Selected work</span></div>
         <div class="work-heading">
-          <h2 id="projects-title">Projects with a clear point of view.</h2>
-          <p>Independent explorations in product design, personal finance and thoughtful service experiences.</p>
+          <h2 id="projects-title">Case-study entry points, not just screenshots.</h2>
+          <p>Each project is framed around audience, problem, role, outcome, and the next commercial step.</p>
         </div>
         <div class="filter-bar" role="group" aria-label="Filter projects">
           <button class="filter-btn active" type="button" data-filter="all">All work</button>
@@ -79,9 +128,9 @@
     <section id="contact" class="contact-section" aria-labelledby="contact-title">
       <div class="page-shell contact-layout">
         <div>
-          <div class="section-kicker section-kicker-light"><span>03</span><span>Contact</span></div>
-          <h2 id="contact-title">Have a thoughtful project in mind?</h2>
-          <p>For product, platform or automation work, I would be glad to hear what you are building.</p>
+          <div class="section-kicker section-kicker-light"><span>04</span><span>Contact</span></div>
+          <h2 id="contact-title">Need a practical product built from a real workflow?</h2>
+          <p>Send the business problem, current workflow, and what a useful first version should help users do.</p>
           <a class="contact-email" href="mailto:bnvanh@gmail.com">bnvanh@gmail.com <span aria-hidden="true">↗</span></a>
         </div>
         <form id="contact-form" class="contact-form">
@@ -94,8 +143,8 @@
             <input id="email" type="email" name="email" autocomplete="email" placeholder="you@company.com" required>
           </div>
           <div class="form-group">
-            <label for="message">A little context</label>
-            <textarea id="message" name="message" rows="4" placeholder="Tell me about the project" required></textarea>
+            <label for="message">Project context</label>
+            <textarea id="message" name="message" rows="4" placeholder="What workflow should the product improve?" required></textarea>
           </div>
           <button type="submit" class="button button-light">Send enquiry <span aria-hidden="true">↗</span></button>
           <p id="form-status" class="form-status" role="status"></p>
