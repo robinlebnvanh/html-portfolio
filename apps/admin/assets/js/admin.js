@@ -752,7 +752,7 @@ function renderPortfolioProjectEditor() {
         </div>
         <div class="project-editor-controls">
           <button type="button" data-project-move="up" data-project-index="${index}" ${index === 0 ? 'disabled' : ''}>Up</button>
-          <button type="button" data-project-move="down" data-project-index="${index}" ${index === projects.length - 1 ? 'disabled' : ''}>Down</button>
+          <button type="button" data-project-move="down" data-project-index="${index}" ${index === portfolioProjects.length - 1 ? 'disabled' : ''}>Down</button>
           <button class="danger-link" type="button" data-project-delete="${index}">Delete</button>
         </div>
       </div>
