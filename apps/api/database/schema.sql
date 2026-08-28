@@ -145,14 +145,26 @@ CREATE TABLE IF NOT EXISTS portfolio_content (
 CREATE TABLE IF NOT EXISTS service_leads (
     id INTEGER PRIMARY KEY,
     source TEXT NOT NULL,
+    channel TEXT NOT NULL DEFAULT 'form',
     business_name TEXT NOT NULL,
     customer_name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    preferred_date TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    preferred_date TEXT,
+    follow_up_at TEXT,
     package_name TEXT NOT NULL,
     message TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'proposal_sent', 'booked', 'closed')),
     admin_note TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS service_lead_activities (
+    id INTEGER PRIMARY KEY,
+    lead_id INTEGER NOT NULL,
+    activity_type TEXT NOT NULL DEFAULT 'note',
+    note TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lead_id) REFERENCES service_leads(id) ON DELETE CASCADE
 );

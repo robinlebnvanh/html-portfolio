@@ -666,16 +666,26 @@ h3 {
 }
 
 .leads-table {
-  min-width: 1120px;
+  min-width: 1320px;
+}
+
+.lead-note-input,
+.lead-date-input {
+  width: 220px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
 }
 
 .lead-note-input {
-  width: 220px;
   min-height: 76px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
   padding: 10px;
   resize: vertical;
+}
+
+.lead-date-input {
+  min-height: 38px;
+  padding: 0 10px;
 }
 
 .lead-status-select {
@@ -751,7 +761,8 @@ h3 {
 }
 
 .lead-card-controls .lead-status-select,
-.lead-card-controls .lead-note-input {
+.lead-card-controls .lead-note-input,
+.lead-card-controls .lead-date-input {
   width: 100%;
 }
 

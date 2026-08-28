@@ -905,20 +905,24 @@ function leadStatusBadge(status) {
   return `<span class="lead-status-badge ${escapeHtml(status || 'new')}">${escapeHtml(label)}</span>`;
 }
 
+function leadContactLine(lead) {
+  return [lead.email, lead.phone].filter(Boolean).map(escapeHtml).join('<br>') || '<span class="empty-note">No contact method</span>';
+}
+
 function renderLeads(leads) {
   const body = $('leads-body');
   const cards = $('leads-cards');
   if (!leads.length) {
-    body.innerHTML = '<tr><td colspan="8" class="empty-cell">No service leads for this filter.</td></tr>';
+    body.innerHTML = '<tr><td colspan="9" class="empty-cell">No service leads for this filter.</td></tr>';
     cards.innerHTML = '<p class="empty-note">No service leads for this filter.</p>';
     return;
   }
 
   body.innerHTML = leads.map(lead => `
     <tr data-lead-row="${lead.id}">
-      <td>${escapeHtml(lead.source)}<br><span class="empty-note">${escapeHtml(lead.business_name)}</span></td>
-      <td><strong>${escapeHtml(lead.customer_name)}</strong><br><span class="empty-note">${escapeHtml(lead.email)}</span></td>
-      <td>${escapeHtml(lead.preferred_date)}</td>
+      <td>${escapeHtml(lead.channel || 'form')}<br><span class="empty-note">${escapeHtml(lead.source)} / ${escapeHtml(lead.business_name)}</span></td>
+      <td><strong>${escapeHtml(lead.customer_name)}</strong><br><span class="empty-note">${leadContactLine(lead)}</span></td>
+      <td><input class="lead-date-input" type="date" data-lead-follow-up="${lead.id}" value="${escapeHtml(lead.follow_up_at || '')}"><br><span class="empty-note">${escapeHtml(lead.preferred_date || 'No preferred date')}</span></td>
       <td>${escapeHtml(lead.package_name)}</td>
       <td>${escapeHtml(lead.message).slice(0, 180)}</td>
       <td>
@@ -928,6 +932,7 @@ function renderLeads(leads) {
         </select>
       </td>
       <td><textarea class="lead-note-input" data-lead-note="${lead.id}" placeholder="Next action">${escapeHtml(lead.admin_note || '')}</textarea></td>
+      <td><textarea class="lead-note-input" data-lead-activity="${lead.id}" placeholder="Add call/email note"></textarea></td>
       <td class="row-actions"><button type="button" data-lead-save="${lead.id}">Save</button></td>
     </tr>
   `).join('');
@@ -937,11 +942,12 @@ function renderLeads(leads) {
       <div class="lead-card-header">
         <div>
           <h4>${escapeHtml(lead.customer_name)}</h4>
-          <p class="lead-card-meta">${escapeHtml(lead.email)} / ${escapeHtml(lead.preferred_date || 'No date')}</p>
+          <p class="lead-card-meta">${escapeHtml(lead.channel || 'form')} / ${escapeHtml(lead.email || lead.phone || 'No contact method')}</p>
         </div>
         ${leadStatusBadge(lead.status)}
       </div>
       <p class="lead-card-meta">${escapeHtml(lead.source)} / ${escapeHtml(lead.business_name)} / ${escapeHtml(lead.package_name)}</p>
+      <p class="lead-card-meta">Follow-up: ${escapeHtml(lead.follow_up_at || 'Not set')} / Preferred: ${escapeHtml(lead.preferred_date || 'Not set')}</p>
       <p class="lead-card-message">${escapeHtml(lead.message).slice(0, 220)}</p>
       <div class="lead-card-controls">
         <label class="field">
@@ -951,13 +957,58 @@ function renderLeads(leads) {
           </select>
         </label>
         <label class="field">
+          <span>Follow-up date</span>
+          <input class="lead-date-input" type="date" data-lead-follow-up="${lead.id}" value="${escapeHtml(lead.follow_up_at || '')}">
+        </label>
+        <label class="field">
           <span>Admin note</span>
           <textarea class="lead-note-input" data-lead-note="${lead.id}" placeholder="Next action">${escapeHtml(lead.admin_note || '')}</textarea>
+        </label>
+        <label class="field">
+          <span>Activity note</span>
+          <textarea class="lead-note-input" data-lead-activity="${lead.id}" placeholder="Add call/email note"></textarea>
         </label>
         <button class="module-action" type="button" data-lead-save="${lead.id}">Save lead</button>
       </div>
     </article>
   `).join('');
+}
+
+function manualLeadPayload() {
+  const email = $('manual-lead-email').value.trim();
+  const phone = $('manual-lead-phone').value.trim();
+  if (!email && !phone) {
+    throw new Error('Email or phone is required.');
+  }
+  return {
+    source: 'admin-manual',
+    channel: $('manual-lead-channel').value,
+    business_name: 'Robin Le Portfolio',
+    customer_name: $('manual-lead-name').value.trim(),
+    email: email || null,
+    phone: phone || null,
+    preferred_date: null,
+    follow_up_at: $('manual-lead-follow-up').value || null,
+    package_name: $('manual-lead-package').value.trim(),
+    message: $('manual-lead-message').value.trim(),
+  };
+}
+
+async function createManualLead(event) {
+  event.preventDefault();
+  try {
+    setStatus($('leads-status'), 'Creating manual lead...');
+    await adminRequest('/api/v1/admin/leads', {
+      method: 'POST',
+      body: JSON.stringify(manualLeadPayload()),
+    });
+    $('manual-lead-form').reset();
+    $('manual-lead-package').value = 'Portfolio contact';
+    await loadLeads();
+    setStatus($('leads-status'), 'Manual lead created.', 'success');
+  } catch (error) {
+    setStatus($('leads-status'), error.message, 'error');
+  }
 }
 
 async function loadLeads() {
@@ -978,15 +1029,27 @@ async function saveLead(leadId, trigger = null) {
   const leadRow = trigger?.closest(`[data-lead-row="${leadId}"]`) || document;
   const statusSelect = leadRow.querySelector(`[data-lead-status="${leadId}"]`);
   const noteInput = leadRow.querySelector(`[data-lead-note="${leadId}"]`);
+  const followUpInput = leadRow.querySelector(`[data-lead-follow-up="${leadId}"]`);
+  const activityInput = leadRow.querySelector(`[data-lead-activity="${leadId}"]`);
   try {
     setStatus($('leads-status'), 'Saving lead...');
     await adminRequest(`/api/v1/admin/leads/${leadId}`, {
       method: 'PATCH',
       body: JSON.stringify({
-        status: statusSelect.value,
-        admin_note: noteInput.value,
+        status: statusSelect?.value,
+        admin_note: noteInput?.value || null,
+        follow_up_at: followUpInput?.value || null,
       }),
     });
+    if (activityInput?.value.trim()) {
+      await adminRequest(`/api/v1/admin/leads/${leadId}/activities`, {
+        method: 'POST',
+        body: JSON.stringify({
+          activity_type: 'note',
+          note: activityInput.value.trim(),
+        }),
+      });
+    }
     await loadLeads();
     setStatus($('leads-status'), 'Lead updated.', 'success');
   } catch (error) {
@@ -1146,6 +1209,7 @@ $('portfolio-projects').addEventListener('change', () => {
 });
 
 $('leads-load').addEventListener('click', loadLeads);
+$('manual-lead-form').addEventListener('submit', createManualLead);
 $('lead-status-filter').addEventListener('change', loadLeads);
 $('leads-body').addEventListener('click', event => {
   const saveButton = event.target.closest('[data-lead-save]');

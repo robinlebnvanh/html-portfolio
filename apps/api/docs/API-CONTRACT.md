@@ -351,14 +351,17 @@ and accepts `status_filter=all|new|contacted|proposal_sent|booked|closed`.
   "leads": [
     {
       "id": 1,
-      "source": "wedding-planner-demo",
-      "business_name": "Maison Vow",
-      "customer_name": "Smoke Client",
-      "email": "smoke@example.com",
-      "preferred_date": "2026-10-10",
-      "package_name": "Partial Planning",
-      "message": "Need vendor coordination and planning timeline.",
-      "status": "new",
+  "source": "wedding-planner-demo",
+  "channel": "form",
+  "business_name": "Maison Vow",
+  "customer_name": "Smoke Client",
+  "email": "smoke@example.com",
+  "phone": null,
+  "preferred_date": "2026-10-10",
+  "follow_up_at": null,
+  "package_name": "Partial Planning",
+  "message": "Need vendor coordination and planning timeline.",
+  "status": "new",
       "admin_note": null,
       "created_at": "2026-08-28T00:00:00",
       "updated_at": "2026-08-28T00:00:00"
@@ -369,6 +372,28 @@ and accepts `status_filter=all|new|contacted|proposal_sent|booked|closed`.
 
 Missing or invalid admin credentials return `401`.
 
+### POST `/api/v1/admin/leads`
+
+Creates one manual lead from a direct channel such as phone, email, Zalo,
+Facebook, Instagram, or referral. It requires the admin Bearer token.
+
+```json
+{
+  "source": "admin-manual",
+  "channel": "phone",
+  "business_name": "Robin Le Portfolio",
+  "customer_name": "Phone Client",
+  "email": null,
+  "phone": "+84900000000",
+  "preferred_date": null,
+  "follow_up_at": "2026-09-02",
+  "package_name": "Portfolio contact",
+  "message": "Called to ask about a booking workflow."
+}
+```
+
+Manual leads require at least one contact method: `email` or `phone`.
+
 ### PATCH `/api/v1/admin/leads/{lead_id}`
 
 Updates admin-owned workflow fields:
@@ -376,12 +401,24 @@ Updates admin-owned workflow fields:
 ```json
 {
   "status": "proposal_sent",
-  "admin_note": "Send planning proposal."
+  "admin_note": "Send planning proposal.",
+  "follow_up_at": "2026-09-02"
 }
 ```
 
 Allowed statuses are `new`, `contacted`, `proposal_sent`, `booked`, and
 `closed`. Unknown IDs return `404`.
+
+### POST `/api/v1/admin/leads/{lead_id}/activities`
+
+Adds one timeline activity to a lead. It requires the admin Bearer token.
+
+```json
+{
+  "activity_type": "phone_call",
+  "note": "Client asked for pricing and availability."
+}
+```
 
 ## Source mapping
 

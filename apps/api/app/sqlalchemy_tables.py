@@ -211,10 +211,13 @@ service_leads = sa.Table(
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("source", sa.String(length=80), nullable=False),
+    sa.Column("channel", sa.String(length=40), nullable=False, server_default="form"),
     sa.Column("business_name", sa.String(length=160), nullable=False),
     sa.Column("customer_name", sa.String(length=160), nullable=False),
-    sa.Column("email", sa.String(length=254), nullable=False),
-    sa.Column("preferred_date", sa.String(length=20), nullable=False),
+    sa.Column("email", sa.String(length=254)),
+    sa.Column("phone", sa.String(length=40)),
+    sa.Column("preferred_date", sa.String(length=20)),
+    sa.Column("follow_up_at", sa.String(length=20)),
     sa.Column("package_name", sa.String(length=160), nullable=False),
     sa.Column("message", sa.Text, nullable=False),
     sa.Column("status", sa.String(length=30), nullable=False, server_default="new"),
@@ -225,4 +228,14 @@ service_leads = sa.Table(
         "status IN ('new', 'contacted', 'proposal_sent', 'booked', 'closed')",
         name="ck_service_leads_status",
     ),
+)
+
+service_lead_activities = sa.Table(
+    "service_lead_activities",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("lead_id", sa.Integer, sa.ForeignKey("service_leads.id", ondelete="CASCADE"), nullable=False),
+    sa.Column("activity_type", sa.String(length=40), nullable=False, server_default="note"),
+    sa.Column("note", sa.Text, nullable=False),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
 )

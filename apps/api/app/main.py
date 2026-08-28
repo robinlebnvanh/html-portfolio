@@ -25,8 +25,11 @@ from app.blog_repository import (
 from app.auth import bearer_scheme, require_admin_token
 from app.database import initialize_database
 from app.lead_repository import (
+    VALID_LEAD_CHANNELS,
     VALID_LEAD_STATUSES,
+    create_lead_activity,
     create_lead,
+    list_lead_activities,
     list_leads,
     update_lead,
 )
@@ -231,11 +234,34 @@ class LeadCreate(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
 
 
+class AdminLeadCreate(BaseModel):
+    """Manual lead entry for phone, email, and direct-message channels."""
+
+    source: str = Field(min_length=1, max_length=80)
+    channel: Literal["form", "phone", "email", "zalo", "facebook", "instagram", "referral"] = "phone"
+    business_name: str = Field(min_length=1, max_length=160)
+    customer_name: str = Field(min_length=1, max_length=160)
+    email: str | None = Field(default=None, max_length=254)
+    phone: str | None = Field(default=None, max_length=40)
+    preferred_date: str | None = Field(default=None, max_length=20)
+    follow_up_at: str | None = Field(default=None, max_length=20)
+    package_name: str = Field(min_length=1, max_length=160)
+    message: str = Field(min_length=1, max_length=2000)
+
+
 class LeadUpdate(BaseModel):
     """Admin-owned lead workflow fields."""
 
     status: Literal["new", "contacted", "proposal_sent", "booked", "closed"] | None = None
     admin_note: str | None = Field(default=None, max_length=2000)
+    follow_up_at: str | None = Field(default=None, max_length=20)
+
+
+class LeadActivityCreate(BaseModel):
+    """One timeline activity for a lead."""
+
+    activity_type: str = Field(default="note", min_length=1, max_length=40)
+    note: str = Field(min_length=1, max_length=2000)
 
 
 PostLimit = Annotated[int, Query(ge=1, le=20)]
@@ -387,8 +413,15 @@ def clean_lead_payload(values: dict[str, Any]) -> dict[str, Any]:
     for key, value in cleaned.items():
         if isinstance(value, str):
             cleaned[key] = value.strip()
-            if not cleaned[key]:
+            if not cleaned[key] and key not in {"email", "phone", "preferred_date", "follow_up_at"}:
                 raise HTTPException(status_code=422, detail=f"{key} must not be blank")
+            if not cleaned[key]:
+                cleaned[key] = None
+    if cleaned.get("channel") and cleaned["channel"] not in VALID_LEAD_CHANNELS:
+        raise HTTPException(status_code=422, detail="invalid lead channel")
+    if "email" in cleaned or "phone" in cleaned:
+        if not cleaned.get("email") and not cleaned.get("phone"):
+            raise HTTPException(status_code=422, detail="email or phone is required")
     return cleaned
 
 
@@ -443,6 +476,21 @@ def admin_leads(status_filter: LeadStatusFilter = "all") -> dict[str, Any]:
         )
 
 
+@app.post(
+    "/api/v1/admin/leads",
+    status_code=status.HTTP_201_CREATED,
+    tags=["leads-admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def create_admin_lead(payload: AdminLeadCreate) -> dict[str, Any]:
+    """Create a manual lead from phone, email, or direct messages."""
+
+    values = clean_lead_payload(payload.model_dump())
+    with get_session() as session:
+        lead = create_lead(session, values)
+    return {"lead": lead}
+
+
 @app.patch(
     "/api/v1/admin/leads/{lead_id}",
     tags=["leads-admin"],
@@ -456,11 +504,44 @@ def update_admin_lead(lead_id: int, payload: LeadUpdate) -> dict[str, Any]:
         raise HTTPException(status_code=422, detail="invalid lead status")
     if "admin_note" in values and isinstance(values["admin_note"], str):
         values["admin_note"] = values["admin_note"].strip() or None
+    if "follow_up_at" in values and isinstance(values["follow_up_at"], str):
+        values["follow_up_at"] = values["follow_up_at"].strip() or None
     with get_session() as session:
         lead = update_lead(session, lead_id, values)
     if lead is None:
         raise HTTPException(status_code=404, detail="lead not found")
     return {"lead": lead}
+
+
+@app.get(
+    "/api/v1/admin/leads/{lead_id}/activities",
+    tags=["leads-admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def admin_lead_activities(lead_id: int) -> dict[str, Any]:
+    """Return timeline activities for one lead."""
+
+    with get_session() as session:
+        if list_lead_activities(session, lead_id)["total"] == 0 and update_lead(session, lead_id, {}) is None:
+            raise HTTPException(status_code=404, detail="lead not found")
+        return list_lead_activities(session, lead_id)
+
+
+@app.post(
+    "/api/v1/admin/leads/{lead_id}/activities",
+    status_code=status.HTTP_201_CREATED,
+    tags=["leads-admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def create_admin_lead_activity(lead_id: int, payload: LeadActivityCreate) -> dict[str, Any]:
+    """Append one activity note to a lead timeline."""
+
+    values = clean_lead_payload(payload.model_dump())
+    with get_session() as session:
+        activity = create_lead_activity(session, lead_id, values)
+    if activity is None:
+        raise HTTPException(status_code=404, detail="lead not found")
+    return {"activity": activity}
 
 
 def normalize_blog_slug(slug: str) -> str:

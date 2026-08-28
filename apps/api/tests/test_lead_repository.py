@@ -8,7 +8,13 @@ import unittest
 from pathlib import Path
 
 from app.database import initialize_database
-from app.lead_repository import create_lead, list_leads, update_lead
+from app.lead_repository import (
+    create_lead,
+    create_lead_activity,
+    list_lead_activities,
+    list_leads,
+    update_lead,
+)
 from app.sqlalchemy_database import get_engine, get_session, get_session_factory
 
 
@@ -61,6 +67,7 @@ class LeadRepositoryTests(unittest.TestCase):
         self.assertEqual(result["leads"][0]["id"], second["id"])
         self.assertEqual(result["leads"][1]["id"], first["id"])
         self.assertEqual(first["status"], "new")
+        self.assertEqual(first["channel"], "form")
 
     def test_update_lead_status_and_filter(self) -> None:
         lead = create_lead(
@@ -87,6 +94,36 @@ class LeadRepositoryTests(unittest.TestCase):
         self.assertEqual(updated["admin_note"], "Send package outline.")
         self.assertEqual(list_leads(self.session, "new")["total"], 0)
         self.assertEqual(list_leads(self.session, "proposal_sent")["total"], 1)
+
+    def test_create_manual_phone_lead_and_activity(self) -> None:
+        lead = create_lead(
+            self.session,
+            {
+                "source": "admin-manual",
+                "channel": "phone",
+                "business_name": "Robin Le Portfolio",
+                "customer_name": "Phone Client",
+                "phone": "0900000000",
+                "follow_up_at": "2026-09-02",
+                "package_name": "Portfolio contact",
+                "message": "Called to ask about a booking workflow.",
+            },
+        )
+
+        activity = create_lead_activity(
+            self.session,
+            lead["id"],
+            {"activity_type": "phone_call", "note": "Asked for a follow-up email."},
+        )
+        activities = list_lead_activities(self.session, lead["id"])
+
+        self.assertEqual(lead["channel"], "phone")
+        self.assertIsNone(lead["email"])
+        self.assertEqual(lead["phone"], "0900000000")
+        self.assertEqual(lead["follow_up_at"], "2026-09-02")
+        self.assertIsNotNone(activity)
+        self.assertEqual(activities["total"], 1)
+        self.assertEqual(activities["activities"][0]["note"], "Asked for a follow-up email.")
 
     def test_update_missing_lead_returns_none(self) -> None:
         self.assertIsNone(update_lead(self.session, 999, {"status": "closed"}))

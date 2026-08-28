@@ -382,22 +382,45 @@
             </div>
           </div>
           <p id="leads-status" class="status-text" role="status" aria-live="polite"></p>
+          <div class="admin-block">
+            <div class="block-heading">
+              <div>
+                <h4>Add manual lead</h4>
+                <p class="panel-note">Use this for phone calls, direct emails, DMs, or referrals.</p>
+              </div>
+            </div>
+            <form id="manual-lead-form" class="editor-panel compact">
+              <div class="form-grid three">
+                <label class="field"><span>Channel *</span><select id="manual-lead-channel" required><option value="phone">Phone</option><option value="email">Email</option><option value="zalo">Zalo</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="referral">Referral</option><option value="form">Form</option></select></label>
+                <label class="field"><span>Name *</span><input id="manual-lead-name" required maxlength="160" placeholder="Client name"></label>
+                <label class="field"><span>Service *</span><input id="manual-lead-package" required maxlength="160" value="Portfolio contact"></label>
+                <label class="field"><span>Email</span><input id="manual-lead-email" type="email" maxlength="254" placeholder="client@example.com"></label>
+                <label class="field"><span>Phone</span><input id="manual-lead-phone" maxlength="40" placeholder="+84..."></label>
+                <label class="field"><span>Follow-up date</span><input id="manual-lead-follow-up" type="date"></label>
+              </div>
+              <label class="field"><span>Context *</span><textarea id="manual-lead-message" rows="3" required maxlength="2000" placeholder="What did they ask for, and what should happen next?"></textarea></label>
+              <div class="form-actions">
+                <button class="primary-button" type="submit">Add lead</button>
+              </div>
+            </form>
+          </div>
           <div class="table-wrap">
             <table class="admin-table leads-table">
               <thead>
                 <tr>
                   <th>Source</th>
                   <th>Customer</th>
-                  <th>Date</th>
+                  <th>Follow-up</th>
                   <th>Package</th>
                   <th>Message</th>
                   <th>Status</th>
                   <th>Admin note</th>
+                  <th>Activity</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="leads-body">
-                <tr><td colspan="8" class="empty-cell">Load leads to review service inquiries.</td></tr>
+                <tr><td colspan="9" class="empty-cell">Load leads to review service inquiries.</td></tr>
               </tbody>
             </table>
           </div>

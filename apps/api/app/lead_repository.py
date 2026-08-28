@@ -8,11 +8,12 @@ from typing import Any
 from sqlalchemy import desc, insert, select, update
 from sqlalchemy.orm import Session
 
-from app.sqlalchemy_tables import service_leads
+from app.sqlalchemy_tables import service_lead_activities, service_leads
 
 
 LeadStatus = str
 VALID_LEAD_STATUSES = {"new", "contacted", "proposal_sent", "booked", "closed"}
+VALID_LEAD_CHANNELS = {"form", "phone", "email", "zalo", "facebook", "instagram", "referral"}
 
 
 def _serialize_time(value: Any) -> str:
@@ -25,10 +26,13 @@ def _row_to_lead(row: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": row["id"],
         "source": row["source"],
+        "channel": row.get("channel") or "form",
         "business_name": row["business_name"],
         "customer_name": row["customer_name"],
         "email": row["email"],
+        "phone": row.get("phone"),
         "preferred_date": row["preferred_date"],
+        "follow_up_at": row.get("follow_up_at"),
         "package_name": row["package_name"],
         "message": row["message"],
         "status": row["status"],
@@ -44,10 +48,13 @@ def create_lead(session: Session, values: dict[str, Any]) -> dict[str, Any]:
     result = session.execute(
         insert(service_leads).values(
             source=values["source"],
+            channel=values.get("channel") or "form",
             business_name=values["business_name"],
             customer_name=values["customer_name"],
-            email=values["email"],
-            preferred_date=values["preferred_date"],
+            email=values.get("email"),
+            phone=values.get("phone"),
+            preferred_date=values.get("preferred_date"),
+            follow_up_at=values.get("follow_up_at"),
             package_name=values["package_name"],
             message=values["message"],
         )
@@ -76,13 +83,54 @@ def list_leads(session: Session, status_filter: LeadStatus | None = None) -> dic
     return {"total": len(leads), "leads": leads}
 
 
+def _row_to_activity(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": row["id"],
+        "lead_id": row["lead_id"],
+        "activity_type": row["activity_type"],
+        "note": row["note"],
+        "created_at": _serialize_time(row["created_at"]),
+    }
+
+
+def list_lead_activities(session: Session, lead_id: int) -> dict[str, Any]:
+    """Return activities for one lead, newest first."""
+
+    rows = session.execute(
+        select(service_lead_activities)
+        .where(service_lead_activities.c.lead_id == lead_id)
+        .order_by(desc(service_lead_activities.c.created_at), desc(service_lead_activities.c.id))
+    ).mappings().all()
+    activities = [_row_to_activity(dict(row)) for row in rows]
+    return {"total": len(activities), "activities": activities}
+
+
+def create_lead_activity(session: Session, lead_id: int, values: dict[str, Any]) -> dict[str, Any] | None:
+    """Create one activity note for an existing lead."""
+
+    if get_lead(session, lead_id) is None:
+        return None
+    result = session.execute(
+        insert(service_lead_activities).values(
+            lead_id=lead_id,
+            activity_type=values.get("activity_type") or "note",
+            note=values["note"],
+        )
+    )
+    session.commit()
+    row = session.execute(
+        select(service_lead_activities).where(service_lead_activities.c.id == int(result.inserted_primary_key[0]))
+    ).mappings().first()
+    return _row_to_activity(dict(row)) if row else None
+
+
 def update_lead(session: Session, lead_id: int, values: dict[str, Any]) -> dict[str, Any] | None:
     """Update admin-owned lead fields."""
 
     changes = {
         key: value
         for key, value in values.items()
-        if key in {"status", "admin_note"} and value is not None
+        if key in {"status", "admin_note", "follow_up_at"} and value is not None
     }
     if not changes:
         return get_lead(session, lead_id)
