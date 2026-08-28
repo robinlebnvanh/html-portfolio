@@ -2,6 +2,7 @@ let allProjects = [];
 
 const config = window.PRJ008_CONFIG || {};
 const apiBaseUrl = config.apiBaseUrl || '';
+const contactNotificationUrl = config.contactNotificationUrl || 'https://formspree.io/f/maqzgroj';
 const projectGrid = document.getElementById('projects-grid');
 const skillsList = document.getElementById('skills-list');
 const themeToggle = document.getElementById('theme-toggle');
@@ -166,6 +167,17 @@ document.querySelectorAll('.filter-btn').forEach(button => {
 });
 
 const contactForm = document.getElementById('contact-form');
+async function sendContactNotification(formData) {
+  if (!contactNotificationUrl) return false;
+  const response = await fetch(contactNotificationUrl, {
+    method: 'POST',
+    body: formData,
+    headers: { Accept: 'application/json' }
+  });
+  if (!response.ok) throw new Error('Email notification failed.');
+  return true;
+}
+
 contactForm.addEventListener('submit', async event => {
   event.preventDefault();
   const status = document.getElementById('form-status');
@@ -193,11 +205,23 @@ contactForm.addEventListener('submit', async event => {
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.detail || `API returned ${response.status}`);
     status.dataset.type = 'success';
-    status.textContent = `Thank you. Your inquiry was saved to the database as Lead #${payload.lead.id}.`;
+    try {
+      await sendContactNotification(formData);
+      status.textContent = `Thank you. Your inquiry was saved to the database as Lead #${payload.lead.id}, and an email notification was sent.`;
+    } catch (notificationError) {
+      status.textContent = `Thank you. Your inquiry was saved to the database as Lead #${payload.lead.id}, but the email notification failed.`;
+    }
     contactForm.reset();
   } catch (error) {
-    status.dataset.type = 'error';
-    status.textContent = `This inquiry was not saved to the database: ${error.message}. Please email me directly instead.`;
+    try {
+      await sendContactNotification(formData);
+      status.dataset.type = 'error';
+      status.textContent = `This inquiry was not saved to the database: ${error.message}. An email notification was still sent.`;
+      contactForm.reset();
+    } catch (notificationError) {
+      status.dataset.type = 'error';
+      status.textContent = `This inquiry was not saved to the database: ${error.message}. Please email me directly instead.`;
+    }
   } finally {
     button.disabled = false;
     button.innerHTML = 'Send enquiry <span aria-hidden="true">↗</span>';
