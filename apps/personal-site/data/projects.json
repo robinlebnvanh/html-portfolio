@@ -100,5 +100,22 @@
     "visual": "planner",
     "linkLabel": "Read case study",
     "demoLabel": "Open demo"
+  },
+  {
+    "id": 7,
+    "number": "07",
+    "name": "Photoshop Retouching Service",
+    "audience": "Vietnam and Australia photo-editing clients",
+    "desc": "A bilingual Photoshop service landing page with Vietnam/VND and Australia/AUD entry points, simple pricing, before-after sample proof, and a quote-first lead form.",
+    "outcome": "Turns Robin's creative editing direction into a focused freelance service without confusing simple Photoshop clients with the full web-development portfolio.",
+    "tech": ["HTML", "CSS", "JavaScript", "SEO"],
+    "category": "frontend",
+    "link": "../photoshop-retouching/vi/",
+    "demoLink": "../photoshop-retouching/au/",
+    "github": "https://github.com/robinlebnvanh/html-portfolio",
+    "date": "Service page",
+    "visual": "retouching",
+    "linkLabel": "Vietnam page",
+    "demoLabel": "Australia page"
   }
 ]

@@ -114,6 +114,9 @@ h2 { margin: 0; font-size: clamp(36px, 4.5vw, 64px); font-weight: 600; line-heig
 .project-visual.planner { background: #6d3f5f; }
 .project-visual.planner::before { inset: 28px 34px; border: 1px solid rgba(255, 248, 232, .32); background: linear-gradient(180deg, rgba(255, 248, 232, .18) 0 18%, transparent 18% 24%, rgba(255, 248, 232, .12) 24% 44%, transparent 44% 50%, rgba(255, 248, 232, .16) 50% 74%, transparent 74%); }
 .project-visual.planner::after { width: 58%; height: 12px; left: 50%; bottom: 42px; border-radius: 999px; background: #efb08e; box-shadow: -88px -70px 0 -1px rgba(255, 248, 232, .78), 0 -70px 0 -1px rgba(183, 213, 161, .78), 88px -70px 0 -1px rgba(255, 248, 232, .78); transform: translateX(-50%); }
+.project-visual.retouching { background: #205247; }
+.project-visual.retouching::before { inset: 30px; border: 1px solid rgba(255, 255, 255, .3); background: linear-gradient(90deg, rgba(255, 255, 255, .18) 0 49%, rgba(255, 255, 255, .5) 49% 51%, rgba(39, 79, 115, .24) 51% 100%); }
+.project-visual.retouching::after { width: 120px; height: 120px; right: 44px; bottom: 34px; border: 12px solid rgba(216, 239, 223, .82); border-radius: 50%; box-shadow: -128px -42px 0 -44px rgba(239, 176, 142, .86), -98px 44px 0 -38px rgba(255, 248, 232, .82); }
 .card-meta { display: flex; justify-content: space-between; color: var(--ink-soft); }
 .project-card h3 { margin: 16px 0 12px; font-family: "Playfair Display", Georgia, serif; font-size: 28px; font-weight: 600; line-height: 1.15; }
 .project-card p { margin: 0; min-height: 100px; color: var(--ink-soft); font-size: 14px; line-height: 1.65; }

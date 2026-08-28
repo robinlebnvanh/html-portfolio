@@ -109,6 +109,7 @@ class PortfolioContentRepositoryTests(unittest.TestCase):
                 "Service Business Website Kit",
                 "Photography Studio Demo",
                 "Wedding Planner Demo",
+                "Photoshop Retouching Service",
             ],
         )
 
