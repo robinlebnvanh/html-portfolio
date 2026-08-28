@@ -288,7 +288,15 @@
           </div>
           <p id="portfolio-status" class="status-text" role="status" aria-live="polite"></p>
           <form id="portfolio-form" class="editor-panel">
-            <div class="admin-block">
+            <div class="subnav portfolio-tabs" role="tablist" aria-label="Portfolio content sections">
+              <button class="subnav-item active" type="button" role="tab" aria-selected="true" aria-controls="portfolio-panel-hero" data-portfolio-tab="hero">Hero</button>
+              <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="portfolio-panel-about" data-portfolio-tab="about">About</button>
+              <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="portfolio-panel-studio" data-portfolio-tab="studio">Studio</button>
+              <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="portfolio-panel-projects" data-portfolio-tab="projects">Projects</button>
+              <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="portfolio-panel-contact" data-portfolio-tab="contact">Contact</button>
+            </div>
+
+            <div id="portfolio-panel-hero" class="admin-block portfolio-panel" role="tabpanel" data-portfolio-panel="hero">
               <h4>Hero</h4>
               <label class="field"><span>Eyebrow</span><input id="portfolio-hero-eyebrow" required maxlength="120"></label>
               <label class="field"><span>Title</span><textarea id="portfolio-hero-title" rows="2" required maxlength="220"></textarea></label>
@@ -299,7 +307,7 @@
               </div>
             </div>
 
-            <div class="admin-block">
+            <div id="portfolio-panel-about" class="admin-block portfolio-panel" role="tabpanel" data-portfolio-panel="about" hidden>
               <h4>About</h4>
               <label class="field"><span>Title</span><textarea id="portfolio-about-title" rows="2" required maxlength="220"></textarea></label>
               <label class="field"><span>Body</span><textarea id="portfolio-about-body" rows="5" required placeholder="One paragraph per line"></textarea></label>
@@ -307,27 +315,35 @@
               <label class="field"><span>Skills</span><textarea id="portfolio-skills" rows="5" required placeholder="Product delivery | 90"></textarea></label>
             </div>
 
-            <div class="admin-block">
+            <div id="portfolio-panel-studio" class="admin-block portfolio-panel" role="tabpanel" data-portfolio-panel="studio" hidden>
               <h4>Product studio</h4>
               <label class="field"><span>Title</span><textarea id="portfolio-studio-title" rows="2" required maxlength="220"></textarea></label>
               <label class="field"><span>Intro</span><textarea id="portfolio-studio-intro" rows="3" required></textarea></label>
               <label class="field"><span>Offers</span><textarea id="portfolio-offers" rows="7" required placeholder="Offer 01 | Booking-ready service website | Description"></textarea></label>
             </div>
 
-            <div class="admin-block">
-              <h4>Selected work</h4>
-              <div class="project-editor-actions">
-                <button id="portfolio-add-project" class="module-action" type="button">Add project</button>
-                <button id="portfolio-toggle-json" class="module-action" type="button" aria-expanded="false">Advanced JSON</button>
+            <div id="portfolio-panel-projects" class="admin-block portfolio-panel" role="tabpanel" data-portfolio-panel="projects" hidden>
+              <div class="block-heading">
+                <div>
+                  <h4>Selected work</h4>
+                  <p id="portfolio-project-count" class="panel-note">Load content to manage projects.</p>
+                </div>
+                <div class="project-editor-actions">
+                  <button id="portfolio-add-project" class="module-action" type="button">Add project</button>
+                  <button id="portfolio-toggle-json" class="module-action" type="button" aria-expanded="false">Advanced JSON</button>
+                </div>
               </div>
-              <div id="portfolio-project-editor" class="project-editor-list"></div>
+              <div class="project-workbench">
+                <div id="portfolio-project-list" class="project-list" aria-label="Portfolio projects"></div>
+                <div id="portfolio-project-editor" class="project-detail"></div>
+              </div>
               <label id="portfolio-projects-json-field" class="field advanced-json" hidden>
                 <span>Projects JSON</span>
                 <textarea id="portfolio-projects" rows="16" required spellcheck="false"></textarea>
               </label>
             </div>
 
-            <div class="admin-block">
+            <div id="portfolio-panel-contact" class="admin-block portfolio-panel" role="tabpanel" data-portfolio-panel="contact" hidden>
               <h4>Contact</h4>
               <label class="field"><span>Title</span><textarea id="portfolio-contact-title" rows="2" required maxlength="220"></textarea></label>
               <label class="field"><span>Intro</span><textarea id="portfolio-contact-intro" rows="3" required></textarea></label>

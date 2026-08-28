@@ -572,6 +572,19 @@ h3 {
   font-size: 1rem;
 }
 
+.block-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.panel-note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -748,9 +761,48 @@ h3 {
   gap: 10px;
 }
 
-.project-editor-list {
+.project-workbench {
   display: grid;
-  gap: 14px;
+  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.project-list {
+  display: grid;
+  gap: 8px;
+}
+
+.project-list-button {
+  display: grid;
+  width: 100%;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.project-list-button strong {
+  font-size: 0.95rem;
+}
+
+.project-list-button span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.project-list-button.active,
+.project-list-button:hover {
+  border-color: rgba(15, 118, 110, 0.38);
+  background: rgba(15, 118, 110, 0.06);
+}
+
+.project-detail {
+  min-width: 0;
 }
 
 .project-editor-card {
@@ -892,6 +944,7 @@ h3 {
   .command-modules,
   .command-center,
   .admin-split,
+  .project-workbench,
   .form-grid,
   .form-grid.three {
     grid-template-columns: 1fr;
@@ -928,6 +981,10 @@ h3 {
 
   .subnav {
     width: 100%;
+  }
+
+  .block-heading {
+    flex-direction: column;
   }
 
   .portfolio-save-bar {

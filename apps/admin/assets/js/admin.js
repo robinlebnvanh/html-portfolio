@@ -23,6 +23,9 @@ const sections = [...document.querySelectorAll('[data-section]')];
 const navItems = [...document.querySelectorAll('.nav-item')];
 const stockTabs = [...document.querySelectorAll('[data-stock-tab]')];
 const stockPanels = [...document.querySelectorAll('[data-stock-panel]')];
+const portfolioTabs = [...document.querySelectorAll('[data-portfolio-tab]')];
+const portfolioPanels = [...document.querySelectorAll('[data-portfolio-panel]')];
+const projectList = $('portfolio-project-list');
 const projectEditor = $('portfolio-project-editor');
 const projectsJsonField = $('portfolio-projects-json-field');
 const projectsJsonToggle = $('portfolio-toggle-json');
@@ -31,6 +34,8 @@ const portfolioDirtyStatus = $('portfolio-dirty-status');
 let blogPosts = [];
 let stockState = { portfolio: null, journals: {} };
 let portfolioContent = null;
+let portfolioProjects = [];
+let selectedProjectIndex = 0;
 let serviceLeads = [];
 
 function escapeHtml(value) {
@@ -114,6 +119,18 @@ function showStockPanel(name) {
   });
   stockTabs.forEach(tab => {
     const isActive = tab.dataset.stockTab === target;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-selected', String(isActive));
+  });
+}
+
+function showPortfolioPanel(name) {
+  const target = portfolioPanels.some(panel => panel.dataset.portfolioPanel === name) ? name : 'hero';
+  portfolioPanels.forEach(panel => {
+    panel.hidden = panel.dataset.portfolioPanel !== target;
+  });
+  portfolioTabs.forEach(tab => {
+    const isActive = tab.dataset.portfolioTab === target;
     tab.classList.toggle('active', isActive);
     tab.setAttribute('aria-selected', String(isActive));
   });
@@ -693,8 +710,30 @@ function projectField(project, index, field, label, options = {}) {
   `;
 }
 
-function renderPortfolioProjectEditor(projects = []) {
-  projectEditor.innerHTML = projects.map((project, index) => `
+function renderPortfolioProjectList() {
+  $('portfolio-project-count').textContent = `${portfolioProjects.length} selected project${portfolioProjects.length === 1 ? '' : 's'}.`;
+  if (!portfolioProjects.length) {
+    projectList.innerHTML = '<p class="empty-note">No projects. Add one project before saving.</p>';
+    return;
+  }
+  projectList.innerHTML = portfolioProjects.map((project, index) => `
+    <button class="project-list-button ${index === selectedProjectIndex ? 'active' : ''}" type="button" data-project-select="${index}">
+      <strong>${escapeHtml(project.number || String(index + 1).padStart(2, '0'))} / ${escapeHtml(project.name || 'Untitled project')}</strong>
+      <span>${escapeHtml(project.category || 'uncategorized')} / ${escapeHtml(project.date || 'No label')}</span>
+    </button>
+  `).join('');
+}
+
+function renderPortfolioProjectEditor() {
+  if (!portfolioProjects.length) {
+    projectEditor.innerHTML = '<p class="empty-note">Select or add a project to edit its content.</p>';
+    renderPortfolioProjectList();
+    return;
+  }
+  const index = Math.min(selectedProjectIndex, portfolioProjects.length - 1);
+  const project = portfolioProjects[index];
+  selectedProjectIndex = index;
+  projectEditor.innerHTML = `
     <article class="project-editor-card" data-project-card="${index}">
       <div class="project-editor-header">
         <div class="project-editor-title">
@@ -727,29 +766,37 @@ function renderPortfolioProjectEditor(projects = []) {
         ${projectField(project, index, 'demoLabel', 'Demo label')}
       </div>
     </article>
-  `).join('');
+  `;
+  renderPortfolioProjectList();
+}
+
+function syncSelectedProjectFromEditor() {
+  const card = projectEditor.querySelector('[data-project-card]');
+  if (!card) return;
+  const project = {};
+  card.querySelectorAll('[data-project-field]').forEach(input => {
+    const field = input.dataset.projectField;
+    project[field] = input.value.trim();
+  });
+  project.id = Number(project.id);
+  project.tech = tagsFromInput(project.tech || '');
+  portfolioProjects[selectedProjectIndex] = project;
 }
 
 function projectsFromEditor() {
-  return [...document.querySelectorAll('[data-project-card]')].map(card => {
-    const project = {};
-    card.querySelectorAll('[data-project-field]').forEach(input => {
-      const field = input.dataset.projectField;
-      project[field] = input.value.trim();
-    });
-    project.id = Number(project.id);
-    project.tech = tagsFromInput(project.tech || '');
-    return project;
-  });
+  syncSelectedProjectFromEditor();
+  return portfolioProjects;
 }
 
 function syncProjectsJsonFromEditor() {
   $('portfolio-projects').value = JSON.stringify(projectsFromEditor(), null, 2);
 }
 
-function replaceProjects(projects) {
+function replaceProjects(projects, nextSelectedIndex = selectedProjectIndex) {
+  portfolioProjects = projects;
+  selectedProjectIndex = Math.max(0, Math.min(nextSelectedIndex, Math.max(0, portfolioProjects.length - 1)));
   $('portfolio-projects').value = JSON.stringify(projects, null, 2);
-  renderPortfolioProjectEditor(projects);
+  renderPortfolioProjectEditor();
 }
 
 function parseProjects() {
@@ -1028,10 +1075,14 @@ $('portfolio-form').addEventListener('input', () => setPortfolioDirty(true));
 $('portfolio-reset').addEventListener('click', () => {
   if (portfolioContent) fillPortfolioForm(portfolioContent);
 });
+portfolioTabs.forEach(tab => {
+  tab.addEventListener('click', () => showPortfolioPanel(tab.dataset.portfolioTab));
+});
 $('portfolio-add-project').addEventListener('click', () => {
   const projects = projectsFromEditor();
   const nextId = Math.max(0, ...projects.map(project => Number(project.id) || 0)) + 1;
-  replaceProjects([...projects, defaultProject(nextId)]);
+  replaceProjects([...projects, defaultProject(nextId)], projects.length);
+  showPortfolioPanel('projects');
   setPortfolioDirty(true);
 });
 projectsJsonToggle.addEventListener('click', () => {
@@ -1040,13 +1091,28 @@ projectsJsonToggle.addEventListener('click', () => {
   projectsJsonField.hidden = !shouldShow;
   projectsJsonToggle.setAttribute('aria-expanded', String(shouldShow));
 });
-projectEditor.addEventListener('input', syncProjectsJsonFromEditor);
+projectList.addEventListener('click', event => {
+  const button = event.target.closest('[data-project-select]');
+  if (!button) return;
+  syncProjectsJsonFromEditor();
+  selectedProjectIndex = Number(button.dataset.projectSelect);
+  renderPortfolioProjectEditor();
+});
+projectEditor.addEventListener('input', () => {
+  syncProjectsJsonFromEditor();
+  renderPortfolioProjectList();
+});
 projectEditor.addEventListener('click', event => {
   const deleteButton = event.target.closest('[data-project-delete]');
   const moveButton = event.target.closest('[data-project-move]');
   if (deleteButton) {
     const index = Number(deleteButton.dataset.projectDelete);
-    replaceProjects(projectsFromEditor().filter((_, projectIndex) => projectIndex !== index));
+    const projects = projectsFromEditor();
+    if (projects.length <= 1) {
+      setStatus($('portfolio-status'), 'Portfolio needs at least one project.', 'error');
+      return;
+    }
+    replaceProjects(projects.filter((_, projectIndex) => projectIndex !== index), Math.max(0, index - 1));
     setPortfolioDirty(true);
   }
   if (moveButton) {
@@ -1056,13 +1122,13 @@ projectEditor.addEventListener('click', event => {
     const projects = projectsFromEditor();
     if (nextIndex < 0 || nextIndex >= projects.length) return;
     [projects[index], projects[nextIndex]] = [projects[nextIndex], projects[index]];
-    replaceProjects(projects);
+    replaceProjects(projects, nextIndex);
     setPortfolioDirty(true);
   }
 });
 $('portfolio-projects').addEventListener('change', () => {
   try {
-    renderPortfolioProjectEditor(parseProjects());
+    replaceProjects(parseProjects(), 0);
     setPortfolioDirty(true);
   } catch (error) {
     setStatus($('portfolio-status'), error.message, 'error');
@@ -1084,6 +1150,7 @@ fillBlogForm(null);
 resetHoldingForm();
 resetTradeForm();
 showStockPanel('holdings');
+showPortfolioPanel('hero');
 apiBaseUrlValue.textContent = apiBaseUrl;
 
 if (adminToken()) {
