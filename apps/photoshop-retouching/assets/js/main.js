@@ -34,6 +34,17 @@ function getPageConfig() {
   };
 }
 
+function trackEvent(name, params = {}) {
+  if (typeof window.gtag === "function") {
+    window.gtag("event", name, params);
+    return;
+  }
+
+  if (Array.isArray(window.dataLayer)) {
+    window.dataLayer.push({ event: name, ...params });
+  }
+}
+
 function setupNavigation() {
   const button = qs("#menu-toggle");
   const links = qs("#nav-links");
@@ -45,10 +56,24 @@ function setupNavigation() {
   });
 
   links.addEventListener("click", (event) => {
-    if (event.target.closest("a")) {
+    const link = event.target.closest("a");
+    if (link) {
+      trackEvent("retouching_nav_click", {
+        target: link.getAttribute("href"),
+        locale: getPageConfig().locale
+      });
       links.classList.remove("open");
       button.setAttribute("aria-expanded", "false");
     }
+  });
+
+  document.querySelectorAll(".language-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      trackEvent("retouching_language_switch", {
+        target: link.getAttribute("href"),
+        locale: getPageConfig().locale
+      });
+    });
   });
 }
 
@@ -154,17 +179,31 @@ function setupQuoteForm() {
     button.disabled = true;
     status.dataset.type = "";
     status.textContent = page.saving;
+    trackEvent("retouching_quote_submit", {
+      locale: page.locale,
+      market: lead.market,
+      package_name: lead.packageName
+    });
 
     try {
       const saved = await persistLead(lead);
       writeLocalLead(page.storageKey, { ...lead, id: saved.id, status: saved.status });
       status.dataset.type = "success";
       status.textContent = `${page.saved} Lead #${saved.id}.`;
+      trackEvent("retouching_quote_success", {
+        locale: page.locale,
+        market: lead.market,
+        lead_id: saved.id
+      });
       form.reset();
     } catch (error) {
       writeLocalLead(page.storageKey, { ...lead, status: "local_fallback", error: error.message });
       status.dataset.type = "error";
       status.textContent = `${page.fallback} ${error.message}`;
+      trackEvent("retouching_quote_fallback", {
+        locale: page.locale,
+        market: lead.market
+      });
     } finally {
       button.disabled = false;
       renderLeadSummary();

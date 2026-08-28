@@ -7,6 +7,7 @@
   <meta property="og:title" content="Dịch vụ chỉnh sửa ảnh Photoshop | Robin Retouch Studio">
   <meta property="og:description" content="Gửi ảnh, nhận báo giá rõ ràng, duyệt bản mẫu và nhận file hoàn thiện cho nhu cầu cá nhân, bán hàng hoặc truyền thông.">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=82">
   <title>Dịch vụ chỉnh sửa ảnh Photoshop | Robin Retouch Studio</title>
   <link rel="canonical" href="https://robinlebnvanh.github.io/html-portfolio/apps/photoshop-retouching/vi/">
   <link rel="alternate" hreflang="vi-VN" href="https://robinlebnvanh.github.io/html-portfolio/apps/photoshop-retouching/vi/">
@@ -99,6 +100,7 @@
         <a href="#services">Dịch vụ</a>
         <a href="#samples">Trước/Sau</a>
         <a href="#pricing">Bảng giá</a>
+        <a href="#trust">Cam kết</a>
         <a href="#quote">Báo giá</a>
       </div>
       <div class="nav-actions">
@@ -193,7 +195,7 @@
         <div class="section-head">
           <p class="section-label">Trước / Sau</p>
           <h2 id="samples-title">Sample preview để khách hiểu kiểu chỉnh sửa.</h2>
-          <p>Các ảnh dưới đây là sample minh hoạ workflow. Khi có ảnh client được phép công khai, section này sẽ thay bằng case thật.</p>
+          <p>Các ảnh dưới đây là sample minh hoạ workflow, không phải ảnh khách thật. Khi có ảnh client được phép công khai, section này sẽ thay bằng case thật.</p>
         </div>
         <div class="sample-grid">
           <article class="sample-card">
@@ -261,6 +263,34 @@
       </div>
     </section>
 
+    <section id="trust" class="section muted-section" aria-labelledby="trust-title">
+      <div class="page-shell">
+        <div class="section-head">
+          <p class="section-label">Cam kết làm việc</p>
+          <h2 id="trust-title">Rõ phạm vi, rõ quyền riêng tư, không ép khách vào quy trình phức tạp.</h2>
+          <p>Phần này giúp khách mới biết trước cách làm việc, cách thanh toán và giới hạn chỉnh sửa trước khi gửi ảnh.</p>
+        </div>
+        <div class="assurance-grid">
+          <article class="assurance-card">
+            <h3>Privacy</h3>
+            <p>Ảnh khách không được đăng công khai nếu chưa có sự đồng ý. Link ảnh chỉ dùng để báo giá và thực hiện job.</p>
+          </article>
+          <article class="assurance-card">
+            <h3>Payment</h3>
+            <p>Job bắt đầu sau khi khách đồng ý giá và timeline. Thanh toán có thể chia theo từng job hoặc từng batch.</p>
+          </article>
+          <article class="assurance-card">
+            <h3>Revision</h3>
+            <p>Revision là chỉnh lại trong phạm vi brief ban đầu. Yêu cầu mới hoặc đổi hướng lớn sẽ được báo giá thêm.</p>
+          </article>
+          <article class="assurance-card">
+            <h3>File delivery</h3>
+            <p>Giao JPG/PNG theo mục đích sử dụng. File PSD/source chỉ giao khi đã được thống nhất trong báo giá.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section id="quote" class="quote-section" aria-labelledby="quote-title">
       <div class="page-shell quote-layout">
         <div class="quote-copy">
@@ -282,9 +312,10 @@
             <label><span>Số lượng ảnh</span><input name="imageCount" type="number" min="1" placeholder="Ví dụ: 10"></label>
             <label><span>Deadline</span><input name="deadline" type="date"></label>
           </div>
-          <label><span>Link ảnh</span><input name="imageLink" type="url" placeholder="Google Drive, Dropbox, WeTransfer..."></label>
+          <label><span>Link ảnh</span><input name="imageLink" type="url" placeholder="Google Drive, Dropbox, WeTransfer..." required><small class="form-help">Dùng Google Drive, Dropbox, WeTransfer hoặc link ảnh có thể mở được.</small></label>
           <label><span>Ngân sách dự kiến</span><input name="budget" type="text" placeholder="Ví dụ: khoảng 500.000đ"></label>
           <label><span>Mô tả yêu cầu</span><textarea name="message" rows="5" placeholder="Bạn muốn chỉnh gì? Ảnh dùng để đăng ở đâu?" required></textarea></label>
+          <label class="checkbox-field"><input name="consent" type="checkbox" required><span>Tôi đồng ý để Robin xem ảnh/link đã gửi nhằm báo giá và thực hiện job nếu hai bên xác nhận.</span></label>
           <button class="button button-light" type="submit">Gửi yêu cầu báo giá</button>
           <p id="form-status" class="form-status" role="status"></p>
         </form>
@@ -301,6 +332,8 @@
           <article class="faq-item"><h3>Tôi có job rất nhỏ, bạn có nhận không?</h3><p>Có. Job nhỏ như xoá nền, chỉnh sáng/màu, crop, làm sạch ảnh đều có thể gửi để báo giá.</p></article>
           <article class="faq-item"><h3>Bao lâu thì xong?</h3><p>Job đơn giản thường 1-2 ngày làm việc. Batch nhiều ảnh hoặc edit phức tạp sẽ báo timeline riêng.</p></article>
           <article class="faq-item"><h3>Có được sửa lại không?</h3><p>Có 1-2 vòng revision tuỳ gói. Revision là sửa lại trong phạm vi yêu cầu ban đầu.</p></article>
+          <article class="faq-item"><h3>Tôi thanh toán khi nào?</h3><p>Sau khi bạn đồng ý giá và timeline. Với job lớn hoặc batch nhiều ảnh, có thể chia thanh toán theo từng phần.</p></article>
+          <article class="faq-item"><h3>Ảnh của tôi có bị đăng lên portfolio không?</h3><p>Không. Ảnh khách chỉ được dùng làm portfolio khi có sự đồng ý rõ ràng.</p></article>
           <article class="faq-item"><h3>Bạn có nhận chỉnh giấy tờ không?</h3><p>Không nhận chỉnh sửa giấy tờ, chứng từ, bằng cấp hoặc nội dung có thể dùng để lừa đảo/giả mạo.</p></article>
         </div>
       </div>

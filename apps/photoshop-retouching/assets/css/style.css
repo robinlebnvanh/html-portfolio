@@ -377,7 +377,8 @@ p {
 .service-card,
 .price-card,
 .faq-item,
-.sample-card {
+.sample-card,
+.assurance-card {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -386,7 +387,8 @@ p {
 
 .service-card,
 .price-card,
-.faq-item {
+.faq-item,
+.assurance-card {
   padding: 24px;
 }
 
@@ -506,6 +508,21 @@ p {
   gap: 14px;
 }
 
+.assurance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.assurance-card {
+  display: grid;
+  gap: 12px;
+}
+
+.assurance-card p {
+  color: var(--muted);
+}
+
 .process-item {
   display: grid;
   grid-template-columns: 64px 1fr;
@@ -585,6 +602,28 @@ label {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.86rem;
   font-weight: 900;
+}
+
+.form-help {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.checkbox-field {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.45;
+}
+
+.checkbox-field input {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin-top: 2px;
+  accent-color: var(--accent);
 }
 
 input,
@@ -684,7 +723,8 @@ textarea:focus {
 
   .services-grid,
   .pricing-grid,
-  .sample-grid {
+  .sample-grid,
+  .assurance-grid {
     grid-template-columns: 1fr;
   }
 }
