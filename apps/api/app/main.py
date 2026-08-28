@@ -33,6 +33,7 @@ from app.lead_repository import (
 from app.portfolio_content_repository import (
     get_portfolio_content,
     seed_default_portfolio_content,
+    sync_default_portfolio_projects,
     update_portfolio_content,
 )
 from app.sqlalchemy_database import get_session
@@ -270,6 +271,7 @@ initialize_database()
 with get_session() as startup_session:
     seed_default_blog_posts(startup_session)
     seed_default_portfolio_content(startup_session)
+    sync_default_portfolio_projects(startup_session)
     ensure_bootstrap_admin_user(startup_session)
 
 

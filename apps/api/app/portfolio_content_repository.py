@@ -231,6 +231,28 @@ def seed_default_portfolio_content(session: Session) -> None:
     session.commit()
 
 
+def sync_default_portfolio_projects(session: Session) -> None:
+    """Append new default projects without replacing admin-managed content."""
+    content = get_portfolio_content(session)
+    projects = content.get("projects", [])
+    existing_ids = {project.get("id") for project in projects if isinstance(project, dict)}
+    missing_projects = [
+        project
+        for project in DEFAULT_PORTFOLIO_CONTENT["projects"]
+        if project.get("id") not in existing_ids
+    ]
+    if not missing_projects:
+        return
+
+    update_portfolio_content(
+        session,
+        {
+            **content,
+            "projects": [*projects, *missing_projects],
+        },
+    )
+
+
 def get_portfolio_content(session: Session) -> dict[str, Any]:
     """Return the singleton portfolio content row."""
     row = session.execute(select(portfolio_content).where(portfolio_content.c.id == 1)).mappings().first()

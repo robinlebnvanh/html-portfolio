@@ -11,6 +11,7 @@ from app.database import initialize_database
 from app.portfolio_content_repository import (
     get_portfolio_content,
     seed_default_portfolio_content,
+    sync_default_portfolio_projects,
     update_portfolio_content,
 )
 from app.sqlalchemy_database import get_engine, get_session, get_session_factory
@@ -85,6 +86,31 @@ class PortfolioContentRepositoryTests(unittest.TestCase):
         self.assertEqual(updated["skills"], [{"name": "Backend APIs", "level": 88}])
         self.assertEqual(updated["offers"][0]["title"], "Admin-managed offer")
         self.assertEqual(updated["projects"][0]["name"], "Admin-managed project")
+
+    def test_sync_default_portfolio_projects_appends_missing_projects(self) -> None:
+        original = get_portfolio_content(self.session)
+        update_portfolio_content(
+            self.session,
+            {
+                **original,
+                "hero_title": "Keep managed headline",
+                "projects": original["projects"][:3],
+            },
+        )
+
+        sync_default_portfolio_projects(self.session)
+
+        updated = get_portfolio_content(self.session)
+        self.assertEqual(updated["hero_title"], "Keep managed headline")
+        self.assertEqual(len(updated["projects"]), len(original["projects"]))
+        self.assertEqual(
+            [project["name"] for project in updated["projects"][3:]],
+            [
+                "Service Business Website Kit",
+                "Photography Studio Demo",
+                "Wedding Planner Demo",
+            ],
+        )
 
 
 if __name__ == "__main__":
