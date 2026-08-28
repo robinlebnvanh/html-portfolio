@@ -170,20 +170,34 @@ contactForm.addEventListener('submit', async event => {
   event.preventDefault();
   const status = document.getElementById('form-status');
   const button = contactForm.querySelector('button[type="submit"]');
+  const formData = new FormData(contactForm);
   button.disabled = true;
   button.innerHTML = 'Sending <span aria-hidden="true">…</span>';
+  status.removeAttribute('data-type');
 
   try {
-    const response = await fetch('https://formspree.io/f/maqzgroj', {
+    if (!apiBaseUrl) throw new Error('API base URL is not configured.');
+    const response = await fetch(`${apiBaseUrl}/api/v1/leads`, {
       method: 'POST',
-      body: new FormData(contactForm),
-      headers: { Accept: 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: 'personal-site',
+        business_name: 'Robin Le Portfolio',
+        customer_name: String(formData.get('name') || '').trim(),
+        email: String(formData.get('email') || '').trim(),
+        preferred_date: new Date().toISOString().slice(0, 10),
+        package_name: 'Portfolio contact',
+        message: String(formData.get('message') || '').trim()
+      })
     });
-    if (!response.ok) throw new Error('Form submission failed.');
-    status.textContent = 'Thank you. I will get back to you shortly.';
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.detail || `API returned ${response.status}`);
+    status.dataset.type = 'success';
+    status.textContent = `Thank you. Your inquiry was saved to the database as Lead #${payload.lead.id}.`;
     contactForm.reset();
   } catch (error) {
-    status.textContent = 'Something went wrong. Please email me directly instead.';
+    status.dataset.type = 'error';
+    status.textContent = `This inquiry was not saved to the database: ${error.message}. Please email me directly instead.`;
   } finally {
     button.disabled = false;
     button.innerHTML = 'Send enquiry <span aria-hidden="true">↗</span>';
