@@ -196,13 +196,12 @@ async function handleBookingSubmit(event) {
     writeLeads();
     renderLeadSummary();
     form.reset();
-    qs("#form-status").textContent = business.successMessage || "Inquiry saved.";
+    qs("#form-status").textContent = `${business.successMessage || "Inquiry saved to the database."} Lead #${savedLead.id}.`;
   } catch (error) {
     state.leads.push({ ...lead, status: "local_fallback" });
     writeLeads();
     renderLeadSummary();
-    form.reset();
-    qs("#form-status").textContent = "Inquiry captured locally. API lead sync is temporarily unavailable.";
+    qs("#form-status").textContent = `Not saved to the database. Saved only in this browser because API sync failed: ${error.message}`;
   } finally {
     submitButton.disabled = false;
   }
