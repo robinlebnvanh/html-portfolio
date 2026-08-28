@@ -86,16 +86,26 @@ async function requestJson(path, options = {}) {
 
 async function adminRequest(path, options = {}) {
   if (!adminToken()) {
-    throw new Error('Admin token is required.');
+    sessionStorage.removeItem(tokenKey);
+    showLogin('Please sign in before loading admin data.');
+    throw new Error('Admin session is missing.');
   }
   const hasBody = Boolean(options.body);
-  return requestJson(path, {
-    ...options,
-    headers: {
-      ...authHeaders(hasBody),
-      ...(options.headers || {}),
-    },
-  });
+  try {
+    return await requestJson(path, {
+      ...options,
+      headers: {
+        ...authHeaders(hasBody),
+        ...(options.headers || {}),
+      },
+    });
+  } catch (error) {
+    if (/401|403|Not authenticated|Invalid|expired/i.test(error.message)) {
+      sessionStorage.removeItem(tokenKey);
+      showLogin('Session expired. Sign in again.');
+    }
+    throw error;
+  }
 }
 
 function showSection(name) {
