@@ -65,7 +65,22 @@
         </header>
 
         <section id="overview" class="admin-section is-active" aria-label="Admin overview" data-section="overview">
-          <div class="dashboard-grid">
+          <div class="command-center">
+            <div>
+              <p class="eyebrow">System snapshot</p>
+              <h3>Production workspace</h3>
+              <p>Fast access to the operational areas that keep the portfolio, service demos, leads, and stocks data current.</p>
+            </div>
+            <div class="command-actions">
+              <a class="module-action" href="#portfolio">Edit portfolio</a>
+              <a class="module-action" href="#leads">Review leads</a>
+              <a class="module-action" href="#blog">Write post</a>
+              <a class="module-action" href="#stocks">Manage stocks</a>
+              <button id="refresh-status" class="module-action" type="button">Refresh status</button>
+            </div>
+          </div>
+
+          <div class="dashboard-grid overview-metrics">
           <article class="metric-card">
             <span>API</span>
             <strong id="api-status-value">Checking</strong>
@@ -88,7 +103,7 @@
           </article>
           </div>
 
-          <div class="module-grid" aria-label="Admin modules">
+          <div class="module-grid command-modules" aria-label="Admin modules">
           <article class="module-card">
             <div>
               <span class="module-kicker">P2-07.2</span>
@@ -123,15 +138,6 @@
               <p>Review booking and proposal inquiries from service-business demo sites.</p>
             </div>
             <a class="module-action" href="#leads">Manage leads</a>
-          </article>
-
-          <article class="module-card">
-            <div>
-              <span class="module-kicker">P2-07.1 checkpoint</span>
-              <h3>System status</h3>
-              <p>Show API URL, health status, token session state, and the next auth checkpoint.</p>
-            </div>
-            <button id="refresh-status" class="module-action" type="button">Refresh status</button>
           </article>
           </div>
         </section>
@@ -182,7 +188,14 @@
           </div>
           <p id="stocks-status" class="status-text" role="status" aria-live="polite"></p>
 
-          <div class="admin-block">
+          <div class="subnav stock-tabs" role="tablist" aria-label="Stocks data sections">
+            <button class="subnav-item active" type="button" role="tab" aria-selected="true" aria-controls="stock-panel-holdings" data-stock-tab="holdings">Holdings</button>
+            <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="stock-panel-watchlist" data-stock-tab="watchlist">Watchlist</button>
+            <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="stock-panel-journals" data-stock-tab="journals">Journals</button>
+            <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="stock-panel-trades" data-stock-tab="trades">Trades</button>
+          </div>
+
+          <div id="stock-panel-holdings" class="admin-block stock-panel" role="tabpanel" data-stock-panel="holdings">
             <h4>Holdings</h4>
             <form id="holding-form" class="editor-panel compact">
               <input id="holding-id" type="hidden">
@@ -209,7 +222,7 @@
             </div>
           </div>
 
-          <div class="admin-block">
+          <div id="stock-panel-watchlist" class="admin-block stock-panel" role="tabpanel" data-stock-panel="watchlist" hidden>
             <h4>Watchlist</h4>
             <form id="watchlist-form" class="inline-form">
               <label class="field"><span>Ticker</span><input id="watchlist-ticker" maxlength="12" placeholder="ACB"></label>
@@ -218,7 +231,7 @@
             <div id="watchlist-list" class="chip-list"></div>
           </div>
 
-          <div class="admin-block">
+          <div id="stock-panel-journals" class="admin-block stock-panel" role="tabpanel" data-stock-panel="journals" hidden>
             <h4>Journals</h4>
             <form id="journal-form" class="editor-panel compact">
               <label class="field"><span>Ticker *</span><input id="journal-ticker" required maxlength="12" placeholder="VIC"></label>
@@ -238,7 +251,7 @@
             </div>
           </div>
 
-          <div class="admin-block">
+          <div id="stock-panel-trades" class="admin-block stock-panel" role="tabpanel" data-stock-panel="trades" hidden>
             <h4>Trades</h4>
             <form id="trade-form" class="editor-panel compact">
               <input id="trade-id" type="hidden">
@@ -303,7 +316,15 @@
 
             <div class="admin-block">
               <h4>Selected work</h4>
-              <label class="field"><span>Projects JSON</span><textarea id="portfolio-projects" rows="16" required spellcheck="false"></textarea></label>
+              <div class="project-editor-actions">
+                <button id="portfolio-add-project" class="module-action" type="button">Add project</button>
+                <button id="portfolio-toggle-json" class="module-action" type="button" aria-expanded="false">Advanced JSON</button>
+              </div>
+              <div id="portfolio-project-editor" class="project-editor-list"></div>
+              <label id="portfolio-projects-json-field" class="field advanced-json" hidden>
+                <span>Projects JSON</span>
+                <textarea id="portfolio-projects" rows="16" required spellcheck="false"></textarea>
+              </label>
             </div>
 
             <div class="admin-block">
@@ -313,9 +334,12 @@
               <label class="field"><span>Email</span><input id="portfolio-contact-email" type="email" required maxlength="254"></label>
             </div>
 
-            <div class="form-actions">
-              <button class="primary-button" type="submit">Save portfolio content</button>
-              <button id="portfolio-reset" class="module-action" type="button">Reset form</button>
+            <div class="form-actions portfolio-save-bar">
+              <p id="portfolio-dirty-status" class="save-state">Load content to start editing.</p>
+              <div class="save-actions">
+                <button class="primary-button" type="submit">Save portfolio content</button>
+                <button id="portfolio-reset" class="module-action" type="button">Reset form</button>
+              </div>
             </div>
           </form>
         </section>
@@ -361,6 +385,7 @@
               </tbody>
             </table>
           </div>
+          <div id="leads-cards" class="leads-cards" aria-label="Service lead cards"></div>
         </section>
 
         <section id="system" class="admin-section" data-section="system" hidden aria-labelledby="system-title">

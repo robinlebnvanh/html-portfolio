@@ -21,6 +21,12 @@ const leadCountDetail = $('lead-count-detail');
 const apiBaseUrlValue = $('api-base-url');
 const sections = [...document.querySelectorAll('[data-section]')];
 const navItems = [...document.querySelectorAll('.nav-item')];
+const stockTabs = [...document.querySelectorAll('[data-stock-tab]')];
+const stockPanels = [...document.querySelectorAll('[data-stock-panel]')];
+const projectEditor = $('portfolio-project-editor');
+const projectsJsonField = $('portfolio-projects-json-field');
+const projectsJsonToggle = $('portfolio-toggle-json');
+const portfolioDirtyStatus = $('portfolio-dirty-status');
 
 let blogPosts = [];
 let stockState = { portfolio: null, journals: {} };
@@ -41,6 +47,14 @@ function setStatus(element, message, type = 'muted') {
   if (!element) return;
   element.textContent = message;
   element.dataset.type = type;
+}
+
+function setPortfolioDirty(isDirty) {
+  setStatus(
+    portfolioDirtyStatus,
+    isDirty ? 'Unsaved changes' : 'No unsaved changes',
+    isDirty ? 'error' : 'success',
+  );
 }
 
 function adminToken() {
@@ -90,6 +104,18 @@ function showSection(name) {
     item.classList.toggle('active', isActive);
     if (isActive) item.setAttribute('aria-current', 'page');
     else item.removeAttribute('aria-current');
+  });
+}
+
+function showStockPanel(name) {
+  const target = stockPanels.some(panel => panel.dataset.stockPanel === name) ? name : 'holdings';
+  stockPanels.forEach(panel => {
+    panel.hidden = panel.dataset.stockPanel !== target;
+  });
+  stockTabs.forEach(tab => {
+    const isActive = tab.dataset.stockTab === target;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-selected', String(isActive));
   });
 }
 
@@ -618,6 +644,114 @@ function parseOffers() {
   }));
 }
 
+function defaultProject(nextId) {
+  const number = String(nextId).padStart(2, '0');
+  return {
+    id: nextId,
+    number,
+    name: 'New project',
+    audience: 'Target audience',
+    desc: 'Short project description',
+    outcome: 'What this project proves.',
+    tech: [],
+    category: 'frontend',
+    link: 'case-studies/new-project.html',
+    demoLink: '../new-project/',
+    github: 'https://github.com/robinlebnvanh/html-portfolio',
+    date: 'Draft',
+    visual: 'dashboard',
+    linkLabel: 'Read case study',
+    demoLabel: 'Open demo',
+  };
+}
+
+function projectField(project, index, field, label, options = {}) {
+  const value = project[field] ?? '';
+  if (options.textarea) {
+    return `
+      <label class="field">
+        <span>${label}</span>
+        <textarea data-project-index="${index}" data-project-field="${field}" rows="${options.rows || 3}" ${options.required ? 'required' : ''}>${escapeHtml(value)}</textarea>
+      </label>
+    `;
+  }
+  if (options.select) {
+    return `
+      <label class="field">
+        <span>${label}</span>
+        <select data-project-index="${index}" data-project-field="${field}">
+          ${options.select.map(option => `<option value="${escapeHtml(option)}" ${option === value ? 'selected' : ''}>${escapeHtml(option)}</option>`).join('')}
+        </select>
+      </label>
+    `;
+  }
+  return `
+    <label class="field">
+      <span>${label}</span>
+      <input data-project-index="${index}" data-project-field="${field}" value="${escapeHtml(value)}" ${options.type ? `type="${options.type}"` : ''} ${options.required ? 'required' : ''}>
+    </label>
+  `;
+}
+
+function renderPortfolioProjectEditor(projects = []) {
+  projectEditor.innerHTML = projects.map((project, index) => `
+    <article class="project-editor-card" data-project-card="${index}">
+      <div class="project-editor-header">
+        <div class="project-editor-title">
+          <strong>${escapeHtml(project.number || String(index + 1).padStart(2, '0'))} / ${escapeHtml(project.name || 'Untitled project')}</strong>
+          <span>${escapeHtml(project.audience || 'No audience set')}</span>
+        </div>
+        <div class="project-editor-controls">
+          <button type="button" data-project-move="up" data-project-index="${index}" ${index === 0 ? 'disabled' : ''}>Up</button>
+          <button type="button" data-project-move="down" data-project-index="${index}" ${index === projects.length - 1 ? 'disabled' : ''}>Down</button>
+          <button class="danger-link" type="button" data-project-delete="${index}">Delete</button>
+        </div>
+      </div>
+      <div class="form-grid three">
+        ${projectField(project, index, 'id', 'ID', { type: 'number', required: true })}
+        ${projectField(project, index, 'number', 'Number', { required: true })}
+        ${projectField(project, index, 'date', 'Label', { required: true })}
+        ${projectField(project, index, 'name', 'Name', { required: true })}
+        ${projectField(project, index, 'category', 'Category', { select: ['tool', 'frontend', 'backend', 'full-stack', 'automation'] })}
+        ${projectField(project, index, 'visual', 'Visual key')}
+      </div>
+      ${projectField(project, index, 'audience', 'Audience', { required: true })}
+      ${projectField(project, index, 'desc', 'Description', { textarea: true, rows: 3, required: true })}
+      ${projectField(project, index, 'outcome', 'Outcome', { textarea: true, rows: 3, required: true })}
+      <div class="form-grid">
+        ${projectField({ ...project, tech: (project.tech || []).join(', ') }, index, 'tech', 'Tech tags')}
+        ${projectField(project, index, 'github', 'GitHub URL')}
+        ${projectField(project, index, 'link', 'Case study link', { required: true })}
+        ${projectField(project, index, 'demoLink', 'Demo link')}
+        ${projectField(project, index, 'linkLabel', 'Case study label')}
+        ${projectField(project, index, 'demoLabel', 'Demo label')}
+      </div>
+    </article>
+  `).join('');
+}
+
+function projectsFromEditor() {
+  return [...document.querySelectorAll('[data-project-card]')].map(card => {
+    const project = {};
+    card.querySelectorAll('[data-project-field]').forEach(input => {
+      const field = input.dataset.projectField;
+      project[field] = input.value.trim();
+    });
+    project.id = Number(project.id);
+    project.tech = tagsFromInput(project.tech || '');
+    return project;
+  });
+}
+
+function syncProjectsJsonFromEditor() {
+  $('portfolio-projects').value = JSON.stringify(projectsFromEditor(), null, 2);
+}
+
+function replaceProjects(projects) {
+  $('portfolio-projects').value = JSON.stringify(projects, null, 2);
+  renderPortfolioProjectEditor(projects);
+}
+
 function parseProjects() {
   try {
     const projects = JSON.parse($('portfolio-projects').value);
@@ -647,13 +781,15 @@ function fillPortfolioForm(content) {
   $('portfolio-studio-title').value = content.studio_title || '';
   $('portfolio-studio-intro').value = content.studio_intro || '';
   $('portfolio-offers').value = offersToText(content.offers || []);
-  $('portfolio-projects').value = JSON.stringify(content.projects || [], null, 2);
+  replaceProjects(content.projects || []);
   $('portfolio-contact-title').value = content.contact_title || '';
   $('portfolio-contact-intro').value = content.contact_intro || '';
   $('portfolio-contact-email').value = content.contact_email || '';
+  setPortfolioDirty(false);
 }
 
 function portfolioPayload() {
+  syncProjectsJsonFromEditor();
   return {
     hero_eyebrow: $('portfolio-hero-eyebrow').value.trim(),
     hero_title: $('portfolio-hero-title').value.trim(),
@@ -695,6 +831,7 @@ async function savePortfolioContent(event) {
     });
     fillPortfolioForm(payload.content);
     setStatus($('portfolio-status'), 'Portfolio content saved.', 'success');
+    setPortfolioDirty(false);
   } catch (error) {
     setStatus($('portfolio-status'), error.message, 'error');
   }
@@ -706,21 +843,29 @@ function leadStatusOptions(current) {
   `).join('');
 }
 
+function leadStatusBadge(status) {
+  const label = String(status || 'new').replace('_', ' ');
+  return `<span class="lead-status-badge ${escapeHtml(status || 'new')}">${escapeHtml(label)}</span>`;
+}
+
 function renderLeads(leads) {
   const body = $('leads-body');
+  const cards = $('leads-cards');
   if (!leads.length) {
     body.innerHTML = '<tr><td colspan="8" class="empty-cell">No service leads for this filter.</td></tr>';
+    cards.innerHTML = '<p class="empty-note">No service leads for this filter.</p>';
     return;
   }
 
   body.innerHTML = leads.map(lead => `
-    <tr>
+    <tr data-lead-row="${lead.id}">
       <td>${escapeHtml(lead.source)}<br><span class="empty-note">${escapeHtml(lead.business_name)}</span></td>
       <td><strong>${escapeHtml(lead.customer_name)}</strong><br><span class="empty-note">${escapeHtml(lead.email)}</span></td>
       <td>${escapeHtml(lead.preferred_date)}</td>
       <td>${escapeHtml(lead.package_name)}</td>
       <td>${escapeHtml(lead.message).slice(0, 180)}</td>
       <td>
+        ${leadStatusBadge(lead.status)}
         <select class="lead-status-select" data-lead-status="${lead.id}">
           ${leadStatusOptions(lead.status)}
         </select>
@@ -728,6 +873,33 @@ function renderLeads(leads) {
       <td><textarea class="lead-note-input" data-lead-note="${lead.id}" placeholder="Next action">${escapeHtml(lead.admin_note || '')}</textarea></td>
       <td class="row-actions"><button type="button" data-lead-save="${lead.id}">Save</button></td>
     </tr>
+  `).join('');
+
+  cards.innerHTML = leads.map(lead => `
+    <article class="lead-card" data-lead-row="${lead.id}">
+      <div class="lead-card-header">
+        <div>
+          <h4>${escapeHtml(lead.customer_name)}</h4>
+          <p class="lead-card-meta">${escapeHtml(lead.email)} / ${escapeHtml(lead.preferred_date || 'No date')}</p>
+        </div>
+        ${leadStatusBadge(lead.status)}
+      </div>
+      <p class="lead-card-meta">${escapeHtml(lead.source)} / ${escapeHtml(lead.business_name)} / ${escapeHtml(lead.package_name)}</p>
+      <p class="lead-card-message">${escapeHtml(lead.message).slice(0, 220)}</p>
+      <div class="lead-card-controls">
+        <label class="field">
+          <span>Status</span>
+          <select class="lead-status-select" data-lead-status="${lead.id}">
+            ${leadStatusOptions(lead.status)}
+          </select>
+        </label>
+        <label class="field">
+          <span>Admin note</span>
+          <textarea class="lead-note-input" data-lead-note="${lead.id}" placeholder="Next action">${escapeHtml(lead.admin_note || '')}</textarea>
+        </label>
+        <button class="module-action" type="button" data-lead-save="${lead.id}">Save lead</button>
+      </div>
+    </article>
   `).join('');
 }
 
@@ -745,9 +917,10 @@ async function loadLeads() {
   }
 }
 
-async function saveLead(leadId) {
-  const statusSelect = document.querySelector(`[data-lead-status="${leadId}"]`);
-  const noteInput = document.querySelector(`[data-lead-note="${leadId}"]`);
+async function saveLead(leadId, trigger = null) {
+  const leadRow = trigger?.closest(`[data-lead-row="${leadId}"]`) || document;
+  const statusSelect = leadRow.querySelector(`[data-lead-status="${leadId}"]`);
+  const noteInput = leadRow.querySelector(`[data-lead-note="${leadId}"]`);
   try {
     setStatus($('leads-status'), 'Saving lead...');
     await adminRequest(`/api/v1/admin/leads/${leadId}`, {
@@ -797,6 +970,9 @@ logoutButton.addEventListener('click', async () => {
 
 window.addEventListener('hashchange', () => showSection(currentHashSection()));
 refreshStatusButton.addEventListener('click', loadDashboard);
+stockTabs.forEach(tab => {
+  tab.addEventListener('click', () => showStockPanel(tab.dataset.stockTab));
+});
 
 $('blog-load').addEventListener('click', loadBlogPosts);
 $('blog-form').addEventListener('submit', saveBlogPost);
@@ -848,20 +1024,66 @@ $('trades-body').addEventListener('click', event => {
 
 $('portfolio-load').addEventListener('click', loadPortfolioContent);
 $('portfolio-form').addEventListener('submit', savePortfolioContent);
+$('portfolio-form').addEventListener('input', () => setPortfolioDirty(true));
 $('portfolio-reset').addEventListener('click', () => {
   if (portfolioContent) fillPortfolioForm(portfolioContent);
+});
+$('portfolio-add-project').addEventListener('click', () => {
+  const projects = projectsFromEditor();
+  const nextId = Math.max(0, ...projects.map(project => Number(project.id) || 0)) + 1;
+  replaceProjects([...projects, defaultProject(nextId)]);
+  setPortfolioDirty(true);
+});
+projectsJsonToggle.addEventListener('click', () => {
+  syncProjectsJsonFromEditor();
+  const shouldShow = projectsJsonField.hidden;
+  projectsJsonField.hidden = !shouldShow;
+  projectsJsonToggle.setAttribute('aria-expanded', String(shouldShow));
+});
+projectEditor.addEventListener('input', syncProjectsJsonFromEditor);
+projectEditor.addEventListener('click', event => {
+  const deleteButton = event.target.closest('[data-project-delete]');
+  const moveButton = event.target.closest('[data-project-move]');
+  if (deleteButton) {
+    const index = Number(deleteButton.dataset.projectDelete);
+    replaceProjects(projectsFromEditor().filter((_, projectIndex) => projectIndex !== index));
+    setPortfolioDirty(true);
+  }
+  if (moveButton) {
+    const index = Number(moveButton.dataset.projectIndex);
+    const direction = moveButton.dataset.projectMove;
+    const nextIndex = direction === 'up' ? index - 1 : index + 1;
+    const projects = projectsFromEditor();
+    if (nextIndex < 0 || nextIndex >= projects.length) return;
+    [projects[index], projects[nextIndex]] = [projects[nextIndex], projects[index]];
+    replaceProjects(projects);
+    setPortfolioDirty(true);
+  }
+});
+$('portfolio-projects').addEventListener('change', () => {
+  try {
+    renderPortfolioProjectEditor(parseProjects());
+    setPortfolioDirty(true);
+  } catch (error) {
+    setStatus($('portfolio-status'), error.message, 'error');
+  }
 });
 
 $('leads-load').addEventListener('click', loadLeads);
 $('lead-status-filter').addEventListener('change', loadLeads);
 $('leads-body').addEventListener('click', event => {
   const saveButton = event.target.closest('[data-lead-save]');
-  if (saveButton) saveLead(Number(saveButton.dataset.leadSave));
+  if (saveButton) saveLead(Number(saveButton.dataset.leadSave), saveButton);
+});
+$('leads-cards').addEventListener('click', event => {
+  const saveButton = event.target.closest('[data-lead-save]');
+  if (saveButton) saveLead(Number(saveButton.dataset.leadSave), saveButton);
 });
 
 fillBlogForm(null);
 resetHoldingForm();
 resetTradeForm();
+showStockPanel('holdings');
 apiBaseUrlValue.textContent = apiBaseUrl;
 
 if (adminToken()) {

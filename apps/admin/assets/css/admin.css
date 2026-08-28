@@ -1,16 +1,18 @@
 :root {
   color-scheme: light;
-  --bg: #f6f3ee;
-  --surface: #fffdf8;
-  --surface-strong: #141414;
-  --text: #171717;
-  --muted: #68645d;
-  --line: #ded7cb;
-  --accent: #1f6f5b;
-  --accent-strong: #164d41;
+  --bg: #f4f7fa;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --surface-strong: #111827;
+  --text: #172033;
+  --muted: #627084;
+  --line: #d8e0ea;
+  --accent: #0f766e;
+  --accent-strong: #115e59;
   --danger: #a83d3d;
   --success: #247246;
-  --shadow: 0 22px 70px rgba(42, 35, 25, 0.12);
+  --focus: #2563eb;
+  --shadow: 0 18px 48px rgba(23, 32, 51, 0.08);
   font-family: "Manrope", Arial, sans-serif;
 }
 
@@ -34,6 +36,23 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.22);
+  outline-offset: 2px;
 }
 
 .admin-app {
@@ -122,6 +141,13 @@ h3 {
   color: var(--text);
 }
 
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
 .primary-button,
 .ghost-button,
 .module-action {
@@ -137,6 +163,10 @@ h3 {
 .primary-button {
   background: var(--surface-strong);
   color: #fff;
+}
+
+.primary-button:hover {
+  background: #263142;
 }
 
 .ghost-button {
@@ -175,7 +205,7 @@ h3 {
   flex-direction: column;
   gap: 26px;
   padding: 24px;
-  background: #151515;
+  background: #111827;
   color: #fff;
 }
 
@@ -240,9 +270,38 @@ h3 {
   text-decoration: none;
 }
 
+.text-link:hover {
+  color: var(--focus);
+}
+
 .admin-section {
   display: grid;
   gap: 20px;
+}
+
+.command-center {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 20px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  background: var(--surface);
+  box-shadow: 0 10px 28px rgba(23, 32, 51, 0.05);
+}
+
+.command-center p:last-child {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .section-header {
@@ -250,6 +309,42 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+}
+
+.subnav {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px;
+  background: var(--surface-muted);
+}
+
+.subnav-item {
+  min-height: 38px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.subnav-item.active {
+  background: var(--surface-strong);
+  color: #fff;
+}
+
+.subnav-item:hover:not(.active),
+.module-action:hover,
+.item-button:hover {
+  border-color: #b6c3d2;
+  background: var(--surface-muted);
 }
 
 .dashboard-grid,
@@ -263,13 +358,25 @@ h3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.overview-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.command-modules {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.command-modules .module-card {
+  min-height: 164px;
+}
+
 .metric-card,
 .module-card,
 .system-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: 0 10px 34px rgba(42, 35, 25, 0.06);
+  box-shadow: 0 10px 28px rgba(23, 32, 51, 0.05);
 }
 
 .metric-card {
@@ -358,7 +465,7 @@ h3 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: 0 10px 34px rgba(42, 35, 25, 0.06);
+  box-shadow: 0 10px 28px rgba(23, 32, 51, 0.05);
 }
 
 .list-panel,
@@ -491,6 +598,10 @@ h3 {
   text-transform: uppercase;
 }
 
+.admin-table tbody tr:hover {
+  background: var(--surface-muted);
+}
+
 .empty-cell {
   color: var(--muted);
   text-align: center;
@@ -563,6 +674,167 @@ h3 {
   background: #fff;
 }
 
+.lead-status-badge {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: rgba(104, 100, 93, 0.12);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.lead-status-badge.new {
+  background: rgba(31, 111, 91, 0.12);
+  color: var(--accent-strong);
+}
+
+.lead-status-badge.proposal_sent,
+.lead-status-badge.booked {
+  background: rgba(36, 114, 70, 0.12);
+  color: var(--success);
+}
+
+.leads-cards {
+  display: none;
+}
+
+.lead-card {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--surface);
+  box-shadow: 0 10px 28px rgba(23, 32, 51, 0.05);
+}
+
+.lead-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lead-card h4 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.lead-card-meta,
+.lead-card-message {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.lead-card-controls {
+  display: grid;
+  gap: 10px;
+}
+
+.lead-card-controls .lead-status-select,
+.lead-card-controls .lead-note-input {
+  width: 100%;
+}
+
+.project-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.project-editor-list {
+  display: grid;
+  gap: 14px;
+}
+
+.project-editor-card {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff;
+}
+
+.project-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-editor-title {
+  display: grid;
+  gap: 4px;
+}
+
+.project-editor-title strong {
+  font-size: 1rem;
+}
+
+.project-editor-title span {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.project-editor-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.project-editor-controls button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 10px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.project-editor-controls .danger-link {
+  border-color: rgba(168, 61, 61, 0.3);
+  background: rgba(168, 61, 61, 0.08);
+}
+
+.advanced-json {
+  margin-top: 4px;
+}
+
+.portfolio-save-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 12;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 -12px 28px rgba(23, 32, 51, 0.08);
+}
+
+.save-state {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -573,16 +845,60 @@ h3 {
   }
 
   .sidebar {
-    position: static;
+    position: sticky;
+    z-index: 20;
     height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 12px 16px;
+  }
+
+  .admin-brand {
+    flex: 0 0 auto;
+  }
+
+  .admin-brand strong {
+    font-size: 1.15rem;
+  }
+
+  .admin-nav {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .nav-item {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  .ghost-button {
+    width: auto;
+    min-height: 38px;
+    flex: 0 0 auto;
+    padding: 0 12px;
   }
 
   .dashboard-grid,
   .module-grid,
+  .overview-metrics,
+  .command-modules,
+  .command-center,
   .admin-split,
   .form-grid,
   .form-grid.three {
     grid-template-columns: 1fr;
+  }
+
+  .command-actions {
+    justify-content: flex-start;
   }
 }
 
@@ -590,6 +906,14 @@ h3 {
   .login-panel,
   .workspace {
     padding: 20px;
+  }
+
+  .sidebar {
+    padding: 10px 12px;
+  }
+
+  .admin-brand span {
+    display: none;
   }
 
   .workspace-header {
@@ -600,5 +924,33 @@ h3 {
   .runtime-list div {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+
+  .subnav {
+    width: 100%;
+  }
+
+  .portfolio-save-bar {
+    align-items: stretch;
+  }
+
+  .save-actions {
+    width: 100%;
+  }
+
+  .save-actions .primary-button,
+  .save-actions .module-action {
+    flex: 1 1 160px;
+  }
+}
+
+@media (max-width: 760px) {
+  .leads-table {
+    display: none;
+  }
+
+  .leads-cards {
+    display: grid;
+    gap: 12px;
   }
 }
