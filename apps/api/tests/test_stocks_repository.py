@@ -125,6 +125,7 @@ class StocksRepositoryTests(unittest.TestCase):
                 ticker="ABC",
                 trade_date="2026-08-05",
                 trade_type="BUY",
+                quantity=10,
                 price=100,
                 stop_loss=90,
                 pnl="0",
@@ -187,6 +188,7 @@ class StocksRepositoryTests(unittest.TestCase):
                 "ticker": "ABC",
                 "date": "2026-08-27",
                 "type": "BUY",
+                "quantity": 10,
                 "price": 100,
                 "stop_loss": 90,
                 "pnl": "0",
@@ -196,21 +198,98 @@ class StocksRepositoryTests(unittest.TestCase):
 
         self.assertEqual(created["ticker"], "ABC")
         self.assertEqual(created["type"], "BUY")
+        self.assertEqual(created["quantity"], 10)
         self.assertIn("id", created)
         self.assertIn("ABC", get_journals(self.session))
+        self.assertEqual(get_portfolio(self.session)["holdings"][0]["quantity"], 10)
 
         updated = update_trade(
             self.session,
             created["id"],
-            {"price": 120, "type": "SELL", "note": "updated"},
+            {"price": 120, "type": "SELL", "quantity": 4, "note": "updated"},
         )
         self.assertIsNotNone(updated)
         self.assertEqual(updated["price"], 120)
         self.assertEqual(updated["type"], "SELL")
+        self.assertEqual(updated["quantity"], 4)
         self.assertEqual(updated["note"], "updated")
+        self.assertEqual(get_portfolio(self.session)["holdings"][0]["quantity"], 0)
 
         self.assertTrue(delete_trade(self.session, created["id"]))
         self.assertEqual(get_journals(self.session)["ABC"]["trades"], [])
+
+    def test_trades_rebuild_holding_with_weighted_average_cost(self) -> None:
+        first_buy = create_trade(
+            self.session,
+            {
+                "ticker": "ABC",
+                "date": "2026-08-27",
+                "type": "MUA",
+                "quantity": 10,
+                "price": 100,
+                "stop_loss": 90,
+                "pnl": None,
+                "note": "first buy",
+            },
+        )
+        second_buy = create_trade(
+            self.session,
+            {
+                "ticker": "ABC",
+                "date": "2026-08-28",
+                "type": "BUY",
+                "quantity": 10,
+                "price": 200,
+                "stop_loss": 120,
+                "pnl": None,
+                "note": "second buy",
+            },
+        )
+
+        holding = get_portfolio(self.session)["holdings"][0]
+        self.assertEqual(holding["quantity"], 20)
+        self.assertEqual(holding["avg_cost"], 150)
+        self.assertEqual(holding["entry_date"], "2026-08-27")
+        self.assertEqual(holding["stop_loss"], 120)
+
+        update_trade(
+            self.session,
+            second_buy["id"],
+            {"type": "BAN", "quantity": 5, "price": 220},
+        )
+        holding = get_portfolio(self.session)["holdings"][0]
+        self.assertEqual(holding["quantity"], 5)
+        self.assertEqual(holding["avg_cost"], 100)
+
+        self.assertTrue(delete_trade(self.session, first_buy["id"]))
+        holding = get_portfolio(self.session)["holdings"][0]
+        self.assertEqual(holding["quantity"], 0)
+        self.assertEqual(holding["status"], "CLOSED")
+
+    def test_manual_holding_creates_sync_trade(self) -> None:
+        created = create_holding(
+            self.session,
+            {
+                "ticker": "ABC",
+                "quantity": 8,
+                "avg_cost": 125,
+                "entry_date": "2026-08-27",
+                "stop_loss": 100,
+                "status": "HOLDING",
+                "note": "manual holding",
+                "targets": [],
+            },
+        )
+
+        trades_data = get_journals(self.session)["ABC"]["trades"]
+        self.assertEqual(len(trades_data), 1)
+        self.assertEqual(trades_data[0]["quantity"], 8)
+        self.assertEqual(trades_data[0]["price"], 125)
+
+        update_holding(self.session, created["id"], {"quantity": 9, "avg_cost": 130})
+        trades_data = get_journals(self.session)["ABC"]["trades"]
+        self.assertEqual(trades_data[0]["quantity"], 9)
+        self.assertEqual(trades_data[0]["price"], 130)
 
     def test_journal_upsert_and_delete(self) -> None:
         created = upsert_journal(

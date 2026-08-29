@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Mapping
 
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, insert, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.sqlalchemy_tables import (
@@ -22,9 +22,19 @@ from app.sqlalchemy_tables import (
     watchlist_items,
 )
 
+HOLDING_SYNC_NOTE = "[HOLDING_SYNC] Mirror trade for manual holding edits."
+
 
 def _as_dict(row: Mapping[str, Any]) -> dict[str, Any]:
     return dict(row)
+
+
+def _is_buy_trade(trade_type: str) -> bool:
+    return trade_type.strip().upper() in {"BUY", "MUA"}
+
+
+def _is_sell_trade(trade_type: str) -> bool:
+    return trade_type.strip().upper() in {"SELL", "BAN", "BÁN"}
 
 
 def _touch_portfolio(session: Session) -> None:
@@ -105,6 +115,163 @@ def get_holding(
     return _holding_from_row(session, row, include_id=include_id) if row else None
 
 
+def _get_holding_by_ticker(session: Session, ticker: str) -> dict[str, Any] | None:
+    holding_id = session.scalar(select(holdings.c.id).where(holdings.c.ticker == ticker))
+    return get_holding(session, holding_id) if holding_id is not None else None
+
+
+def _replace_holding_targets(session: Session, holding_id: int, targets: list[int]) -> None:
+    session.execute(delete(holding_targets).where(holding_targets.c.holding_id == holding_id))
+    replacement_targets = [
+        {"holding_id": holding_id, "target_order": order, "price": target}
+        for order, target in enumerate(targets, start=1)
+    ]
+    if replacement_targets:
+        session.execute(insert(holding_targets), replacement_targets)
+
+
+def _sync_trade_row_for_holding(session: Session, holding: dict[str, Any]) -> None:
+    """Mirror manual holding edits without overwriting real trade history."""
+
+    _ensure_journal(session, holding["ticker"])
+    has_real_trades = session.scalar(
+        select(trades.c.id).where(
+            (trades.c.ticker == holding["ticker"])
+            & (or_(trades.c.note.is_(None), trades.c.note != HOLDING_SYNC_NOTE))
+        )
+    ) is not None
+    existing_id = session.scalar(
+        select(trades.c.id).where(
+            (trades.c.ticker == holding["ticker"])
+            & (trades.c.note == HOLDING_SYNC_NOTE)
+        )
+    )
+    values = {
+        "ticker": holding["ticker"],
+        "trade_date": holding["entry_date"],
+        "trade_type": "BUY" if holding["quantity"] > 0 else "SELL",
+        "quantity": holding["quantity"],
+        "price": holding["avg_cost"],
+        "stop_loss": holding["stop_loss"],
+        "pnl": None,
+        "note": HOLDING_SYNC_NOTE,
+    }
+    if has_real_trades and existing_id is not None:
+        values = {
+            "trade_date": holding["entry_date"],
+            "stop_loss": holding["stop_loss"],
+            "note": HOLDING_SYNC_NOTE,
+        }
+        session.execute(update(trades).where(trades.c.id == existing_id).values(**values))
+        return
+
+    if existing_id is None:
+        session.execute(insert(trades).values(**values))
+        return
+
+    values.pop("ticker")
+    session.execute(update(trades).where(trades.c.id == existing_id).values(**values))
+
+
+def _delete_holding_sync_trade(session: Session, ticker: str) -> None:
+    session.execute(
+        delete(trades).where(
+            (trades.c.ticker == ticker)
+            & (trades.c.note == HOLDING_SYNC_NOTE)
+        )
+    )
+
+
+def _sync_holding_from_trades(session: Session, ticker: str) -> None:
+    trade_rows = session.execute(
+        select(
+            trades.c.trade_date.label("date"),
+            trades.c.trade_type.label("type"),
+            trades.c.quantity,
+            trades.c.price,
+            trades.c.stop_loss,
+        )
+        .where(trades.c.ticker == ticker)
+        .order_by(trades.c.trade_date, trades.c.id)
+    ).mappings().all()
+
+    existing = _get_holding_by_ticker(session, ticker)
+    if not trade_rows:
+        if existing is not None:
+            session.execute(
+                update(holdings)
+                .where(holdings.c.id == existing["id"])
+                .values(quantity=0, avg_cost=0, status="CLOSED")
+            )
+            _touch_portfolio(session)
+        return
+
+    quantity = 0
+    cost_basis = 0
+    first_entry_date: str | None = None
+    latest_stop_loss: int | None = None
+
+    for trade in trade_rows:
+        trade_quantity = trade["quantity"] or 0
+        if trade_quantity <= 0:
+            continue
+
+        if _is_buy_trade(trade["type"]):
+            if quantity == 0:
+                first_entry_date = trade["date"]
+            cost_basis += trade_quantity * trade["price"]
+            quantity += trade_quantity
+        elif _is_sell_trade(trade["type"]):
+            closed_quantity = min(trade_quantity, quantity)
+            average_cost = round(cost_basis / quantity) if quantity else 0
+            quantity -= closed_quantity
+            cost_basis = average_cost * quantity
+            if quantity == 0:
+                cost_basis = 0
+
+        if trade["stop_loss"] is not None:
+            latest_stop_loss = trade["stop_loss"]
+
+    avg_cost = round(cost_basis / quantity) if quantity else 0
+    status = "HOLDING" if quantity else "CLOSED"
+    entry_date = first_entry_date or date.today().isoformat()
+    note = existing["note"] if existing else "Synced from trades."
+    targets = existing["targets"] if existing else []
+
+    _ensure_portfolio(session)
+    _ensure_stock(session, ticker)
+    if existing is None:
+        result = session.execute(
+            insert(holdings).values(
+                portfolio_id=1,
+                ticker=ticker,
+                quantity=quantity,
+                avg_cost=avg_cost,
+                entry_date=entry_date,
+                stop_loss=latest_stop_loss,
+                status=status,
+                note=note,
+            )
+        )
+        holding_id = result.inserted_primary_key[0]
+    else:
+        holding_id = existing["id"]
+        session.execute(
+            update(holdings)
+            .where(holdings.c.id == holding_id)
+            .values(
+                quantity=quantity,
+                avg_cost=avg_cost,
+                entry_date=entry_date,
+                stop_loss=latest_stop_loss,
+                status=status,
+                note=note,
+            )
+        )
+    _replace_holding_targets(session, holding_id, targets)
+    _touch_portfolio(session)
+
+
 def holding_exists(session: Session, ticker: str) -> bool:
     """Return whether a holding ticker already exists."""
 
@@ -140,6 +307,7 @@ def create_holding(
         ]
         if targets:
             session.execute(insert(holding_targets), targets)
+        _sync_trade_row_for_holding(session, holding)
         _touch_portfolio(session)
         session.commit()
     except Exception:
@@ -170,15 +338,10 @@ def update_holding(
                 .values(**values)
             )
         if targets is not None:
-            session.execute(
-                delete(holding_targets).where(holding_targets.c.holding_id == holding_id)
-            )
-            replacement_targets = [
-                {"holding_id": holding_id, "target_order": order, "price": target}
-                for order, target in enumerate(targets, start=1)
-            ]
-            if replacement_targets:
-                session.execute(insert(holding_targets), replacement_targets)
+            _replace_holding_targets(session, holding_id, targets)
+        updated = get_holding(session, holding_id)
+        if updated is not None:
+            _sync_trade_row_for_holding(session, updated)
         _touch_portfolio(session)
         session.commit()
     except Exception:
@@ -234,6 +397,7 @@ def get_trade(session: Session, trade_id: int) -> dict[str, Any] | None:
             trades.c.ticker,
             trades.c.trade_date.label("date"),
             trades.c.trade_type.label("type"),
+            trades.c.quantity,
             trades.c.price,
             trades.c.stop_loss,
             trades.c.pnl,
@@ -251,6 +415,7 @@ def create_trade(session: Session, trade: dict[str, Any]) -> dict[str, Any]:
                 ticker=trade["ticker"],
                 trade_date=trade["date"],
                 trade_type=trade["type"],
+                quantity=trade["quantity"],
                 price=trade["price"],
                 stop_loss=trade["stop_loss"],
                 pnl=trade["pnl"],
@@ -258,6 +423,7 @@ def create_trade(session: Session, trade: dict[str, Any]) -> dict[str, Any]:
             )
         )
         trade_id = result.inserted_primary_key[0]
+        _sync_holding_from_trades(session, trade["ticker"])
         session.commit()
     except Exception:
         session.rollback()
@@ -273,7 +439,8 @@ def update_trade(
     trade_id: int,
     changes: dict[str, Any],
 ) -> dict[str, Any] | None:
-    if get_trade(session, trade_id) is None:
+    existing = get_trade(session, trade_id)
+    if existing is None:
         return None
 
     values = dict(changes)
@@ -285,7 +452,8 @@ def update_trade(
     try:
         if values:
             session.execute(update(trades).where(trades.c.id == trade_id).values(**values))
-            session.commit()
+        _sync_holding_from_trades(session, existing["ticker"])
+        session.commit()
     except Exception:
         session.rollback()
         raise
@@ -295,8 +463,13 @@ def update_trade(
 
 def delete_trade(session: Session, trade_id: int) -> bool:
     try:
+        existing = get_trade(session, trade_id)
+        if existing is None:
+            session.rollback()
+            return False
         result = session.execute(delete(trades).where(trades.c.id == trade_id))
         if result.rowcount:
+            _sync_holding_from_trades(session, existing["ticker"])
             session.commit()
             return True
         session.rollback()
@@ -375,8 +548,14 @@ def delete_journal(session: Session, ticker: str) -> bool:
 
 def delete_holding(session: Session, holding_id: int) -> bool:
     try:
+        existing = get_holding(session, holding_id)
+        if existing is None:
+            session.rollback()
+            return False
         result = session.execute(delete(holdings).where(holdings.c.id == holding_id))
         if result.rowcount:
+            _delete_holding_sync_trade(session, existing["ticker"])
+            _sync_holding_from_trades(session, existing["ticker"])
             _touch_portfolio(session)
             session.commit()
             return True
@@ -468,6 +647,7 @@ def get_journals(session: Session) -> dict[str, Any]:
                     trades.c.ticker,
                     trades.c.trade_date.label("date"),
                     trades.c.trade_type.label("type"),
+                    trades.c.quantity,
                     trades.c.price,
                     trades.c.stop_loss,
                     trades.c.pnl,

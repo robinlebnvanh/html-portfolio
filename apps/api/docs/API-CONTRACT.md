@@ -76,6 +76,7 @@ Returns private journal data keyed by ticker.
       {
         "date": "2026-06-18",
         "type": "MUA",
+        "quantity": 100,
         "price": 192000,
         "stop_loss": null,
         "pnl": "Giá vốn ban đầu",
@@ -244,6 +245,11 @@ The endpoint returns `{ "holding": ... }`. `ticker` is normalized to uppercase. 
 
 Updates any supplied holding fields and replaces `targets` when that field is supplied. It returns the updated holding. Unknown IDs return `404`.
 
+Manual holding creates/updates are mirrored into one generated `BUY` trade so
+the Trades tab can still show where the holding state came from. Once real
+trades exist for the ticker, trade history remains the source of truth for
+quantity and average cost.
+
 ### DELETE `/api/v1/stocks/holdings/{holding_id}`
 
 Deletes the holding and its target prices. It returns `204` on success and `404` for an unknown ID.
@@ -301,6 +307,7 @@ Creates a trade row and creates an empty journal for the ticker if needed:
   "ticker": "ACB",
   "date": "2026-08-27",
   "type": "BUY",
+  "quantity": 100,
   "price": 25000,
   "stop_loss": 23000,
   "pnl": "0",
@@ -308,9 +315,12 @@ Creates a trade row and creates an empty journal for the ticker if needed:
 }
 ```
 
-The endpoint returns `{ "trade": ... }`. Trade rows returned by
-`GET /api/v1/stocks/journals` include stable numeric `id` and `ticker` fields
-for Admin UI edit/delete actions.
+The endpoint returns `{ "trade": ... }`. Creating, updating, or deleting a
+trade rebuilds the matching portfolio holding from the ticker's trade ledger.
+`BUY`/`MUA` increases quantity and updates weighted average cost; `SELL`/`BAN`
+decreases quantity and marks the holding `CLOSED` when the remaining quantity is
+zero. Trade rows returned by `GET /api/v1/stocks/journals` include stable
+numeric `id`, `ticker`, and `quantity` fields for Admin UI edit/delete actions.
 
 ### PATCH `/api/v1/stocks/trades/{trade_id}`
 

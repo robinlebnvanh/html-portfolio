@@ -101,11 +101,13 @@ trades = sa.Table(
     sa.Column("ticker", sa.String(length=12), sa.ForeignKey("journals.ticker", ondelete="CASCADE"), nullable=False),
     sa.Column("trade_date", sa.Text, nullable=False),
     sa.Column("trade_type", sa.Text, nullable=False),
+    sa.Column("quantity", sa.Integer, nullable=False, server_default="0"),
     sa.Column("price", sa.Integer, nullable=False),
     sa.Column("stop_loss", sa.Integer),
     sa.Column("pnl", sa.Text),
     sa.Column("note", sa.Text),
     sa.CheckConstraint("price >= 0", name="ck_trades_price_nonnegative"),
+    sa.CheckConstraint("quantity >= 0", name="ck_trades_quantity_nonnegative"),
     sa.CheckConstraint("stop_loss IS NULL OR stop_loss >= 0", name="ck_trades_stop_loss_nonnegative"),
 )
 

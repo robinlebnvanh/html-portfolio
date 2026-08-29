@@ -67,7 +67,7 @@ class HoldingCreate(BaseModel):
     """Validated payload for creating a portfolio holding."""
 
     ticker: str = Field(min_length=1, max_length=12)
-    quantity: int = Field(ge=0)
+    quantity: int = Field(gt=0)
     avg_cost: int = Field(ge=0)
     entry_date: str = Field(min_length=1)
     stop_loss: int | None = Field(default=None, ge=0)
@@ -79,7 +79,7 @@ class HoldingCreate(BaseModel):
 class HoldingUpdate(BaseModel):
     """Partial validated payload for updating a portfolio holding."""
 
-    quantity: int | None = Field(default=None, ge=0)
+    quantity: int | None = Field(default=None, gt=0)
     avg_cost: int | None = Field(default=None, ge=0)
     entry_date: str | None = Field(default=None, min_length=1)
     stop_loss: int | None = Field(default=None, ge=0)
@@ -117,6 +117,7 @@ class TradeCreate(BaseModel):
     ticker: str = Field(min_length=1, max_length=12)
     date: str = Field(min_length=1)
     type: str = Field(min_length=1, max_length=20)
+    quantity: int = Field(ge=0)
     price: int = Field(ge=0)
     stop_loss: int | None = Field(default=None, ge=0)
     pnl: str | None = None
@@ -128,6 +129,7 @@ class TradeUpdate(BaseModel):
 
     date: str | None = Field(default=None, min_length=1)
     type: str | None = Field(default=None, min_length=1, max_length=20)
+    quantity: int | None = Field(default=None, ge=0)
     price: int | None = Field(default=None, ge=0)
     stop_loss: int | None = Field(default=None, ge=0)
     pnl: str | None = None

@@ -605,7 +605,7 @@ function renderTrades(journals) {
   const rows = allTrades(journals);
   const body = $('trades-body');
   if (!rows.length) {
-    body.innerHTML = '<tr><td colspan="8" class="empty-cell">No trades.</td></tr>';
+    body.innerHTML = '<tr><td colspan="9" class="empty-cell">No trades.</td></tr>';
     return;
   }
   body.innerHTML = rows.map(trade => `
@@ -613,6 +613,7 @@ function renderTrades(journals) {
       <td><span class="ticker-badge">${escapeHtml(trade.ticker)}</span></td>
       <td>${escapeHtml(trade.date)}</td>
       <td>${escapeHtml(trade.type)}</td>
+      <td>${Number(trade.quantity || 0).toLocaleString()}</td>
       <td>${Number(trade.price).toLocaleString()}</td>
       <td>${trade.stop_loss == null ? '-' : Number(trade.stop_loss).toLocaleString()}</td>
       <td>${escapeHtml(trade.pnl || '-')}</td>
@@ -633,6 +634,7 @@ function editTrade(id) {
   $('trade-ticker').disabled = true;
   $('trade-date').value = trade.date;
   $('trade-type').value = trade.type;
+  $('trade-quantity').value = trade.quantity || 0;
   $('trade-price').value = trade.price;
   $('trade-stop-loss').value = trade.stop_loss ?? '';
   $('trade-pnl').value = trade.pnl || '';
@@ -657,13 +659,14 @@ async function saveTrade(event) {
     ticker: $('trade-ticker').value.trim().toUpperCase(),
     date: $('trade-date').value,
     type: $('trade-type').value,
+    quantity: Number($('trade-quantity').value),
     price: Number($('trade-price').value),
     stop_loss: $('trade-stop-loss').value ? Number($('trade-stop-loss').value) : null,
     pnl: $('trade-pnl').value.trim() || null,
     note: $('trade-note').value.trim() || null,
   };
-  if (!payload.ticker || !payload.date) {
-    setStatus($('stocks-status'), 'Ticker and trade date are required.', 'error');
+  if (!payload.ticker || !payload.date || payload.quantity <= 0) {
+    setStatus($('stocks-status'), 'Ticker, trade date, and positive quantity are required.', 'error');
     return;
   }
   try {

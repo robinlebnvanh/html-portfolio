@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS trades (
     ticker TEXT NOT NULL REFERENCES journals(ticker) ON DELETE CASCADE,
     trade_date TEXT NOT NULL,
     trade_type TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
     price INTEGER NOT NULL CHECK (price >= 0),
     stop_loss INTEGER CHECK (stop_loss IS NULL OR stop_loss >= 0),
     pnl TEXT,

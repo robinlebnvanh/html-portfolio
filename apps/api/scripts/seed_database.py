@@ -153,6 +153,7 @@ def seed(session: Session, payload: dict[str, Any]) -> None:
                     "ticker": ticker,
                     "trade_date": parse_date(trade["date"]),
                     "trade_type": trade["type"],
+                    "quantity": parse_integer(trade.get("quantity")) or 0,
                     "price": parse_integer(trade["price"]),
                     "stop_loss": parse_integer(trade.get("sl")),
                     "pnl": trade.get("pl"),

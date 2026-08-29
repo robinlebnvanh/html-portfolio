@@ -259,6 +259,7 @@
                 <label class="field"><span>Ticker *</span><input id="trade-ticker" required maxlength="12" placeholder="VIC"></label>
                 <label class="field"><span>Date *</span><input id="trade-date" required type="date"></label>
                 <label class="field"><span>Type *</span><select id="trade-type" required><option value="MUA">MUA</option><option value="BAN">BAN</option><option value="BUY">BUY</option><option value="SELL">SELL</option></select></label>
+                <label class="field"><span>Quantity *</span><input id="trade-quantity" required type="number" min="1" step="1" placeholder="100"></label>
                 <label class="field"><span>Price *</span><input id="trade-price" required type="number" min="0" step="1" placeholder="192000"></label>
                 <label class="field"><span>Stop-loss</span><input id="trade-stop-loss" type="number" min="0" step="1" placeholder="186000"></label>
                 <label class="field"><span>P&L</span><input id="trade-pnl" placeholder="+1.2M"></label>
@@ -271,8 +272,8 @@
             </form>
             <div class="table-wrap">
               <table class="admin-table">
-                <thead><tr><th>Ticker</th><th>Date</th><th>Type</th><th>Price</th><th>Stop</th><th>P&L</th><th>Note</th><th>Actions</th></tr></thead>
-                <tbody id="trades-body"><tr><td colspan="8" class="empty-cell">Load stocks data to manage trades.</td></tr></tbody>
+                <thead><tr><th>Ticker</th><th>Date</th><th>Type</th><th>Qty</th><th>Price</th><th>Stop</th><th>P&L</th><th>Note</th><th>Actions</th></tr></thead>
+                <tbody id="trades-body"><tr><td colspan="9" class="empty-cell">Load stocks data to manage trades.</td></tr></tbody>
               </table>
             </div>
           </div>
