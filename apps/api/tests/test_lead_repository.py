@@ -95,6 +95,77 @@ class LeadRepositoryTests(unittest.TestCase):
         self.assertEqual(list_leads(self.session, "new")["total"], 0)
         self.assertEqual(list_leads(self.session, "proposal_sent")["total"], 1)
 
+    def test_search_leads_by_customer_package_or_message(self) -> None:
+        create_lead(
+            self.session,
+            {
+                "source": "photoshop-retouching-vi",
+                "business_name": "Robin Photoshop",
+                "customer_name": "Mai Nguyen",
+                "email": "mai@example.com",
+                "phone": "0900000000",
+                "package_name": "Retouch Chan Dung",
+                "message": "Can chinh anh CV.",
+            },
+        )
+        create_lead(
+            self.session,
+            {
+                "source": "wedding-planner-demo",
+                "business_name": "Maison Vow",
+                "customer_name": "Minh Tran",
+                "email": "minh@example.com",
+                "preferred_date": "2026-10-12",
+                "package_name": "Partial Planning",
+                "message": "Need vendor coordination.",
+            },
+        )
+
+        result = list_leads(self.session, search="retouch")
+
+        self.assertEqual(result["total"], 1)
+        self.assertEqual(result["leads"][0]["customer_name"], "Mai Nguyen")
+
+    def test_update_photoshop_job_tracking_fields(self) -> None:
+        lead = create_lead(
+            self.session,
+            {
+                "source": "photoshop-retouching-au",
+                "business_name": "Robin Photoshop",
+                "customer_name": "Ava Client",
+                "email": "ava@example.com",
+                "package_name": "Product photo cleanup",
+                "message": "Need 12 product photos retouched.",
+            },
+        )
+
+        updated = update_lead(
+            self.session,
+            lead["id"],
+            {
+                "status": "booked",
+                "job_stage": "editing",
+                "quoted_amount": 180,
+                "quote_currency": "AUD",
+                "deadline_at": "2026-09-04",
+                "file_url": "https://drive.example/files",
+                "delivery_url": "https://drive.example/delivery",
+                "revision_count": 1,
+                "paid_at": "2026-09-05",
+            },
+        )
+
+        self.assertIsNotNone(updated)
+        self.assertEqual(updated["status"], "booked")
+        self.assertEqual(updated["job_stage"], "editing")
+        self.assertEqual(updated["quoted_amount"], 180)
+        self.assertEqual(updated["quote_currency"], "AUD")
+        self.assertEqual(updated["deadline_at"], "2026-09-04")
+        self.assertEqual(updated["file_url"], "https://drive.example/files")
+        self.assertEqual(updated["delivery_url"], "https://drive.example/delivery")
+        self.assertEqual(updated["revision_count"], 1)
+        self.assertEqual(updated["paid_at"], "2026-09-05")
+
     def test_create_manual_phone_lead_and_activity(self) -> None:
         lead = create_lead(
             self.session,

@@ -6,6 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from app.admin_auth import create_access_token
 from app.auth import require_admin_token
+from app.main import app
 
 
 class AdminTokenTests(unittest.TestCase):
@@ -41,6 +42,19 @@ class AdminTokenTests(unittest.TestCase):
             ) as error:
                 require_admin_token(self.credentials("anything"))
         self.assertEqual(error.exception.status_code, 503)
+
+    def test_private_stock_read_routes_require_admin_token(self):
+        private_paths = {"/api/v1/stocks/portfolio", "/api/v1/stocks/journals"}
+
+        for route in app.routes:
+            if getattr(route, "path", None) in private_paths:
+                dependency_calls = [
+                    dependency.dependency for dependency in route.dependencies
+                ]
+                self.assertIn(require_admin_token, dependency_calls)
+                private_paths.remove(route.path)
+
+        self.assertEqual(private_paths, set())
 
 
 if __name__ == "__main__":

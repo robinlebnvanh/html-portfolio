@@ -156,6 +156,14 @@ CREATE TABLE IF NOT EXISTS service_leads (
     message TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'proposal_sent', 'booked', 'closed')),
     admin_note TEXT,
+    job_stage TEXT CHECK (job_stage IS NULL OR job_stage IN ('awaiting_files', 'editing', 'review', 'revision', 'delivered', 'paid')),
+    quoted_amount INTEGER CHECK (quoted_amount IS NULL OR quoted_amount >= 0),
+    quote_currency TEXT,
+    deadline_at TEXT,
+    file_url TEXT,
+    delivery_url TEXT,
+    revision_count INTEGER NOT NULL DEFAULT 0 CHECK (revision_count >= 0),
+    paid_at TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

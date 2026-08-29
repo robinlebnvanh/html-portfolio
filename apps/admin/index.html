@@ -328,10 +328,10 @@
                   <h4>Selected work</h4>
                   <p id="portfolio-project-count" class="panel-note">Load content to manage projects.</p>
                 </div>
-                <div class="project-editor-actions">
-                  <button id="portfolio-add-project" class="module-action" type="button">Add project</button>
-                  <button id="portfolio-toggle-json" class="module-action" type="button" aria-expanded="false">Advanced JSON</button>
-                </div>
+            <div class="project-editor-actions">
+              <button id="portfolio-add-project" class="module-action" type="button">Add project</button>
+              <button id="portfolio-toggle-json" class="module-action" type="button" aria-expanded="false">Advanced JSON</button>
+            </div>
               </div>
               <div class="project-workbench">
                 <div id="portfolio-project-list" class="project-list" aria-label="Portfolio projects"></div>
@@ -353,10 +353,14 @@
             <div class="form-actions portfolio-save-bar">
               <p id="portfolio-dirty-status" class="save-state">Load content to start editing.</p>
               <div class="save-actions">
+                <button id="portfolio-preview-button" class="module-action" type="button">Preview</button>
+                <button id="portfolio-restore-draft" class="module-action" type="button">Restore draft</button>
+                <button id="portfolio-restore-version" class="module-action" type="button">Restore last version</button>
                 <button class="primary-button" type="submit">Save portfolio content</button>
                 <button id="portfolio-reset" class="module-action" type="button">Reset form</button>
               </div>
             </div>
+            <aside id="portfolio-preview" class="portfolio-preview" aria-label="Portfolio preview"></aside>
           </form>
         </section>
 
@@ -378,10 +382,29 @@
                   <option value="closed">Closed</option>
                 </select>
               </label>
+              <label class="field compact-field">
+                <span>Channel</span>
+                <select id="lead-channel-filter">
+                  <option value="all">All</option>
+                  <option value="form">Form</option>
+                  <option value="phone">Phone</option>
+                  <option value="email">Email</option>
+                  <option value="zalo">Zalo</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="referral">Referral</option>
+                </select>
+              </label>
+              <label class="field compact-field search-field">
+                <span>Search</span>
+                <input id="lead-search" type="search" placeholder="Name, package, phone">
+              </label>
               <button id="leads-load" class="module-action" type="button">Load leads</button>
             </div>
           </div>
           <p id="leads-status" class="status-text" role="status" aria-live="polite"></p>
+          <div id="lead-metrics" class="lead-metrics" aria-label="Lead metrics"></div>
+          <div id="lead-pipeline" class="lead-pipeline" aria-label="Lead pipeline"></div>
           <div class="admin-block">
             <div class="block-heading">
               <div>
@@ -425,6 +448,7 @@
             </table>
           </div>
           <div id="leads-cards" class="leads-cards" aria-label="Service lead cards"></div>
+          <aside id="lead-detail-panel" class="lead-detail-panel" aria-live="polite"></aside>
         </section>
 
         <section id="system" class="admin-section" data-section="system" hidden aria-labelledby="system-title">

@@ -222,11 +222,31 @@ service_leads = sa.Table(
     sa.Column("message", sa.Text, nullable=False),
     sa.Column("status", sa.String(length=30), nullable=False, server_default="new"),
     sa.Column("admin_note", sa.Text),
+    sa.Column("job_stage", sa.String(length=30)),
+    sa.Column("quoted_amount", sa.Integer),
+    sa.Column("quote_currency", sa.String(length=10)),
+    sa.Column("deadline_at", sa.String(length=20)),
+    sa.Column("file_url", sa.String(length=500)),
+    sa.Column("delivery_url", sa.String(length=500)),
+    sa.Column("revision_count", sa.Integer, nullable=False, server_default="0"),
+    sa.Column("paid_at", sa.String(length=20)),
     sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
     sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
     sa.CheckConstraint(
         "status IN ('new', 'contacted', 'proposal_sent', 'booked', 'closed')",
         name="ck_service_leads_status",
+    ),
+    sa.CheckConstraint(
+        "job_stage IS NULL OR job_stage IN ('awaiting_files', 'editing', 'review', 'revision', 'delivered', 'paid')",
+        name="ck_service_leads_job_stage",
+    ),
+    sa.CheckConstraint(
+        "quoted_amount IS NULL OR quoted_amount >= 0",
+        name="ck_service_leads_quote_nonnegative",
+    ),
+    sa.CheckConstraint(
+        "revision_count >= 0",
+        name="ck_service_leads_revision_nonnegative",
     ),
 )
 

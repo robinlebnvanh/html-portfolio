@@ -30,6 +30,9 @@ const projectEditor = $('portfolio-project-editor');
 const projectsJsonField = $('portfolio-projects-json-field');
 const projectsJsonToggle = $('portfolio-toggle-json');
 const portfolioDirtyStatus = $('portfolio-dirty-status');
+const portfolioPreview = $('portfolio-preview');
+const portfolioDraftKey = 'prj008PortfolioDraft';
+const portfolioVersionsKey = 'prj008PortfolioVersions';
 
 let blogPosts = [];
 let stockState = { portfolio: null, journals: {} };
@@ -37,6 +40,28 @@ let portfolioContent = null;
 let portfolioProjects = [];
 let selectedProjectIndex = 0;
 let serviceLeads = [];
+let leadActivities = {};
+let selectedLeadId = null;
+
+const leadStatuses = ['new', 'contacted', 'proposal_sent', 'booked', 'closed'];
+const jobStages = ['awaiting_files', 'editing', 'review', 'revision', 'delivered', 'paid'];
+
+const leadStatusLabels = {
+  new: 'New',
+  contacted: 'Contacted',
+  proposal_sent: 'Proposal sent',
+  booked: 'Booked',
+  closed: 'Closed',
+};
+
+const jobStageLabels = {
+  awaiting_files: 'Awaiting files',
+  editing: 'Editing',
+  review: 'Client review',
+  revision: 'Revision',
+  delivered: 'Delivered',
+  paid: 'Paid',
+};
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, char => ({
@@ -46,6 +71,24 @@ function escapeHtml(value) {
     "'": '&#39;',
     '"': '&quot;',
   }[char]));
+}
+
+function formatDateLabel(value) {
+  if (!value) return 'Not set';
+  return String(value).slice(0, 10);
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function moneyLabel(amount, currency) {
+  if (amount === null || amount === undefined || amount === '') return 'No quote';
+  return `${Number(amount).toLocaleString('en-US')} ${currency || ''}`.trim();
+}
+
+function normalizePhone(value) {
+  return String(value || '').replace(/[^\d+]/g, '');
 }
 
 function setStatus(element, message, type = 'muted') {
@@ -339,8 +382,8 @@ async function loadStockData() {
   try {
     setStatus($('stocks-status'), 'Loading stocks data...');
     const [portfolio, journals] = await Promise.all([
-      requestJson('/api/v1/stocks/portfolio'),
-      requestJson('/api/v1/stocks/journals'),
+      adminRequest('/api/v1/stocks/portfolio'),
+      adminRequest('/api/v1/stocks/journals'),
     ]);
     stockState = { portfolio, journals };
     renderHoldings(portfolio.holdings || []);
@@ -843,6 +886,7 @@ function fillPortfolioForm(content) {
   $('portfolio-contact-intro').value = content.contact_intro || '';
   $('portfolio-contact-email').value = content.contact_email || '';
   setPortfolioDirty(false);
+  renderPortfolioPreview(content);
 }
 
 function portfolioPayload() {
@@ -867,6 +911,109 @@ function portfolioPayload() {
   };
 }
 
+function isValidUrlOrRelative(value) {
+  if (!value) return true;
+  try {
+    new URL(value, window.location.href);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function validatePortfolioPayload(payload) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.contact_email)) {
+    throw new Error('Portfolio contact email is invalid.');
+  }
+  payload.projects.forEach(project => {
+    ['link', 'demoLink', 'github'].forEach(field => {
+      if (!isValidUrlOrRelative(project[field])) {
+        throw new Error(`${project.name || 'Project'} has an invalid ${field}.`);
+      }
+    });
+  });
+}
+
+function savePortfolioDraft() {
+  try {
+    localStorage.setItem(portfolioDraftKey, JSON.stringify(portfolioPayload()));
+  } catch (error) {
+    setStatus($('portfolio-status'), `Draft autosave skipped: ${error.message}`, 'error');
+  }
+}
+
+function portfolioVersions() {
+  try {
+    return JSON.parse(localStorage.getItem(portfolioVersionsKey) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function savePortfolioVersion(content) {
+  if (!content) return;
+  const versions = portfolioVersions();
+  versions.unshift({
+    saved_at: new Date().toISOString(),
+    content,
+  });
+  localStorage.setItem(portfolioVersionsKey, JSON.stringify(versions.slice(0, 5)));
+}
+
+function restorePortfolioDraft() {
+  const draft = localStorage.getItem(portfolioDraftKey);
+  if (!draft) {
+    setStatus($('portfolio-status'), 'No local draft found.', 'error');
+    return;
+  }
+  try {
+    fillPortfolioForm(JSON.parse(draft));
+    setPortfolioDirty(true);
+    setStatus($('portfolio-status'), 'Local draft restored. Review before saving.', 'success');
+  } catch (error) {
+    setStatus($('portfolio-status'), `Draft restore failed: ${error.message}`, 'error');
+  }
+}
+
+function restoreLastPortfolioVersion() {
+  const [lastVersion] = portfolioVersions();
+  if (!lastVersion?.content) {
+    setStatus($('portfolio-status'), 'No local version found.', 'error');
+    return;
+  }
+  fillPortfolioForm(lastVersion.content);
+  setPortfolioDirty(true);
+  setStatus($('portfolio-status'), `Restored version from ${formatDateLabel(lastVersion.saved_at)}.`, 'success');
+}
+
+function renderPortfolioPreview(content = null) {
+  if (!portfolioPreview) return;
+  const payload = content || portfolioPayload();
+  const projects = payload.projects || [];
+  const offers = payload.offers || [];
+  portfolioPreview.innerHTML = `
+    <div class="preview-header">
+      <span class="module-kicker">Preview</span>
+      <strong>${escapeHtml(payload.hero_title || 'Untitled portfolio')}</strong>
+      <p>${escapeHtml(payload.hero_intro || '')}</p>
+    </div>
+    <div class="preview-grid">
+      <section>
+        <h4>Offers</h4>
+        ${offers.slice(0, 4).map(offer => `
+          <p><strong>${escapeHtml(offer.title)}</strong><br><span>${escapeHtml(offer.description)}</span></p>
+        `).join('') || '<p class="empty-note">No offers.</p>'}
+      </section>
+      <section>
+        <h4>Selected work</h4>
+        ${projects.slice(0, 6).map(project => `
+          <p><strong>${escapeHtml(project.number)} / ${escapeHtml(project.name)}</strong><br><span>${escapeHtml(project.category)} / ${escapeHtml(project.date)}</span></p>
+        `).join('') || '<p class="empty-note">No projects.</p>'}
+      </section>
+    </div>
+  `;
+}
+
 async function loadPortfolioContent() {
   try {
     setStatus($('portfolio-status'), 'Loading portfolio content...');
@@ -882,11 +1029,15 @@ async function savePortfolioContent(event) {
   event.preventDefault();
   try {
     setStatus($('portfolio-status'), 'Saving portfolio content...');
+    const payloadToSave = portfolioPayload();
+    validatePortfolioPayload(payloadToSave);
+    savePortfolioVersion(portfolioContent);
     const payload = await adminRequest('/api/v1/admin/portfolio/content', {
       method: 'PATCH',
-      body: JSON.stringify(portfolioPayload()),
+      body: JSON.stringify(payloadToSave),
     });
     fillPortfolioForm(payload.content);
+    localStorage.removeItem(portfolioDraftKey);
     setStatus($('portfolio-status'), 'Portfolio content saved.', 'success');
     setPortfolioDirty(false);
   } catch (error) {
@@ -895,26 +1046,159 @@ async function savePortfolioContent(event) {
 }
 
 function leadStatusOptions(current) {
-  return ['new', 'contacted', 'proposal_sent', 'booked', 'closed'].map(statusValue => `
-    <option value="${statusValue}" ${statusValue === current ? 'selected' : ''}>${statusValue.replace('_', ' ')}</option>
+  return leadStatuses.map(statusValue => `
+    <option value="${statusValue}" ${statusValue === current ? 'selected' : ''}>${leadStatusLabels[statusValue]}</option>
+  `).join('');
+}
+
+function jobStageOptions(current) {
+  return [''].concat(jobStages).map(stage => `
+    <option value="${stage}" ${stage === (current || '') ? 'selected' : ''}>${stage ? jobStageLabels[stage] : 'Not a job yet'}</option>
   `).join('');
 }
 
 function leadStatusBadge(status) {
-  const label = String(status || 'new').replace('_', ' ');
+  const label = leadStatusLabels[status] || String(status || 'new').replace('_', ' ');
   return `<span class="lead-status-badge ${escapeHtml(status || 'new')}">${escapeHtml(label)}</span>`;
+}
+
+function jobStageBadge(stage) {
+  if (!stage) return '<span class="lead-status-badge">Lead only</span>';
+  return `<span class="lead-status-badge job-${escapeHtml(stage)}">${escapeHtml(jobStageLabels[stage] || stage)}</span>`;
 }
 
 function leadContactLine(lead) {
   return [lead.email, lead.phone].filter(Boolean).map(escapeHtml).join('<br>') || '<span class="empty-note">No contact method</span>';
 }
 
+function filteredLeads() {
+  const channel = $('lead-channel-filter').value;
+  return serviceLeads.filter(lead => channel === 'all' || lead.channel === channel);
+}
+
+function renderLeadMetrics(leads) {
+  const metrics = $('lead-metrics');
+  const today = todayIso();
+  const overdue = leads.filter(lead => lead.follow_up_at && lead.follow_up_at < today && lead.status !== 'closed').length;
+  const booked = leads.filter(lead => lead.status === 'booked').length;
+  const activeJobs = leads.filter(lead => lead.job_stage && !['delivered', 'paid'].includes(lead.job_stage)).length;
+  const dueSoon = leads.filter(lead => lead.deadline_at && lead.deadline_at <= today && lead.job_stage && !['delivered', 'paid'].includes(lead.job_stage)).length;
+  metrics.innerHTML = [
+    ['Visible leads', leads.length],
+    ['Booked', booked],
+    ['Active jobs', activeJobs],
+    ['Follow-up overdue', overdue],
+    ['Job due today', dueSoon],
+  ].map(([label, value]) => `
+    <article class="lead-metric-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join('');
+}
+
+function renderLeadPipeline(leads) {
+  const board = $('lead-pipeline');
+  board.innerHTML = leadStatuses.map(status => {
+    const items = leads.filter(lead => lead.status === status);
+    return `
+      <section class="pipeline-column">
+        <div class="pipeline-heading">
+          <strong>${leadStatusLabels[status]}</strong>
+          <span>${items.length}</span>
+        </div>
+        ${items.slice(0, 6).map(lead => `
+          <button class="pipeline-card" type="button" data-lead-open="${lead.id}">
+            <strong>${escapeHtml(lead.customer_name)}</strong>
+            <span>${escapeHtml(lead.package_name)} / ${formatDateLabel(lead.follow_up_at)}</span>
+          </button>
+        `).join('') || '<p class="empty-note">No leads.</p>'}
+      </section>
+    `;
+  }).join('');
+}
+
+function quickActionLinks(lead) {
+  const links = [];
+  if (lead.email) {
+    links.push(`<a class="module-action" href="mailto:${encodeURIComponent(lead.email)}?subject=${encodeURIComponent(`Re: ${lead.package_name}`)}">Email</a>`);
+  }
+  if (lead.phone) {
+    const phone = normalizePhone(lead.phone);
+    links.push(`<a class="module-action" href="tel:${escapeHtml(phone)}">Call</a>`);
+    links.push(`<a class="module-action" href="https://zalo.me/${escapeHtml(phone.replace(/^\\+?84/, '0'))}" target="_blank" rel="noreferrer">Zalo</a>`);
+    links.push(`<a class="module-action" href="https://wa.me/${escapeHtml(phone.replace(/^\\+/, ''))}" target="_blank" rel="noreferrer">WhatsApp</a>`);
+  }
+  links.push(`<button class="module-action" type="button" data-copy-quote="${lead.id}">Copy quote</button>`);
+  return links.join('');
+}
+
+function renderLeadTimeline(leadId) {
+  const activities = leadActivities[leadId] || [];
+  if (!activities.length) return '<p class="empty-note">No timeline activity yet.</p>';
+  return activities.map(activity => `
+    <article class="timeline-item">
+      <span>${escapeHtml(activity.activity_type)} / ${formatDateLabel(activity.created_at)}</span>
+      <p>${escapeHtml(activity.note)}</p>
+    </article>
+  `).join('');
+}
+
+function renderLeadDetail(lead = null) {
+  const panel = $('lead-detail-panel');
+  if (!lead) {
+    panel.innerHTML = '<p class="empty-note">Select a lead to review timeline and job details.</p>';
+    return;
+  }
+  selectedLeadId = lead.id;
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <p class="eyebrow">Lead detail</p>
+        <h4>${escapeHtml(lead.customer_name)}</h4>
+        <p>${escapeHtml(lead.business_name)} / ${escapeHtml(lead.package_name)}</p>
+      </div>
+      <div class="detail-badges">
+        ${leadStatusBadge(lead.status)}
+        ${jobStageBadge(lead.job_stage)}
+      </div>
+    </div>
+    <div class="quick-actions">${quickActionLinks(lead)}</div>
+    <form class="job-editor" data-job-form="${lead.id}">
+      <div class="form-grid three">
+        <label class="field"><span>Job stage</span><select data-job-stage="${lead.id}">${jobStageOptions(lead.job_stage)}</select></label>
+        <label class="field"><span>Quote</span><input data-job-quote="${lead.id}" type="number" min="0" step="1" value="${escapeHtml(lead.quoted_amount ?? '')}" placeholder="150000"></label>
+        <label class="field"><span>Currency</span><select data-job-currency="${lead.id}"><option value="">-</option><option value="VND" ${lead.quote_currency === 'VND' ? 'selected' : ''}>VND</option><option value="AUD" ${lead.quote_currency === 'AUD' ? 'selected' : ''}>AUD</option><option value="USD" ${lead.quote_currency === 'USD' ? 'selected' : ''}>USD</option></select></label>
+        <label class="field"><span>Deadline</span><input data-job-deadline="${lead.id}" type="date" value="${escapeHtml(lead.deadline_at || '')}"></label>
+        <label class="field"><span>Revisions</span><input data-job-revisions="${lead.id}" type="number" min="0" step="1" value="${escapeHtml(lead.revision_count ?? 0)}"></label>
+        <label class="field"><span>Paid date</span><input data-job-paid="${lead.id}" type="date" value="${escapeHtml(lead.paid_at || '')}"></label>
+      </div>
+      <label class="field"><span>Client files</span><input data-job-files="${lead.id}" value="${escapeHtml(lead.file_url || '')}" placeholder="Google Drive / Dropbox / WeTransfer link"></label>
+      <label class="field"><span>Delivery link</span><input data-job-delivery="${lead.id}" value="${escapeHtml(lead.delivery_url || '')}" placeholder="Final delivery link"></label>
+      <div class="form-actions">
+        <button class="primary-button" type="button" data-job-save="${lead.id}">Save job</button>
+      </div>
+    </form>
+    <div class="timeline-block">
+      <div class="block-heading">
+        <h4>Timeline</h4>
+        <button class="module-action" type="button" data-activity-load="${lead.id}">Refresh timeline</button>
+      </div>
+      <div class="timeline-list">${renderLeadTimeline(lead.id)}</div>
+    </div>
+  `;
+}
+
 function renderLeads(leads) {
   const body = $('leads-body');
   const cards = $('leads-cards');
+  const visibleLeads = leads;
+  renderLeadMetrics(visibleLeads);
+  renderLeadPipeline(visibleLeads);
   if (!leads.length) {
     body.innerHTML = '<tr><td colspan="9" class="empty-cell">No service leads for this filter.</td></tr>';
     cards.innerHTML = '<p class="empty-note">No service leads for this filter.</p>';
+    renderLeadDetail(null);
     return;
   }
 
@@ -923,7 +1207,7 @@ function renderLeads(leads) {
       <td>${escapeHtml(lead.channel || 'form')}<br><span class="empty-note">${escapeHtml(lead.source)} / ${escapeHtml(lead.business_name)}</span></td>
       <td><strong>${escapeHtml(lead.customer_name)}</strong><br><span class="empty-note">${leadContactLine(lead)}</span></td>
       <td><input class="lead-date-input" type="date" data-lead-follow-up="${lead.id}" value="${escapeHtml(lead.follow_up_at || '')}"><br><span class="empty-note">${escapeHtml(lead.preferred_date || 'No preferred date')}</span></td>
-      <td>${escapeHtml(lead.package_name)}</td>
+      <td>${escapeHtml(lead.package_name)}<br>${jobStageBadge(lead.job_stage)}<br><span class="empty-note">${moneyLabel(lead.quoted_amount, lead.quote_currency)}</span></td>
       <td>${escapeHtml(lead.message).slice(0, 180)}</td>
       <td>
         ${leadStatusBadge(lead.status)}
@@ -933,7 +1217,10 @@ function renderLeads(leads) {
       </td>
       <td><textarea class="lead-note-input" data-lead-note="${lead.id}" placeholder="Next action">${escapeHtml(lead.admin_note || '')}</textarea></td>
       <td><textarea class="lead-note-input" data-lead-activity="${lead.id}" placeholder="Add call/email note"></textarea></td>
-      <td class="row-actions"><button type="button" data-lead-save="${lead.id}">Save</button></td>
+      <td class="row-actions">
+        <button type="button" data-lead-open="${lead.id}">Open</button>
+        <button type="button" data-lead-save="${lead.id}">Save</button>
+      </td>
     </tr>
   `).join('');
 
@@ -947,6 +1234,7 @@ function renderLeads(leads) {
         ${leadStatusBadge(lead.status)}
       </div>
       <p class="lead-card-meta">${escapeHtml(lead.source)} / ${escapeHtml(lead.business_name)} / ${escapeHtml(lead.package_name)}</p>
+      <p class="lead-card-meta">${jobStageBadge(lead.job_stage)} / ${moneyLabel(lead.quoted_amount, lead.quote_currency)} / Deadline: ${formatDateLabel(lead.deadline_at)}</p>
       <p class="lead-card-meta">Follow-up: ${escapeHtml(lead.follow_up_at || 'Not set')} / Preferred: ${escapeHtml(lead.preferred_date || 'Not set')}</p>
       <p class="lead-card-message">${escapeHtml(lead.message).slice(0, 220)}</p>
       <div class="lead-card-controls">
@@ -968,10 +1256,16 @@ function renderLeads(leads) {
           <span>Activity note</span>
           <textarea class="lead-note-input" data-lead-activity="${lead.id}" placeholder="Add call/email note"></textarea>
         </label>
-        <button class="module-action" type="button" data-lead-save="${lead.id}">Save lead</button>
+        <div class="form-actions">
+          <button class="module-action" type="button" data-lead-open="${lead.id}">Open detail</button>
+          <button class="module-action" type="button" data-lead-save="${lead.id}">Save lead</button>
+        </div>
       </div>
     </article>
   `).join('');
+
+  const selected = serviceLeads.find(lead => lead.id === selectedLeadId) || leads[0];
+  renderLeadDetail(selected);
 }
 
 function manualLeadPayload() {
@@ -1014,12 +1308,34 @@ async function createManualLead(event) {
 async function loadLeads() {
   try {
     const filter = $('lead-status-filter').value;
+    const query = $('lead-search').value.trim();
+    const params = new URLSearchParams({ status_filter: filter });
+    if (query) params.set('q', query);
     setStatus($('leads-status'), 'Loading service leads...');
-    const payload = await adminRequest(`/api/v1/admin/leads?status_filter=${encodeURIComponent(filter)}`);
+    const payload = await adminRequest(`/api/v1/admin/leads?${params.toString()}`);
     serviceLeads = payload.leads || [];
-    renderLeads(serviceLeads);
+    renderLeads(filteredLeads());
     setStatus($('leads-status'), `Loaded ${payload.total ?? serviceLeads.length} service leads.`, 'success');
     await loadLeadAdminSummary();
+  } catch (error) {
+    setStatus($('leads-status'), error.message, 'error');
+  }
+}
+
+async function openLeadDetail(leadId) {
+  const lead = serviceLeads.find(item => item.id === Number(leadId));
+  if (!lead) return;
+  selectedLeadId = lead.id;
+  renderLeadDetail(lead);
+  await loadLeadActivities(lead.id);
+}
+
+async function loadLeadActivities(leadId) {
+  try {
+    const payload = await adminRequest(`/api/v1/admin/leads/${leadId}/activities`);
+    leadActivities[leadId] = payload.activities || [];
+    const lead = serviceLeads.find(item => item.id === Number(leadId));
+    renderLeadDetail(lead);
   } catch (error) {
     setStatus($('leads-status'), error.message, 'error');
   }
@@ -1054,6 +1370,62 @@ async function saveLead(leadId, trigger = null) {
     setStatus($('leads-status'), 'Lead updated.', 'success');
   } catch (error) {
     setStatus($('leads-status'), error.message, 'error');
+  }
+}
+
+async function saveLeadJob(leadId, trigger = null) {
+  const panel = trigger?.closest(`[data-job-form="${leadId}"]`) || document;
+  const jobStage = panel.querySelector(`[data-job-stage="${leadId}"]`)?.value || null;
+  const quoteValue = panel.querySelector(`[data-job-quote="${leadId}"]`)?.value;
+  const revisionsValue = panel.querySelector(`[data-job-revisions="${leadId}"]`)?.value;
+  try {
+    setStatus($('leads-status'), 'Saving job details...');
+    await adminRequest(`/api/v1/admin/leads/${leadId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status: jobStage && jobStage !== 'paid' ? 'booked' : undefined,
+        job_stage: jobStage,
+        quoted_amount: quoteValue === '' ? null : Number(quoteValue),
+        quote_currency: panel.querySelector(`[data-job-currency="${leadId}"]`)?.value || null,
+        deadline_at: panel.querySelector(`[data-job-deadline="${leadId}"]`)?.value || null,
+        file_url: panel.querySelector(`[data-job-files="${leadId}"]`)?.value || null,
+        delivery_url: panel.querySelector(`[data-job-delivery="${leadId}"]`)?.value || null,
+        revision_count: revisionsValue === '' ? 0 : Number(revisionsValue),
+        paid_at: panel.querySelector(`[data-job-paid="${leadId}"]`)?.value || null,
+      }),
+    });
+    await adminRequest(`/api/v1/admin/leads/${leadId}/activities`, {
+      method: 'POST',
+      body: JSON.stringify({
+        activity_type: 'job_update',
+        note: `Job updated: ${jobStage ? jobStageLabels[jobStage] : 'Lead only'}.`,
+      }),
+    });
+    await loadLeads();
+    await loadLeadActivities(leadId);
+    setStatus($('leads-status'), 'Job details saved.', 'success');
+  } catch (error) {
+    setStatus($('leads-status'), error.message, 'error');
+  }
+}
+
+async function copyLeadQuote(leadId) {
+  const lead = serviceLeads.find(item => item.id === Number(leadId));
+  if (!lead) return;
+  const text = [
+    `Hi ${lead.customer_name},`,
+    '',
+    `Thanks for your Photoshop editing request: ${lead.package_name}.`,
+    `Quote: ${moneyLabel(lead.quoted_amount, lead.quote_currency)}.`,
+    `Estimated deadline: ${formatDateLabel(lead.deadline_at)}.`,
+    '',
+    'Please send the original files and any reference/example images before I start.',
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus($('leads-status'), 'Quote summary copied.', 'success');
+  } catch (error) {
+    setStatus($('leads-status'), `Copy failed: ${error.message}`, 'error');
   }
 }
 
@@ -1144,10 +1516,16 @@ $('trades-body').addEventListener('click', event => {
 
 $('portfolio-load').addEventListener('click', loadPortfolioContent);
 $('portfolio-form').addEventListener('submit', savePortfolioContent);
-$('portfolio-form').addEventListener('input', () => setPortfolioDirty(true));
+$('portfolio-form').addEventListener('input', () => {
+  setPortfolioDirty(true);
+  savePortfolioDraft();
+});
 $('portfolio-reset').addEventListener('click', () => {
   if (portfolioContent) fillPortfolioForm(portfolioContent);
 });
+$('portfolio-preview-button').addEventListener('click', () => renderPortfolioPreview());
+$('portfolio-restore-draft').addEventListener('click', restorePortfolioDraft);
+$('portfolio-restore-version').addEventListener('click', restoreLastPortfolioVersion);
 portfolioTabs.forEach(tab => {
   tab.addEventListener('click', () => showPortfolioPanel(tab.dataset.portfolioTab));
 });
@@ -1211,13 +1589,34 @@ $('portfolio-projects').addEventListener('change', () => {
 $('leads-load').addEventListener('click', loadLeads);
 $('manual-lead-form').addEventListener('submit', createManualLead);
 $('lead-status-filter').addEventListener('change', loadLeads);
+$('lead-channel-filter').addEventListener('change', () => renderLeads(filteredLeads()));
+$('lead-search').addEventListener('input', () => {
+  clearTimeout(window.leadSearchTimer);
+  window.leadSearchTimer = setTimeout(loadLeads, 280);
+});
 $('leads-body').addEventListener('click', event => {
+  const openButton = event.target.closest('[data-lead-open]');
   const saveButton = event.target.closest('[data-lead-save]');
+  if (openButton) openLeadDetail(Number(openButton.dataset.leadOpen));
   if (saveButton) saveLead(Number(saveButton.dataset.leadSave), saveButton);
 });
 $('leads-cards').addEventListener('click', event => {
+  const openButton = event.target.closest('[data-lead-open]');
   const saveButton = event.target.closest('[data-lead-save]');
+  if (openButton) openLeadDetail(Number(openButton.dataset.leadOpen));
   if (saveButton) saveLead(Number(saveButton.dataset.leadSave), saveButton);
+});
+$('lead-pipeline').addEventListener('click', event => {
+  const openButton = event.target.closest('[data-lead-open]');
+  if (openButton) openLeadDetail(Number(openButton.dataset.leadOpen));
+});
+$('lead-detail-panel').addEventListener('click', event => {
+  const activityButton = event.target.closest('[data-activity-load]');
+  const jobButton = event.target.closest('[data-job-save]');
+  const quoteButton = event.target.closest('[data-copy-quote]');
+  if (activityButton) loadLeadActivities(Number(activityButton.dataset.activityLoad));
+  if (jobButton) saveLeadJob(Number(jobButton.dataset.jobSave), jobButton);
+  if (quoteButton) copyLeadQuote(Number(quoteButton.dataset.copyQuote));
 });
 
 fillBlogForm(null);

@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 
 from app.database import initialize_database
+from app.main import PortfolioProject
 from app.portfolio_content_repository import (
     get_portfolio_content,
     seed_default_portfolio_content,
@@ -86,6 +87,29 @@ class PortfolioContentRepositoryTests(unittest.TestCase):
         self.assertEqual(updated["skills"], [{"name": "Backend APIs", "level": 88}])
         self.assertEqual(updated["offers"][0]["title"], "Admin-managed offer")
         self.assertEqual(updated["projects"][0]["name"], "Admin-managed project")
+
+    def test_admin_project_categories_match_editor_options(self) -> None:
+        base_project = {
+            "id": 1,
+            "number": "01",
+            "name": "Admin project",
+            "audience": "Portfolio reviewer",
+            "desc": "Updated project description",
+            "outcome": "Shows managed portfolio content.",
+            "tech": ["FastAPI"],
+            "link": "case-studies/investment-dashboard.html",
+            "demoLink": "../stocks-app/",
+            "github": "https://github.com/robinlebnvanh",
+            "date": "Managed",
+            "visual": "dashboard",
+            "linkLabel": "Read case study",
+            "demoLabel": "Open demo",
+        }
+
+        for category in ("tool", "frontend", "backend", "full-stack", "automation"):
+            project = PortfolioProject(**base_project, category=category)
+
+            self.assertEqual(project.category, category)
 
     def test_sync_default_portfolio_projects_appends_missing_projects(self) -> None:
         original = get_portfolio_content(self.session)

@@ -27,6 +27,7 @@ from app.database import initialize_database
 from app.lead_repository import (
     VALID_LEAD_CHANNELS,
     VALID_LEAD_STATUSES,
+    VALID_JOB_STAGES,
     create_lead_activity,
     create_lead,
     list_lead_activities,
@@ -181,6 +182,15 @@ class PortfolioOffer(BaseModel):
     description: str = Field(min_length=1, max_length=500)
 
 
+PortfolioProjectCategory = Literal[
+    "frontend",
+    "tool",
+    "backend",
+    "full-stack",
+    "automation",
+]
+
+
 class PortfolioProject(BaseModel):
     """Editable selected-work card shown on the public portfolio."""
 
@@ -191,7 +201,7 @@ class PortfolioProject(BaseModel):
     desc: str = Field(min_length=1, max_length=700)
     outcome: str = Field(min_length=1, max_length=700)
     tech: list[str] = Field(default_factory=list)
-    category: Literal["frontend", "tool"] = "tool"
+    category: PortfolioProjectCategory = "tool"
     link: str = Field(min_length=1, max_length=300)
     demoLink: str | None = Field(default=None, max_length=300)
     github: str | None = Field(default=None, max_length=300)
@@ -255,6 +265,14 @@ class LeadUpdate(BaseModel):
     status: Literal["new", "contacted", "proposal_sent", "booked", "closed"] | None = None
     admin_note: str | None = Field(default=None, max_length=2000)
     follow_up_at: str | None = Field(default=None, max_length=20)
+    job_stage: Literal["awaiting_files", "editing", "review", "revision", "delivered", "paid"] | None = None
+    quoted_amount: int | None = Field(default=None, ge=0)
+    quote_currency: Literal["VND", "AUD", "USD"] | None = None
+    deadline_at: str | None = Field(default=None, max_length=20)
+    file_url: str | None = Field(default=None, max_length=500)
+    delivery_url: str | None = Field(default=None, max_length=500)
+    revision_count: int | None = Field(default=None, ge=0)
+    paid_at: str | None = Field(default=None, max_length=20)
 
 
 class LeadActivityCreate(BaseModel):
@@ -268,6 +286,7 @@ PostLimit = Annotated[int, Query(ge=1, le=20)]
 PostOffset = Annotated[int, Query(ge=0)]
 AdminPostStatus = Annotated[Literal["all", "draft", "published"], Query()]
 LeadStatusFilter = Annotated[Literal["all", "new", "contacted", "proposal_sent", "booked", "closed"], Query()]
+LeadSearchQuery = Annotated[str | None, Query(max_length=120)]
 
 
 app = FastAPI(
@@ -368,16 +387,24 @@ def admin_logout() -> Response:
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.get("/api/v1/stocks/portfolio", tags=["stocks"])
+@app.get(
+    "/api/v1/stocks/portfolio",
+    dependencies=[Depends(require_admin_token)],
+    tags=["stocks"],
+)
 def portfolio() -> dict[str, Any]:
-    """Return portfolio data read through SQLAlchemy."""
+    """Return private portfolio data read through SQLAlchemy."""
     with get_session() as session:
         return get_portfolio(session)
 
 
-@app.get("/api/v1/stocks/journals", tags=["stocks"])
+@app.get(
+    "/api/v1/stocks/journals",
+    dependencies=[Depends(require_admin_token)],
+    tags=["stocks"],
+)
 def journals() -> dict[str, Any]:
-    """Return ticker journals read through SQLAlchemy."""
+    """Return private ticker journals read through SQLAlchemy."""
     with get_session() as session:
         return get_journals(session)
 
@@ -466,13 +493,17 @@ def update_admin_portfolio_content(payload: PortfolioContentPayload) -> dict[str
     tags=["leads-admin"],
     dependencies=[Depends(require_admin_token)],
 )
-def admin_leads(status_filter: LeadStatusFilter = "all") -> dict[str, Any]:
+def admin_leads(
+    status_filter: LeadStatusFilter = "all",
+    q: LeadSearchQuery = None,
+) -> dict[str, Any]:
     """Return service-business leads for the Admin Console."""
 
     with get_session() as session:
         return list_leads(
             session,
             status_filter=None if status_filter == "all" else status_filter,
+            search=q.strip() if q else None,
         )
 
 
@@ -502,10 +533,19 @@ def update_admin_lead(lead_id: int, payload: LeadUpdate) -> dict[str, Any]:
     values = payload.model_dump(exclude_unset=True)
     if "status" in values and values["status"] not in VALID_LEAD_STATUSES:
         raise HTTPException(status_code=422, detail="invalid lead status")
+    if (
+        "job_stage" in values
+        and values["job_stage"] is not None
+        and values["job_stage"] not in VALID_JOB_STAGES
+    ):
+        raise HTTPException(status_code=422, detail="invalid job stage")
     if "admin_note" in values and isinstance(values["admin_note"], str):
         values["admin_note"] = values["admin_note"].strip() or None
     if "follow_up_at" in values and isinstance(values["follow_up_at"], str):
         values["follow_up_at"] = values["follow_up_at"].strip() or None
+    for key in ("quote_currency", "deadline_at", "file_url", "delivery_url", "paid_at"):
+        if key in values and isinstance(values[key], str):
+            values[key] = values[key].strip() or None
     with get_session() as session:
         lead = update_lead(session, lead_id, values)
     if lead is None:

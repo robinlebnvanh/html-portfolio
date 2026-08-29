@@ -19,8 +19,11 @@ The API uses `snake_case`, ISO dates (`YYYY-MM-DD`), integer VND prices, and num
 
 ## GET `/api/v1/stocks/portfolio`
 
-Returns the current portfolio summary, holdings, and watchlist. Holdings
-include their stable numeric `id`, which the Admin UI uses for PATCH/DELETE.
+Admin-only. Requires an `Authorization: Bearer <token>` header.
+
+Returns the current private portfolio summary, holdings, and watchlist.
+Holdings include their stable numeric `id`, which the Admin UI uses for
+PATCH/DELETE.
 
 ```json
 {
@@ -49,7 +52,9 @@ include their stable numeric `id`, which the Admin UI uses for PATCH/DELETE.
 
 ## GET `/api/v1/stocks/journals`
 
-Returns journal data keyed by ticker.
+Admin-only. Requires an `Authorization: Bearer <token>` header.
+
+Returns private journal data keyed by ticker.
 
 ```json
 {
@@ -343,7 +348,8 @@ Blank trimmed fields return `422`.
 ### GET `/api/v1/admin/leads`
 
 Returns service leads for the Admin Console. It requires the admin Bearer token
-and accepts `status_filter=all|new|contacted|proposal_sent|booked|closed`.
+and accepts `status_filter=all|new|contacted|proposal_sent|booked|closed` plus
+optional `q` search across customer, business, contact, package, and message.
 
 ```json
 {
@@ -362,6 +368,14 @@ and accepts `status_filter=all|new|contacted|proposal_sent|booked|closed`.
   "package_name": "Partial Planning",
   "message": "Need vendor coordination and planning timeline.",
   "status": "new",
+  "job_stage": null,
+  "quoted_amount": null,
+  "quote_currency": null,
+  "deadline_at": null,
+  "file_url": null,
+  "delivery_url": null,
+  "revision_count": 0,
+  "paid_at": null,
       "admin_note": null,
       "created_at": "2026-08-28T00:00:00",
       "updated_at": "2026-08-28T00:00:00"
@@ -402,12 +416,25 @@ Updates admin-owned workflow fields:
 {
   "status": "proposal_sent",
   "admin_note": "Send planning proposal.",
-  "follow_up_at": "2026-09-02"
+  "follow_up_at": "2026-09-02",
+  "job_stage": "editing",
+  "quoted_amount": 180,
+  "quote_currency": "AUD",
+  "deadline_at": "2026-09-04",
+  "file_url": "https://drive.example/client-files",
+  "delivery_url": "https://drive.example/final-files",
+  "revision_count": 1,
+  "paid_at": null
 }
 ```
 
 Allowed statuses are `new`, `contacted`, `proposal_sent`, `booked`, and
-`closed`. Unknown IDs return `404`.
+`closed`. Allowed job stages are `awaiting_files`, `editing`, `review`,
+`revision`, `delivered`, and `paid`. Unknown IDs return `404`.
+
+The Admin Console uses these fields to turn a booked Photoshop inquiry into a
+trackable job: client files, quote, currency, deadline, revision count, delivery
+link, and paid date.
 
 ### POST `/api/v1/admin/leads/{lead_id}/activities`
 
