@@ -79,6 +79,10 @@ The Dockerfile packages the API as a separate backend service. Build from the
 repository root, not from `apps/api`, because the image also copies the stocks
 fixture used by the seed step:
 
+Its startup command runs `alembic upgrade head` before Uvicorn. A migration
+failure stops the release, preventing an API version from starting against an
+outdated database schema.
+
 ```bash
 docker build -f apps/api/Dockerfile -t prj008-api .
 docker run --rm -p 8001:8001 \

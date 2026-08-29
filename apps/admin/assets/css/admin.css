@@ -524,7 +524,8 @@ h3 {
 }
 
 .form-actions,
-.inline-form {
+.inline-form,
+.stock-filters {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
@@ -537,6 +538,34 @@ h3 {
 
 .compact-field {
   min-width: 170px;
+}
+
+.stock-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stock-summary-card {
+  min-height: 88px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: var(--surface);
+  box-shadow: 0 10px 28px rgba(23, 32, 51, 0.05);
+}
+
+.stock-summary-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.stock-summary-card strong {
+  font-size: 1.35rem;
 }
 
 .danger-button {
@@ -699,6 +728,11 @@ h3 {
   color: var(--info);
 }
 
+.trade-type-badge.adjustment {
+  background: rgba(161, 98, 7, 0.12);
+  color: var(--warning);
+}
+
 .chip-list {
   display: flex;
   flex-wrap: wrap;
@@ -744,6 +778,18 @@ h3 {
 
 .leads-table {
   min-width: 1320px;
+}
+
+.audit-table {
+  min-width: 920px;
+}
+
+.audit-change {
+  max-width: 420px;
+  color: var(--muted);
+  font-family: "DM Mono", monospace;
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
 }
 
 .lead-note-input,
@@ -1247,7 +1293,8 @@ h3 {
   .project-workbench,
   .preview-grid,
   .form-grid,
-  .form-grid.three {
+  .form-grid.three,
+  .stock-summary {
     grid-template-columns: 1fr;
   }
 

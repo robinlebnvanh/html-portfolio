@@ -35,7 +35,7 @@ const portfolioDraftKey = 'prj008PortfolioDraft';
 const portfolioVersionsKey = 'prj008PortfolioVersions';
 
 let blogPosts = [];
-let stockState = { portfolio: null, journals: {} };
+let stockState = { portfolio: null, journals: {}, auditLogs: [] };
 let portfolioContent = null;
 let portfolioProjects = [];
 let selectedProjectIndex = 0;
@@ -389,19 +389,65 @@ async function deleteBlogPost() {
 async function loadStockData() {
   try {
     setStatus($('stocks-status'), 'Loading stocks data...');
-    const [portfolio, journals] = await Promise.all([
+    const [portfolio, journals, audit] = await Promise.all([
       adminRequest('/api/v1/stocks/portfolio'),
       adminRequest('/api/v1/stocks/journals'),
+      adminRequest('/api/v1/stocks/audit-logs'),
     ]);
-    stockState = { portfolio, journals };
-    renderHoldings(portfolio.holdings || []);
-    renderWatchlist(portfolio.watchlist || []);
-    renderJournals(journals || {});
-    renderTrades(journals || {});
+    stockState = { portfolio, journals, auditLogs: audit.logs || [] };
+    renderStockViews();
     setStatus($('stocks-status'), 'Loaded from FastAPI / Neon PostgreSQL.', 'success');
   } catch (error) {
     setStatus($('stocks-status'), error.message, 'error');
   }
+}
+
+function stockFilterValues() {
+  return {
+    ticker: $('stock-filter-ticker').value.trim().toUpperCase(),
+    type: $('stock-filter-type').value,
+    from: $('stock-filter-from').value,
+    to: $('stock-filter-to').value,
+  };
+}
+
+function filteredTrades(journals) {
+  const filter = stockFilterValues();
+  return allTrades(journals).filter(trade => (
+    (!filter.ticker || trade.ticker === filter.ticker)
+    && (filter.type === 'all' || trade.type === filter.type)
+    && (!filter.from || trade.date >= filter.from)
+    && (!filter.to || trade.date <= filter.to)
+  ));
+}
+
+function renderStockSummary() {
+  const holdings = stockState.portfolio?.holdings || [];
+  const active = holdings.filter(holding => holding.quantity > 0);
+  const invested = active.reduce((total, holding) => total + (holding.quantity * holding.avg_cost), 0);
+  const coveredByStop = active.filter(holding => holding.stop_loss !== null && holding.stop_loss !== undefined).length;
+  const trades = allTrades(stockState.journals || {});
+  $('stock-summary').innerHTML = [
+    ['Invested cost', invested.toLocaleString()],
+    ['Open positions', active.length],
+    ['Open quantity', active.reduce((total, holding) => total + holding.quantity, 0).toLocaleString()],
+    ['Stop-loss coverage', `${coveredByStop}/${active.length}`],
+    ['Trade records', trades.length],
+  ].map(([label, value]) => `<article class="stock-summary-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`).join('');
+}
+
+function renderStockViews() {
+  const filter = stockFilterValues();
+  const portfolio = stockState.portfolio || {};
+  const holdings = (portfolio.holdings || []).filter(holding => !filter.ticker || holding.ticker === filter.ticker);
+  const watchlist = (portfolio.watchlist || []).filter(ticker => !filter.ticker || ticker === filter.ticker);
+  const journals = Object.fromEntries(Object.entries(stockState.journals || {}).filter(([ticker]) => !filter.ticker || ticker === filter.ticker));
+  renderStockSummary();
+  renderHoldings(holdings);
+  renderWatchlist(watchlist);
+  renderJournals(journals);
+  renderTrades(filteredTrades(stockState.journals || {}));
+  renderStockAudit(stockState.auditLogs || [], filter);
 }
 
 function renderHoldings(holdings) {
@@ -420,7 +466,7 @@ function renderHoldings(holdings) {
       <td>${(holding.targets || []).map(Number).map(value => value.toLocaleString()).join(', ') || '-'}</td>
       <td class="row-actions">
         <button type="button" data-holding-edit="${holding.id}">Edit</button>
-        <button type="button" data-holding-delete="${holding.id}" class="danger-link">Delete</button>
+        <button type="button" data-holding-delete="${holding.id}" class="danger-link">Close</button>
       </td>
     </tr>
   `).join('');
@@ -454,7 +500,7 @@ function editHolding(holding) {
   $('holding-status').value = holding.status;
   $('holding-targets').value = (holding.targets || []).join(', ');
   $('holding-note').value = holding.note || '';
-  $('holding-submit').textContent = 'Save holding';
+  $('holding-submit').textContent = 'Save adjustment';
   $('holding-cancel').hidden = false;
 }
 
@@ -485,7 +531,8 @@ async function saveHolding(event) {
 }
 
 async function deleteHolding(id) {
-  if (!confirm('Delete this holding and its target prices?')) return;
+  const holding = (stockState.portfolio?.holdings || []).find(item => item.id === id);
+  if (!holding || !confirm(`Close ${holding.ticker}: this creates a zero-quantity adjustment and keeps all trade history.`)) return;
   try {
     await adminRequest(`/api/v1/stocks/holdings/${id}`, { method: 'DELETE' });
     await loadStockData();
@@ -609,8 +656,7 @@ function allTrades(journals) {
   return Object.values(journals).flatMap(journal => (journal.trades || []).map(trade => ({ ...trade, ticker: trade.ticker || journal.ticker })));
 }
 
-function renderTrades(journals) {
-  const rows = allTrades(journals);
+function renderTrades(rows) {
   const body = $('trades-body');
   if (!rows.length) {
     body.innerHTML = '<tr><td colspan="9" class="empty-cell">No trades.</td></tr>';
@@ -632,6 +678,28 @@ function renderTrades(journals) {
       </td>
     </tr>
   `).join('');
+}
+
+function renderStockAudit(logs, filter) {
+  const rows = logs.filter(log => !filter.ticker || log.ticker === filter.ticker);
+  const body = $('stock-audit-body');
+  if (!rows.length) {
+    body.innerHTML = '<tr><td colspan="6" class="empty-cell">No matching admin changes.</td></tr>';
+    return;
+  }
+  body.innerHTML = rows.map(log => {
+    const before = log.before_json ? JSON.parse(log.before_json) : null;
+    const after = log.after_json ? JSON.parse(log.after_json) : null;
+    const change = after || before || {};
+    return `<tr>
+      <td>${escapeHtml(formatDateLabel(log.created_at))}</td>
+      <td>${escapeHtml(log.actor)}</td>
+      <td>${escapeHtml(log.action)}</td>
+      <td>${escapeHtml(log.entity_type)} #${escapeHtml(log.entity_id || '-')}</td>
+      <td>${log.ticker ? `<span class="ticker-badge">${escapeHtml(log.ticker)}</span>` : '-'}</td>
+      <td class="audit-change">${escapeHtml(JSON.stringify(change))}</td>
+    </tr>`;
+  }).join('');
 }
 
 function editTrade(id) {
@@ -1489,6 +1557,16 @@ $('blog-list').addEventListener('click', event => {
 });
 
 $('stocks-load').addEventListener('click', loadStockData);
+['stock-filter-ticker', 'stock-filter-type', 'stock-filter-from', 'stock-filter-to'].forEach(id => {
+  $(id).addEventListener(id === 'stock-filter-ticker' ? 'input' : 'change', renderStockViews);
+});
+$('stock-clear-filters').addEventListener('click', () => {
+  $('stock-filter-ticker').value = '';
+  $('stock-filter-type').value = 'all';
+  $('stock-filter-from').value = '';
+  $('stock-filter-to').value = '';
+  renderStockViews();
+});
 $('holding-form').addEventListener('submit', saveHolding);
 $('holding-cancel').addEventListener('click', resetHoldingForm);
 $('holdings-body').addEventListener('click', event => {

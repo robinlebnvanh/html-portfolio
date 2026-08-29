@@ -111,6 +111,20 @@ trades = sa.Table(
     sa.CheckConstraint("stop_loss IS NULL OR stop_loss >= 0", name="ck_trades_stop_loss_nonnegative"),
 )
 
+admin_audit_logs = sa.Table(
+    "admin_audit_logs",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("actor", sa.String(length=254), nullable=False),
+    sa.Column("action", sa.String(length=40), nullable=False),
+    sa.Column("entity_type", sa.String(length=40), nullable=False),
+    sa.Column("entity_id", sa.String(length=80)),
+    sa.Column("ticker", sa.String(length=12)),
+    sa.Column("before_json", sa.Text),
+    sa.Column("after_json", sa.Text),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+)
+
 journal_entry_plans = sa.Table(
     "journal_entry_plans",
     metadata,

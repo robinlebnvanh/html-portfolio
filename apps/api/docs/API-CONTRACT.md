@@ -245,10 +245,11 @@ The endpoint returns `{ "holding": ... }`. `ticker` is normalized to uppercase. 
 
 Updates any supplied holding fields and replaces `targets` when that field is supplied. It returns the updated holding. Unknown IDs return `404`.
 
-Manual holding creates/updates are mirrored into one generated `BUY` trade so
-the Trades tab can still show where the holding state came from. Once real
-trades exist for the ticker, trade history remains the source of truth for
-quantity and average cost.
+Holdings are derived from the trade timeline. Manual holding creates/updates
+append an immutable `ADJUSTMENT` snapshot, rather than overwriting a prior
+trade. The snapshot records the corrected quantity and average cost, allowing
+the timeline to be rebuilt while retaining a full audit trail. Closing a
+holding appends a zero-quantity adjustment; it does not erase trade history.
 
 ### DELETE `/api/v1/stocks/holdings/{holding_id}`
 
@@ -319,7 +320,9 @@ The endpoint returns `{ "trade": ... }`. Creating, updating, or deleting a
 trade rebuilds the matching portfolio holding from the ticker's trade ledger.
 `BUY`/`MUA` increases quantity and updates weighted average cost; `SELL`/`BAN`
 decreases quantity and marks the holding `CLOSED` when the remaining quantity is
-zero. Trade rows returned by `GET /api/v1/stocks/journals` include stable
+zero. An operation that would create a negative position, including deleting a
+historical BUY needed by a later SELL, returns `409 Conflict`. Trade rows
+returned by `GET /api/v1/stocks/journals` include stable
 numeric `id`, `ticker`, and `quantity` fields for Admin UI edit/delete actions.
 
 ### PATCH `/api/v1/stocks/trades/{trade_id}`
@@ -329,6 +332,12 @@ Updates any supplied trade fields except ticker. Unknown trades return `404`.
 ### DELETE `/api/v1/stocks/trades/{trade_id}`
 
 Deletes one trade row. Unknown trades return `404`.
+
+### GET `/api/v1/stocks/audit-logs`
+
+Returns the latest authenticated Stocks Admin mutations, including actor,
+action, entity, ticker, timestamp, and before/after JSON snapshots. It accepts
+an optional `limit` from 1 to 200 and requires the admin Bearer token.
 
 ## Service lead endpoints (P2-11)
 

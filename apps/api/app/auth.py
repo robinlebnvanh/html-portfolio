@@ -53,3 +53,16 @@ def require_admin_token(
         detail="invalid admin bearer token",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+
+def get_admin_actor(
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None,
+        Depends(bearer_scheme),
+    ],
+) -> str:
+    """Return an auditable actor name while enforcing admin authentication."""
+
+    require_admin_token(credentials)
+    claims = verify_access_token(credentials.credentials)
+    return str(claims["email"]) if claims else "api_token"

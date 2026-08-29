@@ -33,6 +33,7 @@ from app.stocks_repository import (
     get_holding,
     get_journals,
     get_portfolio,
+    get_stock_audit_logs,
     holding_exists,
     upsert_journal,
     update_trade,
@@ -99,8 +100,10 @@ class StocksRepositoryTests(unittest.TestCase):
         self.assertEqual(updated["targets"], [150])
 
         self.assertTrue(delete_holding(self.session, holding_row))
-        self.assertIsNone(get_holding(self.session, holding_row))
-        self.assertEqual(get_portfolio(self.session)["holdings"], [])
+        closed = get_holding(self.session, holding_row)
+        self.assertIsNotNone(closed)
+        self.assertEqual(closed["status"], "CLOSED")
+        self.assertEqual(closed["quantity"], 0)
 
     def test_journal_read_shape_is_preserved(self) -> None:
         self.session.execute(insert(stocks).values(ticker="ABC"))
@@ -203,18 +206,25 @@ class StocksRepositoryTests(unittest.TestCase):
         self.assertIn("ABC", get_journals(self.session))
         self.assertEqual(get_portfolio(self.session)["holdings"][0]["quantity"], 10)
 
-        updated = update_trade(
-            self.session,
-            created["id"],
-            {"price": 120, "type": "SELL", "quantity": 4, "note": "updated"},
-        )
-        self.assertIsNotNone(updated)
-        self.assertEqual(updated["price"], 120)
-        self.assertEqual(updated["type"], "SELL")
-        self.assertEqual(updated["quantity"], 4)
-        self.assertEqual(updated["note"], "updated")
-        self.assertEqual(get_portfolio(self.session)["holdings"][0]["quantity"], 0)
+        with self.assertRaisesRegex(ValueError, "oversell blocked"):
+            update_trade(
+                self.session,
+                created["id"],
+                {"price": 120, "type": "SELL", "quantity": 4, "note": "updated"},
+            )
+        self.assertEqual(get_portfolio(self.session)["holdings"][0]["quantity"], 10)
 
+        sale = create_trade(
+            self.session,
+            {
+                "ticker": "ABC", "date": "2026-08-28", "type": "SELL", "quantity": 4,
+                "price": 120, "stop_loss": None, "pnl": None, "note": "partial exit",
+            },
+        )
+        self.assertEqual(get_portfolio(self.session)["holdings"][0]["quantity"], 6)
+        with self.assertRaisesRegex(ValueError, "oversell blocked"):
+            delete_trade(self.session, created["id"])
+        self.assertTrue(delete_trade(self.session, sale["id"]))
         self.assertTrue(delete_trade(self.session, created["id"]))
         self.assertEqual(get_journals(self.session)["ABC"]["trades"], [])
 
@@ -261,12 +271,10 @@ class StocksRepositoryTests(unittest.TestCase):
         self.assertEqual(holding["quantity"], 5)
         self.assertEqual(holding["avg_cost"], 100)
 
-        self.assertTrue(delete_trade(self.session, first_buy["id"]))
-        holding = get_portfolio(self.session)["holdings"][0]
-        self.assertEqual(holding["quantity"], 0)
-        self.assertEqual(holding["status"], "CLOSED")
+        with self.assertRaisesRegex(ValueError, "oversell blocked"):
+            delete_trade(self.session, first_buy["id"])
 
-    def test_manual_holding_creates_sync_trade(self) -> None:
+    def test_manual_holding_creates_adjustment_trades(self) -> None:
         created = create_holding(
             self.session,
             {
@@ -285,11 +293,16 @@ class StocksRepositoryTests(unittest.TestCase):
         self.assertEqual(len(trades_data), 1)
         self.assertEqual(trades_data[0]["quantity"], 8)
         self.assertEqual(trades_data[0]["price"], 125)
+        self.assertEqual(trades_data[0]["type"], "ADJUSTMENT")
 
         update_holding(self.session, created["id"], {"quantity": 9, "avg_cost": 130})
         trades_data = get_journals(self.session)["ABC"]["trades"]
-        self.assertEqual(trades_data[0]["quantity"], 9)
-        self.assertEqual(trades_data[0]["price"], 130)
+        self.assertEqual(len(trades_data), 2)
+        self.assertEqual(trades_data[-1]["quantity"], 9)
+        self.assertEqual(trades_data[-1]["price"], 130)
+        self.assertEqual(get_portfolio(self.session)["holdings"][0]["quantity"], 9)
+        logs = get_stock_audit_logs(self.session)
+        self.assertEqual(logs[0]["action"], "adjust")
 
     def test_journal_upsert_and_delete(self) -> None:
         created = upsert_journal(

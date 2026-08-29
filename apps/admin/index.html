@@ -188,11 +188,21 @@
           </div>
           <p id="stocks-status" class="status-text" role="status" aria-live="polite"></p>
 
+          <div id="stock-summary" class="stock-summary" aria-label="Portfolio summary"></div>
+          <div class="stock-filters" aria-label="Stock data filters">
+            <label class="field compact-field"><span>Ticker</span><input id="stock-filter-ticker" maxlength="12" placeholder="FPT"></label>
+            <label class="field compact-field"><span>Trade type</span><select id="stock-filter-type"><option value="all">All types</option><option value="BUY">BUY</option><option value="MUA">MUA</option><option value="SELL">SELL</option><option value="BAN">BAN</option><option value="ADJUSTMENT">ADJUSTMENT</option></select></label>
+            <label class="field compact-field"><span>From</span><input id="stock-filter-from" type="date"></label>
+            <label class="field compact-field"><span>To</span><input id="stock-filter-to" type="date"></label>
+            <button id="stock-clear-filters" class="module-action" type="button">Clear filters</button>
+          </div>
+
           <div class="subnav stock-tabs" role="tablist" aria-label="Stocks data sections">
             <button class="subnav-item active" type="button" role="tab" aria-selected="true" aria-controls="stock-panel-holdings" data-stock-tab="holdings">Holdings</button>
             <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="stock-panel-watchlist" data-stock-tab="watchlist">Watchlist</button>
             <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="stock-panel-journals" data-stock-tab="journals">Journals</button>
             <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="stock-panel-trades" data-stock-tab="trades">Trades</button>
+            <button class="subnav-item" type="button" role="tab" aria-selected="false" aria-controls="stock-panel-audit" data-stock-tab="audit">Audit</button>
           </div>
 
           <div id="stock-panel-holdings" class="admin-block stock-panel" role="tabpanel" data-stock-panel="holdings">
@@ -274,6 +284,16 @@
               <table class="admin-table">
                 <thead><tr><th>Ticker</th><th>Date</th><th>Type</th><th>Qty</th><th>Price</th><th>Stop</th><th>P&L</th><th>Note</th><th>Actions</th></tr></thead>
                 <tbody id="trades-body"><tr><td colspan="9" class="empty-cell">Load stocks data to manage trades.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="stock-panel-audit" class="admin-block stock-panel" role="tabpanel" data-stock-panel="audit" hidden>
+            <h4>Audit log</h4>
+            <div class="table-wrap">
+              <table class="admin-table audit-table">
+                <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Ticker</th><th>Change</th></tr></thead>
+                <tbody id="stock-audit-body"><tr><td colspan="6" class="empty-cell">Load stocks data to review changes.</td></tr></tbody>
               </table>
             </div>
           </div>
