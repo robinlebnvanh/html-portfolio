@@ -47,21 +47,21 @@ function renderPostCard(post) {
   const postUrl = `note.html?slug=${encodeURIComponent(post.slug)}`;
   const coverUrl = safeImageUrl(post.cover_image_url);
   const cover = coverUrl
-    ? `<a class="blog-card-cover" href="${escapeHtml(postUrl)}"><img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(post.cover_image_alt || post.title)}" loading="lazy"></a>`
-    : '';
+    ? `<span class="blog-card-cover"><img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(post.cover_image_alt || post.title)}" loading="lazy"></span>`
+    : `<span class="blog-card-cover blog-card-cover-empty" aria-hidden="true"><span>${escapeHtml(post.category || 'Robin Log')}</span></span>`;
 
   return `
-    <article class="blog-card reveal" data-slug="${escapeHtml(post.slug)}">
+    <a class="blog-card reveal" href="${escapeHtml(postUrl)}" data-slug="${escapeHtml(post.slug)}" aria-label="Read ${escapeHtml(post.title)}">
       <div class="blog-meta">
         <span>${escapeHtml(formatDate(post.published_at))}</span>
         <span>${escapeHtml(post.category)}</span>
       </div>
       ${cover}
-      <h3><a href="${escapeHtml(postUrl)}">${escapeHtml(post.title)}</a></h3>
+      <h3>${escapeHtml(post.title)}</h3>
       <p>${escapeHtml(post.summary)}</p>
       <div class="tags">${tags}</div>
-      <a class="project-link blog-read-link" href="${escapeHtml(postUrl)}">Read article <span aria-hidden="true">→</span></a>
-    </article>
+      <span class="project-link blog-read-link">Read article <span aria-hidden="true">→</span></span>
+    </a>
   `;
 }
 

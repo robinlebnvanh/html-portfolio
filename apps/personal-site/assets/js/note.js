@@ -71,23 +71,31 @@ function renderArticle(post) {
   const tags = (post.tags || [])
     .map(tag => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join('');
+  const publishedDate = formatDate(post.published_at);
   const cover = renderImage(
     post.cover_image_url,
     post.cover_image_alt || post.title,
     'note-cover-image',
-  );
+  ) || `<figure class="note-cover-image note-cover-image-empty" aria-hidden="true"><span>${escapeHtml(post.category || 'Robin Log')}</span></figure>`;
 
   document.title = `${post.title} | Robin Log`;
   article.innerHTML = `
     <a class="note-back-link" href="blog.html">Back to notes <span aria-hidden="true">↑</span></a>
-    <header class="note-header">
-      <p class="mono-label">${escapeHtml(post.category)} / ${escapeHtml(formatDate(post.published_at))}</p>
+    <header class="note-header news-article-header">
+      <div class="note-kicker-row">
+        <p class="mono-label">${escapeHtml(post.category)}</p>
+        <p class="mono-label">${escapeHtml(publishedDate)}</p>
+      </div>
       <h1>${escapeHtml(post.title)}</h1>
       <p class="note-summary">${escapeHtml(post.summary)}</p>
-      <div class="tags">${tags}</div>
+      <div class="note-byline">
+        <span>By Robin Le</span>
+        <span>Robin Log</span>
+      </div>
+      ${tags ? `<div class="tags">${tags}</div>` : ''}
     </header>
     ${cover}
-    <div class="note-content">${renderContent(post.content)}</div>
+    <div class="note-content news-article-body">${renderContent(post.content)}</div>
   `;
 }
 
