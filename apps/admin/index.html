@@ -46,6 +46,7 @@
           <a class="nav-item" href="#blog">Blog</a>
           <a class="nav-item" href="#stocks">Stocks</a>
           <a class="nav-item" href="#portfolio">Portfolio</a>
+          <a class="nav-item" href="#sites">Sites</a>
           <a class="nav-item" href="#leads">Leads</a>
           <a class="nav-item" href="#system">System</a>
         </nav>
@@ -73,6 +74,7 @@
             </div>
             <div class="command-actions">
               <a class="module-action" href="#portfolio">Edit portfolio</a>
+              <a class="module-action" href="#sites">View site map</a>
               <a class="module-action" href="#leads">Review leads</a>
               <a class="module-action" href="#blog">Write post</a>
               <a class="module-action" href="#stocks">Manage stocks</a>
@@ -95,6 +97,11 @@
             <span>Auth model</span>
             <strong>Login</strong>
             <p>Email/password login with a signed access token for this browser session.</p>
+          </article>
+          <article class="metric-card">
+            <span>Managed sites</span>
+            <strong id="site-count-value">-</strong>
+            <p id="site-count-detail">Public pages, private consoles, redirects, and API surfaces.</p>
           </article>
           <article class="metric-card">
             <span>Service leads</span>
@@ -138,6 +145,15 @@
               <p>Review booking and proposal inquiries from service-business demo sites.</p>
             </div>
             <a class="module-action" href="#leads">Manage leads</a>
+          </article>
+
+          <article class="module-card">
+            <div>
+              <span class="module-kicker">Ops</span>
+              <h3>Site map</h3>
+              <p>Track every public page, demo app, private console, redirect, and API entry point.</p>
+            </div>
+            <a class="module-action" href="#sites">Open site map</a>
           </article>
           </div>
         </section>
@@ -383,6 +399,61 @@
             </div>
             <aside id="portfolio-preview" class="portfolio-preview" aria-label="Portfolio preview"></aside>
           </form>
+        </section>
+
+        <section id="sites" class="admin-section" data-section="sites" hidden aria-labelledby="sites-title">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Application inventory</p>
+              <h3 id="sites-title">Manage site structure</h3>
+            </div>
+            <div class="form-actions">
+              <label class="field compact-field">
+                <span>Category</span>
+                <select id="site-category-filter">
+                  <option value="all">All</option>
+                  <option value="portfolio">Portfolio</option>
+                  <option value="case-study">Case study</option>
+                  <option value="service">Service</option>
+                  <option value="demo">Demo</option>
+                  <option value="admin">Admin</option>
+                  <option value="api">API</option>
+                  <option value="redirect">Redirect</option>
+                </select>
+              </label>
+              <label class="field compact-field">
+                <span>Visibility</span>
+                <select id="site-visibility-filter">
+                  <option value="all">All</option>
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                  <option value="system">System</option>
+                </select>
+              </label>
+              <button id="sites-check" class="module-action" type="button">Check status</button>
+            </div>
+          </div>
+          <p id="sites-status" class="status-text" role="status" aria-live="polite"></p>
+          <div id="site-metrics" class="site-metrics" aria-label="Site metrics"></div>
+          <div class="table-wrap">
+            <table class="admin-table sites-table">
+              <thead>
+                <tr>
+                  <th>Surface</th>
+                  <th>Category</th>
+                  <th>Visibility</th>
+                  <th>Route</th>
+                  <th>Owner</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sites-body">
+                <tr><td colspan="7" class="empty-cell">Site map is loading.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="sites-cards" class="sites-cards" aria-label="Site map cards"></div>
         </section>
 
         <section id="leads" class="admin-section" data-section="leads" hidden aria-labelledby="leads-title">

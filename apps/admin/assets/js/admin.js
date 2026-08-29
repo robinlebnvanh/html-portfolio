@@ -18,6 +18,8 @@ const blogCountValue = $('blog-count-value');
 const blogCountDetail = $('blog-count-detail');
 const leadCountValue = $('lead-count-value');
 const leadCountDetail = $('lead-count-detail');
+const siteCountValue = $('site-count-value');
+const siteCountDetail = $('site-count-detail');
 const apiBaseUrlValue = $('api-base-url');
 const sections = [...document.querySelectorAll('[data-section]')];
 const navItems = [...document.querySelectorAll('.nav-item')];
@@ -42,9 +44,235 @@ let selectedProjectIndex = 0;
 let serviceLeads = [];
 let leadActivities = {};
 let selectedLeadId = null;
+let siteChecks = {};
 
 const leadStatuses = ['new', 'contacted', 'proposal_sent', 'booked', 'closed'];
 const jobStages = ['awaiting_files', 'editing', 'review', 'revision', 'delivered', 'paid'];
+const publicBaseUrl = new URL('../../', window.location.href);
+
+const siteRegistry = [
+  {
+    name: 'Root redirect',
+    category: 'redirect',
+    visibility: 'public',
+    route: '/',
+    owner: 'Portfolio',
+    description: 'Redirects visitors to the personal portfolio home.',
+    url: publicBaseUrl.href,
+  },
+  {
+    name: 'Portfolio home',
+    category: 'portfolio',
+    visibility: 'public',
+    route: '/apps/personal-site/',
+    owner: 'Portfolio CMS',
+    description: 'Main public profile, product studio positioning, and selected work.',
+    url: publicUrl('/apps/personal-site/'),
+  },
+  {
+    name: 'Notes',
+    category: 'portfolio',
+    visibility: 'public',
+    route: '/apps/personal-site/blog.html',
+    owner: 'Blog CMS',
+    description: 'Public learning notes and database-backed posts.',
+    url: publicUrl('/apps/personal-site/blog.html'),
+  },
+  {
+    name: 'Investment Dashboard case study',
+    category: 'case-study',
+    visibility: 'public',
+    route: '/apps/personal-site/case-studies/investment-dashboard.html',
+    owner: 'Portfolio CMS',
+    description: 'Case study for the stocks dashboard product demo.',
+    url: publicUrl('/apps/personal-site/case-studies/investment-dashboard.html'),
+  },
+  {
+    name: 'Fame Lux Nails case study',
+    category: 'case-study',
+    visibility: 'public',
+    route: '/apps/personal-site/case-studies/fame-lux-nails.html',
+    owner: 'Portfolio CMS',
+    description: 'Case study for the service landing-page demo.',
+    url: publicUrl('/apps/personal-site/case-studies/fame-lux-nails.html'),
+  },
+  {
+    name: 'Personal AI Agent case study',
+    category: 'case-study',
+    visibility: 'public',
+    route: '/apps/personal-site/case-studies/personal-ai-agent.html',
+    owner: 'Portfolio CMS',
+    description: 'Case study for the AI assistant workflow.',
+    url: publicUrl('/apps/personal-site/case-studies/personal-ai-agent.html'),
+  },
+  {
+    name: 'Service Business Kit case study',
+    category: 'case-study',
+    visibility: 'public',
+    route: '/apps/personal-site/case-studies/service-business-kit.html',
+    owner: 'Portfolio CMS',
+    description: 'Case study for reusable booking-ready service websites.',
+    url: publicUrl('/apps/personal-site/case-studies/service-business-kit.html'),
+  },
+  {
+    name: 'Photography Studio case study',
+    category: 'case-study',
+    visibility: 'public',
+    route: '/apps/personal-site/case-studies/photography-studio.html',
+    owner: 'Portfolio CMS',
+    description: 'Case study for wedding, baby, and maternity studio positioning.',
+    url: publicUrl('/apps/personal-site/case-studies/photography-studio.html'),
+  },
+  {
+    name: 'Wedding Planner case study',
+    category: 'case-study',
+    visibility: 'public',
+    route: '/apps/personal-site/case-studies/wedding-planner.html',
+    owner: 'Portfolio CMS',
+    description: 'Case study for inquiry and proposal planning workflow.',
+    url: publicUrl('/apps/personal-site/case-studies/wedding-planner.html'),
+  },
+  {
+    name: 'Photoshop Retouching',
+    category: 'redirect',
+    visibility: 'public',
+    route: '/apps/photoshop-retouching/',
+    owner: 'Robin Retouch Studio',
+    description: 'Market selector redirect for Photoshop service pages.',
+    url: publicUrl('/apps/photoshop-retouching/'),
+  },
+  {
+    name: 'Photoshop Vietnam',
+    category: 'service',
+    visibility: 'public',
+    route: '/apps/photoshop-retouching/vi/',
+    owner: 'Robin Retouch Studio',
+    description: 'Vietnamese Photoshop quote page with VND pricing.',
+    url: publicUrl('/apps/photoshop-retouching/vi/'),
+  },
+  {
+    name: 'Photoshop Australia',
+    category: 'service',
+    visibility: 'public',
+    route: '/apps/photoshop-retouching/au/',
+    owner: 'Robin Retouch Studio',
+    description: 'English Photoshop quote page with AUD pricing.',
+    url: publicUrl('/apps/photoshop-retouching/au/'),
+  },
+  {
+    name: 'Service Business Kit',
+    category: 'service',
+    visibility: 'public',
+    route: '/apps/service-business-kit/',
+    owner: 'Service demos',
+    description: 'Reusable service-business landing page and inquiry pattern.',
+    url: publicUrl('/apps/service-business-kit/'),
+  },
+  {
+    name: 'Photography Studio Demo',
+    category: 'service',
+    visibility: 'public',
+    route: '/apps/photography-studio-demo/',
+    owner: 'Service demos',
+    description: 'Photography studio demo for wedding, baby, and maternity clients.',
+    url: publicUrl('/apps/photography-studio-demo/'),
+  },
+  {
+    name: 'Wedding Planner Demo',
+    category: 'service',
+    visibility: 'public',
+    route: '/apps/wedding-planner-demo/',
+    owner: 'Service demos',
+    description: 'Wedding planning inquiry and proposal demo.',
+    url: publicUrl('/apps/wedding-planner-demo/'),
+  },
+  {
+    name: 'Nail Landing Page',
+    category: 'demo',
+    visibility: 'public',
+    route: '/apps/nail-landing-page/',
+    owner: 'Service demos',
+    description: 'Fame Lux Nails landing-page demo.',
+    url: publicUrl('/apps/nail-landing-page/'),
+  },
+  {
+    name: 'Stocks dashboard',
+    category: 'demo',
+    visibility: 'public',
+    route: '/apps/stocks-app/',
+    owner: 'Stocks operations',
+    description: 'Public shell for investment dashboard views.',
+    url: publicUrl('/apps/stocks-app/'),
+  },
+  {
+    name: 'Stocks journal',
+    category: 'demo',
+    visibility: 'public',
+    route: '/apps/stocks-app/journal.html',
+    owner: 'Stocks operations',
+    description: 'Stock thesis and journal reading surface.',
+    url: publicUrl('/apps/stocks-app/journal.html'),
+  },
+  {
+    name: 'Stocks portfolio',
+    category: 'demo',
+    visibility: 'public',
+    route: '/apps/stocks-app/portfolio.html',
+    owner: 'Stocks operations',
+    description: 'Portfolio dashboard reading surface.',
+    url: publicUrl('/apps/stocks-app/portfolio.html'),
+  },
+  {
+    name: 'Admin Console',
+    category: 'admin',
+    visibility: 'private',
+    route: '/apps/admin/',
+    owner: 'Admin',
+    description: 'Private operator surface for content, leads, stocks, and site structure.',
+    url: publicUrl('/apps/admin/'),
+  },
+  {
+    name: 'API health',
+    category: 'api',
+    visibility: 'system',
+    route: '/health',
+    owner: 'FastAPI',
+    description: 'Render backend health endpoint.',
+    url: `${apiBaseUrl}/health`,
+    method: 'GET',
+  },
+  {
+    name: 'OpenAPI schema',
+    category: 'api',
+    visibility: 'system',
+    route: '/openapi.json',
+    owner: 'FastAPI',
+    description: 'Machine-readable API contract.',
+    url: `${apiBaseUrl}/openapi.json`,
+    method: 'GET',
+  },
+  {
+    name: 'Lead intake API',
+    category: 'api',
+    visibility: 'system',
+    route: '/api/v1/leads',
+    owner: 'FastAPI',
+    description: 'Public write endpoint used by service booking forms.',
+    url: `${apiBaseUrl}/api/v1/leads`,
+    checkMode: 'contract',
+  },
+  {
+    name: 'Admin leads API',
+    category: 'api',
+    visibility: 'private',
+    route: '/api/v1/admin/leads',
+    owner: 'FastAPI',
+    description: 'Authenticated lead management endpoint.',
+    url: `${apiBaseUrl}/api/v1/admin/leads`,
+    method: 'GET',
+    requiresAuth: true,
+  },
+];
 
 const leadStatusLabels = {
   new: 'New',
@@ -90,6 +318,10 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function publicUrl(route) {
+  return new URL(String(route || '').replace(/^\//, ''), publicBaseUrl).href;
+}
+
 function moneyLabel(amount, currency) {
   if (amount === null || amount === undefined || amount === '') return 'No quote';
   return `${Number(amount).toLocaleString('en-US')} ${currency || ''}`.trim();
@@ -113,6 +345,112 @@ function setPortfolioDirty(isDirty) {
   );
 }
 
+function labelFromKey(value) {
+  return String(value || '')
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function siteBadge(value, prefix = '') {
+  const label = prefix ? `${prefix}${labelFromKey(value)}` : labelFromKey(value);
+  return `<span class="site-badge ${semanticClass(value)}">${escapeHtml(label)}</span>`;
+}
+
+function siteStatusBadge(site) {
+  const check = siteChecks[site.name];
+  if (site.checkMode === 'contract') {
+    return '<span class="site-badge system">OpenAPI contract</span>';
+  }
+  if (!check) {
+    return '<span class="site-badge unchecked">Not checked</span>';
+  }
+  if (check.ok) {
+    return `<span class="site-badge online">${escapeHtml(check.label)}</span>`;
+  }
+  return `<span class="site-badge offline">${escapeHtml(check.label)}</span>`;
+}
+
+function filteredSites() {
+  const category = $('site-category-filter')?.value || 'all';
+  const visibility = $('site-visibility-filter')?.value || 'all';
+  return siteRegistry.filter(site => {
+    const categoryMatches = category === 'all' || site.category === category;
+    const visibilityMatches = visibility === 'all' || site.visibility === visibility;
+    return categoryMatches && visibilityMatches;
+  });
+}
+
+function renderSiteMetrics(sites = siteRegistry) {
+  const metrics = $('site-metrics');
+  if (!metrics) return;
+  const publicCount = sites.filter(site => site.visibility === 'public').length;
+  const privateCount = sites.filter(site => site.visibility === 'private').length;
+  const apiCount = sites.filter(site => site.category === 'api').length;
+  const checkedCount = sites.filter(site => siteChecks[site.name] || site.checkMode === 'contract').length;
+  metrics.innerHTML = [
+    ['Visible surfaces', sites.length],
+    ['Public', publicCount],
+    ['Private', privateCount],
+    ['API', apiCount],
+    ['Checked', checkedCount],
+  ].map(([label, value]) => `
+    <article class="site-metric-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `).join('');
+}
+
+function renderSites() {
+  const sites = filteredSites();
+  const body = $('sites-body');
+  const cards = $('sites-cards');
+  if (siteCountValue) siteCountValue.textContent = String(siteRegistry.length);
+  if (siteCountDetail) {
+    const publicCount = siteRegistry.filter(site => site.visibility === 'public').length;
+    const privateCount = siteRegistry.filter(site => site.visibility === 'private').length;
+    siteCountDetail.textContent = `${publicCount} public, ${privateCount} private, ${siteRegistry.length} total tracked.`;
+  }
+  renderSiteMetrics(sites);
+  if (!body || !cards) return;
+  if (!sites.length) {
+    body.innerHTML = '<tr><td colspan="7" class="empty-cell">No sites match this filter.</td></tr>';
+    cards.innerHTML = '<p class="empty-note">No sites match this filter.</p>';
+    return;
+  }
+
+  body.innerHTML = sites.map(site => `
+    <tr>
+      <td><strong>${escapeHtml(site.name)}</strong><br><span class="empty-note">${escapeHtml(site.description)}</span></td>
+      <td>${siteBadge(site.category)}</td>
+      <td>${siteBadge(site.visibility)}</td>
+      <td><code class="route-code">${escapeHtml(site.route)}</code></td>
+      <td>${escapeHtml(site.owner)}</td>
+      <td>${siteStatusBadge(site)}</td>
+      <td><a class="module-action compact-action" href="${escapeHtml(site.url)}" target="_blank" rel="noreferrer">Open</a></td>
+    </tr>
+  `).join('');
+
+  cards.innerHTML = sites.map(site => `
+    <article class="site-card">
+      <div class="site-card-header">
+        <div>
+          <h4>${escapeHtml(site.name)}</h4>
+          <p>${escapeHtml(site.owner)} / ${escapeHtml(site.route)}</p>
+        </div>
+        ${siteStatusBadge(site)}
+      </div>
+      <p>${escapeHtml(site.description)}</p>
+      <div class="site-card-meta">
+        ${siteBadge(site.category)}
+        ${siteBadge(site.visibility)}
+      </div>
+      <a class="module-action compact-action" href="${escapeHtml(site.url)}" target="_blank" rel="noreferrer">Open</a>
+    </article>
+  `).join('');
+}
+
 function adminToken() {
   return sessionStorage.getItem(tokenKey) || '';
 }
@@ -133,6 +471,54 @@ async function requestJson(path, options = {}) {
     throw new Error(body.detail || `API returned ${response.status}`);
   }
   return body;
+}
+
+async function checkSite(site) {
+  if (site.checkMode === 'contract') {
+    const contract = await fetch(`${apiBaseUrl}/openapi.json`).then(response => response.json());
+    const exists = Boolean(contract.paths && contract.paths[site.route]);
+    return {
+      ok: exists,
+      label: exists ? 'Contract OK' : 'Missing contract',
+    };
+  }
+
+  const response = await fetch(site.url, {
+    method: site.method || 'HEAD',
+    headers: site.requiresAuth ? authHeaders() : {},
+  });
+  return {
+    ok: response.ok,
+    label: response.ok ? `HTTP ${response.status}` : `HTTP ${response.status}`,
+  };
+}
+
+async function checkSitesStatus() {
+  const button = $('sites-check');
+  if (button) button.disabled = true;
+  setStatus($('sites-status'), 'Checking site and API status...');
+  const checks = await Promise.allSettled(siteRegistry.map(async site => {
+    try {
+      return [site.name, await checkSite(site)];
+    } catch (error) {
+      return [site.name, { ok: false, label: error.message || 'Check failed' }];
+    }
+  }));
+  siteChecks = checks.reduce((nextChecks, result) => {
+    if (result.status === 'fulfilled') {
+      const [name, check] = result.value;
+      nextChecks[name] = check;
+    }
+    return nextChecks;
+  }, {});
+  renderSites();
+  const failed = Object.values(siteChecks).filter(check => !check.ok).length;
+  setStatus(
+    $('sites-status'),
+    failed ? `${failed} surface checks need attention.` : 'All checked surfaces are reachable.',
+    failed ? 'warning' : 'success',
+  );
+  if (button) button.disabled = false;
 }
 
 async function adminRequest(path, options = {}) {
@@ -1675,6 +2061,10 @@ $('portfolio-projects').addEventListener('change', () => {
   }
 });
 
+$('sites-check').addEventListener('click', checkSitesStatus);
+$('site-category-filter').addEventListener('change', renderSites);
+$('site-visibility-filter').addEventListener('change', renderSites);
+
 $('leads-load').addEventListener('click', loadLeads);
 $('manual-lead-form').addEventListener('submit', createManualLead);
 $('lead-status-filter').addEventListener('change', loadLeads);
@@ -1714,6 +2104,7 @@ resetTradeForm();
 showStockPanel('holdings');
 showPortfolioPanel('hero');
 apiBaseUrlValue.textContent = apiBaseUrl;
+renderSites();
 
 if (adminToken()) {
   validateSession().then(showDashboard).catch(() => {
