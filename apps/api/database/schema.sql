@@ -117,6 +117,8 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     slug TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
     summary TEXT NOT NULL,
+    cover_image_url TEXT,
+    cover_image_alt TEXT,
     content TEXT NOT NULL,
     category TEXT NOT NULL,
     tags TEXT NOT NULL DEFAULT '[]',

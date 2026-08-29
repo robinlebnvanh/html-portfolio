@@ -727,6 +727,8 @@ function fillBlogForm(post = null) {
   $('blog-post-status').value = post?.status || 'draft';
   $('blog-title-field').value = post?.title || '';
   $('blog-summary').value = post?.summary || '';
+  $('blog-cover-image-url').value = post?.cover_image_url || '';
+  $('blog-cover-image-alt').value = post?.cover_image_alt || '';
   $('blog-category').value = post?.category || 'build-log';
   $('blog-published-at').value = post?.published_at || '';
   $('blog-tags').value = (post?.tags || []).join(', ');
@@ -739,6 +741,8 @@ function blogPayload() {
     slug: $('blog-slug').value,
     title: $('blog-title-field').value,
     summary: $('blog-summary').value,
+    cover_image_url: $('blog-cover-image-url').value || null,
+    cover_image_alt: $('blog-cover-image-alt').value || null,
     content: $('blog-content').value,
     category: $('blog-category').value,
     tags: tagsFromInput($('blog-tags').value),

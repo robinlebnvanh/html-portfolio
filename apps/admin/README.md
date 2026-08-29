@@ -40,3 +40,18 @@ The Audit tab reads `GET /api/v1/stocks/audit-logs`. It displays authenticated
 Stocks mutations with actor, action, entity, ticker, timestamp, and a
 before/after snapshot. The API is the source of audit records; the browser does
 not create or modify audit entries.
+
+## Blog workspace
+
+The Blog workspace manages database-backed posts for the public personal site.
+Each post supports draft/published status, tags, a cover image URL with alt text,
+and inline article images inside `content` using Markdown image syntax.
+
+Example inline image:
+
+```md
+![Admin overview loading state](https://example.com/admin-overview.png)
+```
+
+The Admin Console stores image URLs only. It does not upload binary image files;
+image hosting remains external or static-site asset based.

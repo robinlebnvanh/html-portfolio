@@ -21,10 +21,49 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+function safeImageUrl(value) {
+  const url = String(value || '').trim();
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url) || /^(\.?\.?\/|assets\/)/.test(url)) return url;
+  return '';
+}
+
+function renderImage(url, alt, className = 'note-inline-image') {
+  const safeUrl = safeImageUrl(url);
+  if (!safeUrl) return '';
+  return `
+    <figure class="${className}">
+      <img src="${escapeHtml(safeUrl)}" alt="${escapeHtml(alt || '')}" loading="lazy">
+      ${alt ? `<figcaption>${escapeHtml(alt)}</figcaption>` : ''}
+    </figure>
+  `;
+}
+
+function renderTextParagraph(text) {
+  const body = escapeHtml(text.trim()).replaceAll('\n', '<br>');
+  return body ? `<p>${body}</p>` : '';
+}
+
+function renderContentBlock(block) {
+  const imagePattern = /!\[([^\]]*)\]\(([^)\s]+)\)/g;
+  let cursor = 0;
+  let html = '';
+  let match;
+
+  while ((match = imagePattern.exec(block)) !== null) {
+    html += renderTextParagraph(block.slice(cursor, match.index));
+    html += renderImage(match[2], match[1]);
+    cursor = match.index + match[0].length;
+  }
+
+  html += renderTextParagraph(block.slice(cursor));
+  return html;
+}
+
 function renderContent(content) {
-  return escapeHtml(content)
+  return String(content || '')
     .split(/\n{2,}/)
-    .map(paragraph => `<p>${paragraph.replaceAll('\n', '<br>')}</p>`)
+    .map(renderContentBlock)
     .join('');
 }
 
@@ -32,6 +71,11 @@ function renderArticle(post) {
   const tags = (post.tags || [])
     .map(tag => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join('');
+  const cover = renderImage(
+    post.cover_image_url,
+    post.cover_image_alt || post.title,
+    'note-cover-image',
+  );
 
   document.title = `${post.title} | Robin Log`;
   article.innerHTML = `
@@ -42,6 +86,7 @@ function renderArticle(post) {
       <p class="note-summary">${escapeHtml(post.summary)}</p>
       <div class="tags">${tags}</div>
     </header>
+    ${cover}
     <div class="note-content">${renderContent(post.content)}</div>
   `;
 }

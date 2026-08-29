@@ -179,12 +179,14 @@
               </div>
               <label class="field"><span>Title</span><input id="blog-title-field" required placeholder="What the post teaches"></label>
               <label class="field"><span>Summary</span><textarea id="blog-summary" rows="3" required placeholder="Short reader-facing summary"></textarea></label>
+              <label class="field"><span>Cover image URL</span><input id="blog-cover-image-url" type="url" placeholder="https://example.com/article-cover.jpg"></label>
+              <label class="field"><span>Cover image alt</span><input id="blog-cover-image-alt" maxlength="220" placeholder="Short description for accessibility"></label>
               <div class="form-grid">
                 <label class="field"><span>Category</span><input id="blog-category" required placeholder="backend"></label>
                 <label class="field"><span>Published date</span><input id="blog-published-at" type="date"></label>
               </div>
               <label class="field"><span>Tags</span><input id="blog-tags" placeholder="FastAPI, PostgreSQL, Portfolio"></label>
-              <label class="field"><span>Content</span><textarea id="blog-content" rows="12" required placeholder="Write the post content. Separate paragraphs with blank lines."></textarea></label>
+              <label class="field"><span>Content</span><textarea id="blog-content" rows="12" required placeholder="Write the post content. Use ![Alt text](https://example.com/image.jpg) for inline images."></textarea></label>
               <div class="form-actions">
                 <button id="blog-save" class="primary-button" type="submit">Save post</button>
                 <button id="blog-new" class="module-action" type="button">New draft</button>

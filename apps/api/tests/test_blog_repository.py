@@ -53,6 +53,8 @@ class BlogRepositoryTests(unittest.TestCase):
         self.assertTrue(result["has_more"])
         self.assertEqual(len(result["posts"]), 1)
         self.assertIn("tags", result["posts"][0])
+        self.assertIn("cover_image_url", result["posts"][0])
+        self.assertIn("cover_image_alt", result["posts"][0])
         self.assertNotIn("content", result["posts"][0])
 
     def test_get_published_post_returns_content_and_hides_drafts(self) -> None:
@@ -63,6 +65,8 @@ class BlogRepositoryTests(unittest.TestCase):
                     "slug": "published-post",
                     "title": "Published post",
                     "summary": "Visible",
+                    "cover_image_url": "https://example.com/published.jpg",
+                    "cover_image_alt": "Published article cover",
                     "content": "Full content",
                     "category": "backend",
                     "tags": '["FastAPI"]',
@@ -73,6 +77,8 @@ class BlogRepositoryTests(unittest.TestCase):
                     "slug": "draft-post",
                     "title": "Draft post",
                     "summary": "Hidden",
+                    "cover_image_url": None,
+                    "cover_image_alt": None,
                     "content": "Draft content",
                     "category": "backend",
                     "tags": "[]",
@@ -87,6 +93,8 @@ class BlogRepositoryTests(unittest.TestCase):
 
         self.assertIsNotNone(post)
         self.assertEqual(post["content"], "Full content")
+        self.assertEqual(post["cover_image_url"], "https://example.com/published.jpg")
+        self.assertEqual(post["cover_image_alt"], "Published article cover")
         self.assertEqual(post["tags"], ["FastAPI"])
         self.assertIsNone(get_published_post(self.session, "draft-post"))
 
@@ -97,6 +105,8 @@ class BlogRepositoryTests(unittest.TestCase):
                 "slug": "admin-draft",
                 "title": "Admin draft",
                 "summary": "Managed through the admin API",
+                "cover_image_url": "https://example.com/admin-draft.jpg",
+                "cover_image_alt": "Admin draft cover",
                 "content": "Draft content",
                 "category": "backend",
                 "tags": ["FastAPI", "CRUD"],
@@ -106,6 +116,8 @@ class BlogRepositoryTests(unittest.TestCase):
         )
 
         self.assertEqual(created["status"], "draft")
+        self.assertEqual(created["cover_image_url"], "https://example.com/admin-draft.jpg")
+        self.assertEqual(created["cover_image_alt"], "Admin draft cover")
         self.assertEqual(created["tags"], ["FastAPI", "CRUD"])
         self.assertTrue(blog_slug_exists(self.session, "admin-draft"))
         self.assertEqual(list_admin_posts(self.session)["total"], 1)
@@ -119,6 +131,8 @@ class BlogRepositoryTests(unittest.TestCase):
                 "slug": "admin-published",
                 "title": "Admin published",
                 "summary": "Visible after publishing",
+                "cover_image_url": None,
+                "cover_image_alt": None,
                 "content": "Published content",
                 "category": "portfolio",
                 "tags": ["PostgreSQL"],
@@ -129,6 +143,8 @@ class BlogRepositoryTests(unittest.TestCase):
 
         self.assertIsNotNone(updated)
         self.assertEqual(updated["slug"], "admin-published")
+        self.assertIsNone(updated["cover_image_url"])
+        self.assertIsNone(updated["cover_image_alt"])
         self.assertEqual(updated["status"], "published")
         self.assertEqual(updated["tags"], ["PostgreSQL"])
         self.assertEqual(list_published_posts(self.session, limit=4, offset=0)["total"], 1)

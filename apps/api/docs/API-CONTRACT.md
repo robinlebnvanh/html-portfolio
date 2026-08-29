@@ -130,6 +130,9 @@ Future endpoints should use FastAPI's standard validation/error response. L3-03 
 
 Blog posts are backend-owned data stored in SQLite table `blog_posts`.
 The personal site reads them through FastAPI instead of static JSON.
+Posts support optional cover images through `cover_image_url` and
+`cover_image_alt`. Inline article images are written inside `content` with
+Markdown image syntax: `![Accessible alt text](https://example.com/image.jpg)`.
 
 ### GET `/api/v1/blog/posts`
 
@@ -143,6 +146,8 @@ Returns published posts with pagination:
       "slug": "backend-blog-api",
       "title": "Building a backend-powered blog",
       "summary": "Why this portfolio stores blog posts in SQLite and serves them through FastAPI.",
+      "cover_image_url": "https://example.com/backend-blog-cover.jpg",
+      "cover_image_alt": "A backend API diagram on a laptop screen",
       "category": "backend",
       "tags": ["FastAPI", "SQLite", "Portfolio"],
       "published_at": "2026-08-05",
@@ -158,7 +163,8 @@ Returns published posts with pagination:
 
 ### GET `/api/v1/blog/posts/{slug}`
 
-Returns one published post with full `content`. Unknown slugs return `404`.
+Returns one published post with full `content`, cover image metadata, and tags.
+Unknown slugs return `404`.
 
 ### Admin blog endpoints
 
@@ -179,6 +185,8 @@ full `content` and `status`:
       "slug": "backend-blog-api",
       "title": "Building a backend-powered blog",
       "summary": "Why this portfolio stores blog posts in SQLite and serves them through FastAPI.",
+      "cover_image_url": "https://example.com/backend-blog-cover.jpg",
+      "cover_image_alt": "A backend API diagram on a laptop screen",
       "content": "Full article content",
       "category": "backend",
       "tags": ["FastAPI", "SQLite", "Portfolio"],
@@ -200,7 +208,9 @@ Creates a post and returns HTTP `201`.
   "slug": "database-backed-blog",
   "title": "Building a database-backed blog",
   "summary": "How the portfolio blog is managed through FastAPI and PostgreSQL.",
-  "content": "Full post content",
+  "cover_image_url": "https://example.com/database-blog-cover.jpg",
+  "cover_image_alt": "Database tables connected to a web page",
+  "content": "Full post content\n\n![API response example](https://example.com/api-response.png)",
   "category": "backend",
   "tags": ["FastAPI", "PostgreSQL"],
   "status": "draft",

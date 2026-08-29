@@ -173,6 +173,8 @@ blog_posts = sa.Table(
     sa.Column("slug", sa.String, nullable=False),
     sa.Column("title", sa.String, nullable=False),
     sa.Column("summary", sa.Text, nullable=False),
+    sa.Column("cover_image_url", sa.Text),
+    sa.Column("cover_image_alt", sa.String(length=220)),
     sa.Column("content", sa.Text, nullable=False),
     sa.Column("category", sa.String, nullable=False),
     sa.Column("tags", sa.Text, nullable=False, server_default="[]"),

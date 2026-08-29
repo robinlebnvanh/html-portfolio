@@ -33,11 +33,22 @@ function setStatus(element, message, type = 'muted') {
   element.dataset.type = type;
 }
 
+function safeImageUrl(value) {
+  const url = String(value || '').trim();
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url) || /^(\.?\.?\/|assets\/)/.test(url)) return url;
+  return '';
+}
+
 function renderPostCard(post) {
   const tags = (post.tags || [])
     .map(tag => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join('');
   const postUrl = `note.html?slug=${encodeURIComponent(post.slug)}`;
+  const coverUrl = safeImageUrl(post.cover_image_url);
+  const cover = coverUrl
+    ? `<a class="blog-card-cover" href="${escapeHtml(postUrl)}"><img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(post.cover_image_alt || post.title)}" loading="lazy"></a>`
+    : '';
 
   return `
     <article class="blog-card reveal" data-slug="${escapeHtml(post.slug)}">
@@ -45,6 +56,7 @@ function renderPostCard(post) {
         <span>${escapeHtml(formatDate(post.published_at))}</span>
         <span>${escapeHtml(post.category)}</span>
       </div>
+      ${cover}
       <h3><a href="${escapeHtml(postUrl)}">${escapeHtml(post.title)}</a></h3>
       <p>${escapeHtml(post.summary)}</p>
       <div class="tags">${tags}</div>

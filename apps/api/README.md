@@ -82,7 +82,7 @@ fixture used by the seed step:
 For Render, its startup command runs `alembic upgrade head` before Uvicorn.
 A migration failure stops the release, preventing an API version from starting
 against an outdated database schema. Current required revision is
-`0008_admin_audit_logs`.
+`0009_blog_post_images`.
 
 ```bash
 docker build -f apps/api/Dockerfile -t prj008-api .

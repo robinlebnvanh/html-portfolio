@@ -146,6 +146,8 @@ class BlogPostCreate(BaseModel):
     slug: str = Field(min_length=1, max_length=120)
     title: str = Field(min_length=1, max_length=180)
     summary: str = Field(min_length=1, max_length=600)
+    cover_image_url: str | None = Field(default=None, max_length=1000)
+    cover_image_alt: str | None = Field(default=None, max_length=220)
     content: str = Field(min_length=1)
     category: str = Field(min_length=1, max_length=80)
     tags: list[str] = Field(default_factory=list)
@@ -159,6 +161,8 @@ class BlogPostUpdate(BaseModel):
     slug: str | None = Field(default=None, min_length=1, max_length=120)
     title: str | None = Field(default=None, min_length=1, max_length=180)
     summary: str | None = Field(default=None, min_length=1, max_length=600)
+    cover_image_url: str | None = Field(default=None, max_length=1000)
+    cover_image_alt: str | None = Field(default=None, max_length=220)
     content: str | None = Field(default=None, min_length=1)
     category: str | None = Field(default=None, min_length=1, max_length=80)
     tags: list[str] | None = None
@@ -618,10 +622,12 @@ def clean_blog_payload(values: dict[str, Any]) -> dict[str, Any]:
     cleaned = dict(values)
     if "slug" in cleaned and cleaned["slug"] is not None:
         cleaned["slug"] = normalize_blog_slug(cleaned["slug"])
-    for key in ("title", "summary", "content", "category", "published_at"):
+    for key in ("title", "summary", "cover_image_url", "cover_image_alt", "content", "category", "published_at"):
         if key in cleaned and isinstance(cleaned[key], str):
             cleaned[key] = cleaned[key].strip()
-            if key != "published_at" and not cleaned[key]:
+            if key in {"cover_image_url", "cover_image_alt", "published_at"} and not cleaned[key]:
+                cleaned[key] = None
+            elif not cleaned[key]:
                 raise HTTPException(status_code=422, detail=f"{key} must not be blank")
     if "tags" in cleaned and cleaned["tags"] is not None:
         cleaned["tags"] = [tag.strip() for tag in cleaned["tags"] if tag.strip()]
