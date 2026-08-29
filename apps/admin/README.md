@@ -47,11 +47,19 @@ The Blog workspace manages database-backed posts for the public personal site.
 Each post supports draft/published status, tags, a cover image URL with alt text,
 and inline article images inside `content` using Markdown image syntax.
 
+When Cloudinary env vars are configured on the API service, the Admin Console
+can upload local image files directly from the browser:
+
+- **Upload cover** uploads the selected image and fills `cover_image_url`.
+- **Upload inline image** uploads the selected image and inserts Markdown at the
+  current cursor position in `content`.
+- The browser receives only signed upload parameters; `CLOUDINARY_API_SECRET`
+  stays on the FastAPI server.
+
 Example inline image:
 
 ```md
 ![Admin overview loading state](https://example.com/admin-overview.png)
 ```
 
-The Admin Console stores image URLs only. It does not upload binary image files;
-image hosting remains external or static-site asset based.
+The post record stores image URLs only. Binary image files live in Cloudinary.

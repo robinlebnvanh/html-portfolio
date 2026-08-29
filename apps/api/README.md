@@ -36,6 +36,10 @@ ADMIN_API_TOKEN       required for write endpoints
 API_ALLOWED_ORIGINS   comma-separated frontend origins; local defaults are allowed
 PORT                  server port; hosting platforms usually provide this
 DATABASE_URL          SQLAlchemy database URL; SQLite is the local default
+CLOUDINARY_CLOUD_NAME Cloudinary product environment name for image uploads
+CLOUDINARY_API_KEY    Cloudinary upload API key
+CLOUDINARY_API_SECRET Cloudinary upload API secret, server-side only
+CLOUDINARY_UPLOAD_FOLDER Cloudinary Media Library folder, defaults to prj008/blog
 ```
 
 ## PostgreSQL migration foundation

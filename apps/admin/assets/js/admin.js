@@ -45,6 +45,7 @@ let serviceLeads = [];
 let leadActivities = {};
 let selectedLeadId = null;
 let siteChecks = {};
+let blogImageUploadTarget = 'cover';
 
 const leadStatuses = ['new', 'contacted', 'proposal_sent', 'booked', 'closed'];
 const jobStages = ['awaiting_files', 'editing', 'review', 'revision', 'delivered', 'paid'];
@@ -749,6 +750,80 @@ function blogPayload() {
     status: $('blog-post-status').value,
     published_at: $('blog-published-at').value || null,
   };
+}
+
+function fileAltText(file) {
+  return file.name
+    .replace(/\.[^.]+$/, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function insertAtCursor(field, value) {
+  const start = field.selectionStart ?? field.value.length;
+  const end = field.selectionEnd ?? field.value.length;
+  const before = field.value.slice(0, start);
+  const after = field.value.slice(end);
+  const prefix = before && !before.endsWith('\n\n') ? '\n\n' : '';
+  const suffix = after && !after.startsWith('\n\n') ? '\n\n' : '';
+  field.value = `${before}${prefix}${value}${suffix}${after}`;
+  const nextCursor = `${before}${prefix}${value}`.length;
+  field.focus();
+  field.setSelectionRange(nextCursor, nextCursor);
+}
+
+async function uploadBlogImage(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    setStatus($('blog-status'), 'Please choose an image file.', 'error');
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    setStatus($('blog-status'), 'Image must be 8MB or smaller.', 'error');
+    return;
+  }
+
+  try {
+    setStatus($('blog-status'), 'Preparing Cloudinary upload...');
+    const payload = await adminRequest('/api/v1/admin/uploads/cloudinary-signature', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+    const upload = payload.upload;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', upload.api_key);
+    formData.append('timestamp', upload.timestamp);
+    formData.append('signature', upload.signature);
+    formData.append('asset_folder', upload.asset_folder);
+
+    setStatus($('blog-status'), 'Uploading image to Cloudinary...');
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${upload.cloud_name}/image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(result.error?.message || `Cloudinary returned ${response.status}`);
+    }
+
+    const imageUrl = result.secure_url;
+    const altText = $('blog-cover-image-alt').value.trim() || fileAltText(file);
+    if (blogImageUploadTarget === 'inline') {
+      insertAtCursor($('blog-content'), `![${altText}](${imageUrl})`);
+      setStatus($('blog-status'), 'Inline image uploaded and inserted.', 'success');
+      return;
+    }
+
+    $('blog-cover-image-url').value = imageUrl;
+    if (!$('blog-cover-image-alt').value.trim()) $('blog-cover-image-alt').value = altText;
+    setStatus($('blog-status'), 'Cover image uploaded.', 'success');
+  } catch (error) {
+    setStatus($('blog-status'), error.message, 'error');
+  } finally {
+    $('blog-image-upload').value = '';
+  }
 }
 
 async function loadBlogPosts() {
@@ -1965,6 +2040,15 @@ $('blog-load').addEventListener('click', loadBlogPosts);
 $('blog-form').addEventListener('submit', saveBlogPost);
 $('blog-new').addEventListener('click', () => fillBlogForm(null));
 $('blog-delete').addEventListener('click', deleteBlogPost);
+$('blog-upload-cover').addEventListener('click', () => {
+  blogImageUploadTarget = 'cover';
+  $('blog-image-upload').click();
+});
+$('blog-upload-inline').addEventListener('click', () => {
+  blogImageUploadTarget = 'inline';
+  $('blog-image-upload').click();
+});
+$('blog-image-upload').addEventListener('change', event => uploadBlogImage(event.target.files?.[0]));
 $('blog-list').addEventListener('click', event => {
   const button = event.target.closest('[data-blog-id]');
   if (!button) return;

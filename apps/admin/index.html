@@ -179,8 +179,13 @@
               </div>
               <label class="field"><span>Title</span><input id="blog-title-field" required placeholder="What the post teaches"></label>
               <label class="field"><span>Summary</span><textarea id="blog-summary" rows="3" required placeholder="Short reader-facing summary"></textarea></label>
+              <input id="blog-image-upload" type="file" accept="image/*" hidden>
               <label class="field"><span>Cover image URL</span><input id="blog-cover-image-url" type="url" placeholder="https://example.com/article-cover.jpg"></label>
               <label class="field"><span>Cover image alt</span><input id="blog-cover-image-alt" maxlength="220" placeholder="Short description for accessibility"></label>
+              <div class="form-actions">
+                <button id="blog-upload-cover" class="module-action" type="button">Upload cover</button>
+                <button id="blog-upload-inline" class="module-action" type="button">Upload inline image</button>
+              </div>
               <div class="form-grid">
                 <label class="field"><span>Category</span><input id="blog-category" required placeholder="backend"></label>
                 <label class="field"><span>Published date</span><input id="blog-published-at" type="date"></label>

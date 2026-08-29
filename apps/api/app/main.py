@@ -1,4 +1,6 @@
+import hashlib
 import os
+import time
 from typing import Literal
 from typing import Annotated, Any
 
@@ -168,6 +170,12 @@ class BlogPostUpdate(BaseModel):
     tags: list[str] | None = None
     status: Literal["draft", "published"] | None = None
     published_at: str | None = None
+
+
+class CloudinaryUploadSignatureRequest(BaseModel):
+    """Optional metadata for a signed Cloudinary browser upload."""
+
+    folder: str | None = Field(default=None, max_length=220)
 
 
 class AdminLoginRequest(BaseModel):
@@ -632,6 +640,56 @@ def clean_blog_payload(values: dict[str, Any]) -> dict[str, Any]:
     if "tags" in cleaned and cleaned["tags"] is not None:
         cleaned["tags"] = [tag.strip() for tag in cleaned["tags"] if tag.strip()]
     return cleaned
+
+
+def cloudinary_upload_folder(requested_folder: str | None = None) -> str:
+    """Return the configured Cloudinary Media Library folder."""
+
+    folder = requested_folder or os.getenv("CLOUDINARY_UPLOAD_FOLDER") or "prj008/blog"
+    return folder.strip().strip("/")
+
+
+def signed_cloudinary_upload_params(requested_folder: str | None = None) -> dict[str, Any]:
+    """Build short-lived signed upload params without exposing the API secret."""
+
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+    api_key = os.getenv("CLOUDINARY_API_KEY")
+    api_secret = os.getenv("CLOUDINARY_API_SECRET")
+    if not cloud_name or not api_key or not api_secret:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Cloudinary upload is not configured",
+        )
+
+    timestamp = int(time.time())
+    params = {
+        "asset_folder": cloudinary_upload_folder(requested_folder),
+        "timestamp": timestamp,
+    }
+    payload = "&".join(f"{key}={params[key]}" for key in sorted(params))
+    signature = hashlib.sha1(f"{payload}{api_secret}".encode("utf-8")).hexdigest()
+
+    return {
+        "cloud_name": cloud_name,
+        "api_key": api_key,
+        "timestamp": timestamp,
+        "signature": signature,
+        "asset_folder": params["asset_folder"],
+    }
+
+
+@app.post(
+    "/api/v1/admin/uploads/cloudinary-signature",
+    tags=["uploads-admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def create_cloudinary_upload_signature(
+    payload: CloudinaryUploadSignatureRequest | None = None,
+) -> dict[str, Any]:
+    """Return signed params for an authenticated Cloudinary image upload."""
+
+    values = signed_cloudinary_upload_params(payload.folder if payload else None)
+    return {"upload": values}
 
 
 @app.get(

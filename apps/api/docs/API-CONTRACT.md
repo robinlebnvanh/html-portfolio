@@ -230,6 +230,37 @@ return `404`; duplicate slugs return `409`.
 
 Deletes one post. It returns `204` on success and `404` for an unknown ID.
 
+### Admin upload endpoint
+
+#### POST `/api/v1/admin/uploads/cloudinary-signature`
+
+Returns short-lived signed parameters for browser-to-Cloudinary image upload.
+Requires the same Admin Bearer token as blog CRUD. The API secret is never
+returned to the browser.
+
+Server env vars:
+
+```text
+CLOUDINARY_CLOUD_NAME
+CLOUDINARY_API_KEY
+CLOUDINARY_API_SECRET
+CLOUDINARY_UPLOAD_FOLDER=prj008/blog
+```
+
+Response:
+
+```json
+{
+  "upload": {
+    "cloud_name": "example-cloud",
+    "api_key": "123456789",
+    "timestamp": 1788000000,
+    "signature": "sha1-signature",
+    "asset_folder": "prj008/blog"
+  }
+}
+```
+
 ### Admin summary endpoint
 
 #### GET `/api/v1/admin/summary`
