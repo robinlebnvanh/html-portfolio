@@ -73,6 +73,14 @@ function escapeHtml(value) {
   }[char]));
 }
 
+function semanticClass(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-');
+}
+
 function formatDateLabel(value) {
   if (!value) return 'Not set';
   return String(value).slice(0, 10);
@@ -101,7 +109,7 @@ function setPortfolioDirty(isDirty) {
   setStatus(
     portfolioDirtyStatus,
     isDirty ? 'Unsaved changes' : 'No unsaved changes',
-    isDirty ? 'error' : 'success',
+    isDirty ? 'warning' : 'success',
   );
 }
 
@@ -300,7 +308,7 @@ function renderBlogList() {
   list.innerHTML = blogPosts.map(post => `
     <button class="item-button" type="button" data-blog-id="${post.id}">
       <strong>${escapeHtml(post.title)}</strong>
-      <span>${escapeHtml(post.status)} / ${escapeHtml(post.slug)}</span>
+      <span class="item-meta"><span class="content-status-badge ${semanticClass(post.status)}">${escapeHtml(post.status)}</span><span>${escapeHtml(post.slug)}</span></span>
     </button>
   `).join('');
 }
@@ -408,7 +416,7 @@ function renderHoldings(holdings) {
       <td>${Number(holding.quantity).toLocaleString()}</td>
       <td>${Number(holding.avg_cost).toLocaleString()}</td>
       <td>${escapeHtml(holding.entry_date)}</td>
-      <td>${escapeHtml(holding.status)}</td>
+      <td><span class="holding-status-badge ${semanticClass(holding.status)}">${escapeHtml(holding.status)}</span></td>
       <td>${(holding.targets || []).map(Number).map(value => value.toLocaleString()).join(', ') || '-'}</td>
       <td class="row-actions">
         <button type="button" data-holding-edit="${holding.id}">Edit</button>
@@ -612,7 +620,7 @@ function renderTrades(journals) {
     <tr>
       <td><span class="ticker-badge">${escapeHtml(trade.ticker)}</span></td>
       <td>${escapeHtml(trade.date)}</td>
-      <td>${escapeHtml(trade.type)}</td>
+      <td><span class="trade-type-badge ${semanticClass(trade.type)}">${escapeHtml(trade.type)}</span></td>
       <td>${Number(trade.quantity || 0).toLocaleString()}</td>
       <td>${Number(trade.price).toLocaleString()}</td>
       <td>${trade.stop_loss == null ? '-' : Number(trade.stop_loss).toLocaleString()}</td>
@@ -966,7 +974,7 @@ function savePortfolioVersion(content) {
 function restorePortfolioDraft() {
   const draft = localStorage.getItem(portfolioDraftKey);
   if (!draft) {
-    setStatus($('portfolio-status'), 'No local draft found.', 'error');
+    setStatus($('portfolio-status'), 'No local draft found.', 'warning');
     return;
   }
   try {
@@ -981,7 +989,7 @@ function restorePortfolioDraft() {
 function restoreLastPortfolioVersion() {
   const [lastVersion] = portfolioVersions();
   if (!lastVersion?.content) {
-    setStatus($('portfolio-status'), 'No local version found.', 'error');
+    setStatus($('portfolio-status'), 'No local version found.', 'warning');
     return;
   }
   fillPortfolioForm(lastVersion.content);

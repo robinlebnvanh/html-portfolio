@@ -9,8 +9,10 @@
   --line: #d8e0ea;
   --accent: #0f766e;
   --accent-strong: #115e59;
-  --danger: #a83d3d;
-  --success: #247246;
+  --info: #2563eb;
+  --warning: #a16207;
+  --danger: #b42318;
+  --success: #1f7a4d;
   --focus: #2563eb;
   --shadow: 0 18px 48px rgba(23, 32, 51, 0.08);
   font-family: "Manrope", Arial, sans-serif;
@@ -161,12 +163,12 @@ h3 {
 }
 
 .primary-button {
-  background: var(--surface-strong);
+  background: var(--accent);
   color: #fff;
 }
 
 .primary-button:hover {
-  background: #263142;
+  background: var(--accent-strong);
 }
 
 .ghost-button {
@@ -185,6 +187,10 @@ h3 {
 
 [data-type="success"] {
   color: var(--success);
+}
+
+[data-type="warning"] {
+  color: var(--warning);
 }
 
 [data-type="error"] {
@@ -336,7 +342,7 @@ h3 {
 }
 
 .subnav-item.active {
-  background: var(--surface-strong);
+  background: var(--accent);
   color: #fff;
 }
 
@@ -418,10 +424,17 @@ h3 {
   color: var(--text);
 }
 
+.module-action:hover {
+  border-color: rgba(15, 118, 110, 0.36);
+  background: rgba(15, 118, 110, 0.06);
+  color: var(--accent-strong);
+}
+
 .module-action.disabled,
 .module-action:disabled {
   cursor: not-allowed;
   color: var(--muted);
+  opacity: 0.65;
 }
 
 .system-panel {
@@ -528,13 +541,19 @@ h3 {
 
 .danger-button {
   min-height: 44px;
-  border: 1px solid rgba(168, 61, 61, 0.3);
+  border: 1px solid rgba(180, 35, 24, 0.28);
   border-radius: 6px;
   padding: 0 16px;
-  background: rgba(168, 61, 61, 0.08);
+  background: rgba(180, 35, 24, 0.08);
   color: var(--danger);
   cursor: pointer;
   font-weight: 800;
+}
+
+.danger-button:hover,
+.project-editor-controls .danger-link:hover {
+  border-color: rgba(180, 35, 24, 0.48);
+  background: rgba(180, 35, 24, 0.14);
 }
 
 .item-list {
@@ -559,6 +578,13 @@ h3 {
 .empty-note {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.item-button .item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .admin-block {
@@ -621,7 +647,10 @@ h3 {
 }
 
 .ticker-badge,
-.chip {
+.chip,
+.holding-status-badge,
+.trade-type-badge,
+.content-status-badge {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
@@ -633,6 +662,41 @@ h3 {
 .ticker-badge {
   min-height: 26px;
   padding: 0 10px;
+}
+
+.holding-status-badge,
+.trade-type-badge,
+.content-status-badge {
+  min-height: 26px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.holding-status-badge.holding,
+.trade-type-badge.buy,
+.trade-type-badge.mua,
+.content-status-badge.published {
+  background: rgba(31, 122, 77, 0.12);
+  color: var(--success);
+}
+
+.holding-status-badge.watching {
+  background: rgba(161, 98, 7, 0.12);
+  color: var(--warning);
+}
+
+.holding-status-badge.closed,
+.content-status-badge.draft {
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--muted);
+}
+
+.trade-type-badge.sell,
+.trade-type-badge.ban {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--info);
 }
 
 .chip-list {
@@ -656,6 +720,15 @@ h3 {
   font-weight: 800;
 }
 
+.row-actions button {
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+
+.row-actions button:hover {
+  background: rgba(15, 118, 110, 0.1);
+}
+
 .row-actions {
   white-space: nowrap;
 }
@@ -663,6 +736,10 @@ h3 {
 .danger-link,
 .row-actions .danger-link {
   color: var(--danger);
+}
+
+.row-actions .danger-link:hover {
+  background: rgba(180, 35, 24, 0.1);
 }
 
 .leads-table {
@@ -712,28 +789,34 @@ h3 {
 }
 
 .lead-status-badge.new {
-  background: rgba(31, 111, 91, 0.12);
+  background: rgba(15, 118, 110, 0.12);
   color: var(--accent-strong);
 }
 
-.lead-status-badge.proposal_sent,
-.lead-status-badge.booked {
-  background: rgba(36, 114, 70, 0.12);
-  color: var(--success);
+.lead-status-badge.contacted,
+.lead-status-badge.job-editing {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--info);
 }
 
+.lead-status-badge.proposal_sent,
 .lead-status-badge.job-awaiting_files,
-.lead-status-badge.job-editing,
 .lead-status-badge.job-review,
 .lead-status-badge.job-revision {
-  background: rgba(37, 99, 235, 0.1);
-  color: var(--focus);
+  background: rgba(161, 98, 7, 0.12);
+  color: var(--warning);
 }
 
+.lead-status-badge.booked,
 .lead-status-badge.job-delivered,
 .lead-status-badge.job-paid {
-  background: rgba(36, 114, 70, 0.12);
+  background: rgba(31, 122, 77, 0.12);
   color: var(--success);
+}
+
+.lead-status-badge.closed {
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--muted);
 }
 
 .lead-metrics {
@@ -816,6 +899,11 @@ h3 {
   color: var(--text);
   cursor: pointer;
   text-align: left;
+}
+
+.pipeline-card:hover {
+  border-color: rgba(15, 118, 110, 0.38);
+  background: rgba(15, 118, 110, 0.06);
 }
 
 .pipeline-card span {
@@ -1033,8 +1121,8 @@ h3 {
 }
 
 .project-editor-controls .danger-link {
-  border-color: rgba(168, 61, 61, 0.3);
-  background: rgba(168, 61, 61, 0.08);
+  border-color: rgba(180, 35, 24, 0.28);
+  background: rgba(180, 35, 24, 0.08);
 }
 
 .advanced-json {
