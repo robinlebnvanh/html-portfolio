@@ -2,7 +2,8 @@
 
 ## Scope
 
-L3-03 defines the first read-only data contract before database access is implemented.
+This contract defines the private Stocks Admin API, including the trade-ledger
+rules used to derive current holdings.
 
 Base URL during local development:
 
@@ -24,6 +25,22 @@ Admin-only. Requires an `Authorization: Bearer <token>` header.
 Returns the current private portfolio summary, holdings, and watchlist.
 Holdings include their stable numeric `id`, which the Admin UI uses for
 PATCH/DELETE.
+
+### Stocks business rules
+
+- **Trades are the ledger**: the current Holding is rebuilt from each ticker's
+  time-ordered trade timeline.
+- **BUY/MUA** adds quantity and recalculates weighted average cost.
+- **SELL/BAN** reduces quantity at the current average cost. A request is
+  rejected with `409 Conflict` if it would make the position negative.
+- **ADJUSTMENT** is an immutable position snapshot created by a manual Holding
+  edit. It sets the corrected quantity and average cost without changing older
+  trade records.
+- **Close Holding** appends an `ADJUSTMENT` with quantity `0`; it never deletes
+  the historical trades required to explain the position.
+
+Example: a ledger with `BUY 100` followed by `SELL 40` can only delete the BUY
+after the SELL is deleted or corrected. This prevents an invalid `-40` holding.
 
 ```json
 {
@@ -203,9 +220,24 @@ return `404`; duplicate slugs return `409`.
 
 Deletes one post. It returns `204` on success and `404` for an unknown ID.
 
+### Admin summary endpoint
+
+#### GET `/api/v1/admin/summary`
+
+Returns lightweight counts for the Admin Console overview without loading full
+blog post content or full lead records:
+
+```json
+{
+  "blog_posts": 2,
+  "service_leads": 0
+}
+```
+
 ## Authentication (L3-07)
 
-The read endpoints and `/health` are public. All admin/write endpoints
+`/health`, public blog reads, public portfolio content, and public lead
+submission are public. Private Stocks reads and all admin/write endpoints
 require an `Authorization` header using the Bearer scheme:
 
 ```text
@@ -253,7 +285,9 @@ holding appends a zero-quantity adjustment; it does not erase trade history.
 
 ### DELETE `/api/v1/stocks/holdings/{holding_id}`
 
-Deletes the holding and its target prices. It returns `204` on success and `404` for an unknown ID.
+Closes the holding through a zero-quantity `ADJUSTMENT`. It returns `204` on
+success and `404` for an unknown ID. Trade history and holding metadata remain
+available for audit.
 
 All write endpoints validate request bodies, require the admin bearer token,
 and persist within the database transaction opened by the API.
@@ -324,6 +358,7 @@ zero. An operation that would create a negative position, including deleting a
 historical BUY needed by a later SELL, returns `409 Conflict`. Trade rows
 returned by `GET /api/v1/stocks/journals` include stable
 numeric `id`, `ticker`, and `quantity` fields for Admin UI edit/delete actions.
+Supported types are `BUY`, `MUA`, `SELL`, `BAN`, `BÁN`, and `ADJUSTMENT`.
 
 ### PATCH `/api/v1/stocks/trades/{trade_id}`
 
@@ -338,6 +373,24 @@ Deletes one trade row. Unknown trades return `404`.
 Returns the latest authenticated Stocks Admin mutations, including actor,
 action, entity, ticker, timestamp, and before/after JSON snapshots. It accepts
 an optional `limit` from 1 to 200 and requires the admin Bearer token.
+
+```json
+{
+  "logs": [
+    {
+      "id": 42,
+      "actor": "admin@example.com",
+      "action": "adjust",
+      "entity_type": "holding_adjustment",
+      "entity_id": "16",
+      "ticker": "FPT",
+      "before_json": "{...}",
+      "after_json": "{...}",
+      "created_at": "2026-08-29T10:00:00Z"
+    }
+  ]
+}
+```
 
 ## Service lead endpoints (P2-11)
 

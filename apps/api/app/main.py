@@ -14,6 +14,7 @@ from app.admin_auth import (
 )
 from app.blog_repository import (
     blog_slug_exists,
+    count_admin_posts,
     create_blog_post,
     delete_blog_post,
     get_published_post,
@@ -28,6 +29,7 @@ from app.lead_repository import (
     VALID_LEAD_CHANNELS,
     VALID_LEAD_STATUSES,
     VALID_JOB_STAGES,
+    count_leads,
     create_lead_activity,
     create_lead,
     list_lead_activities,
@@ -475,6 +477,21 @@ def admin_portfolio_content() -> dict[str, Any]:
     """Return editable portfolio content for the Admin Console."""
     with get_session() as session:
         return {"content": get_portfolio_content(session)}
+
+
+@app.get(
+    "/api/v1/admin/summary",
+    tags=["admin"],
+    dependencies=[Depends(require_admin_token)],
+)
+def admin_summary() -> dict[str, Any]:
+    """Return lightweight Admin Console overview counts."""
+
+    with get_session() as session:
+        return {
+            "blog_posts": count_admin_posts(session),
+            "service_leads": count_leads(session),
+        }
 
 
 @app.patch(

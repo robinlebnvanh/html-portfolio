@@ -644,32 +644,6 @@ async function checkHealth() {
   }
 }
 
-async function loadBlogAdminSummary() {
-  setStatus(blogCountValue, '-');
-  setStatus(blogCountDetail, 'Loading authenticated blog summary...');
-  try {
-    const payload = await adminRequest('/api/v1/admin/blog/posts');
-    setStatus(blogCountValue, String(payload.total ?? payload.posts?.length ?? 0), 'success');
-    setStatus(blogCountDetail, 'Token accepted by the admin blog endpoint.', 'success');
-  } catch (error) {
-    setStatus(blogCountValue, 'Blocked', 'error');
-    setStatus(blogCountDetail, error.message, 'error');
-  }
-}
-
-async function loadLeadAdminSummary() {
-  setStatus(leadCountValue, '-');
-  setStatus(leadCountDetail, 'Loading authenticated lead summary...');
-  try {
-    const payload = await adminRequest('/api/v1/admin/leads');
-    setStatus(leadCountValue, String(payload.total ?? payload.leads?.length ?? 0), 'success');
-    setStatus(leadCountDetail, 'Token accepted by the admin lead endpoint.', 'success');
-  } catch (error) {
-    setStatus(leadCountValue, 'Blocked', 'error');
-    setStatus(leadCountDetail, error.message, 'error');
-  }
-}
-
 async function loginAdmin(email, password) {
   const response = await fetch(`${apiBaseUrl}/api/v1/auth/login`, {
     method: 'POST',
@@ -689,7 +663,26 @@ async function validateSession() {
 
 async function loadDashboard() {
   apiBaseUrlValue.textContent = apiBaseUrl;
-  await Promise.all([checkHealth(), loadBlogAdminSummary(), loadLeadAdminSummary()]);
+  await Promise.all([checkHealth(), loadAdminSummary()]);
+}
+
+async function loadAdminSummary() {
+  setStatus(blogCountValue, '-');
+  setStatus(leadCountValue, '-');
+  setStatus(blogCountDetail, 'Loading authenticated admin summary...');
+  setStatus(leadCountDetail, 'Loading authenticated admin summary...');
+  try {
+    const payload = await adminRequest('/api/v1/admin/summary');
+    setStatus(blogCountValue, String(payload.blog_posts ?? 0), 'success');
+    setStatus(blogCountDetail, 'Loaded lightweight admin summary.', 'success');
+    setStatus(leadCountValue, String(payload.service_leads ?? 0), 'success');
+    setStatus(leadCountDetail, 'Loaded lightweight admin summary.', 'success');
+  } catch (error) {
+    setStatus(blogCountValue, 'Blocked', 'error');
+    setStatus(blogCountDetail, error.message, 'error');
+    setStatus(leadCountValue, 'Blocked', 'error');
+    setStatus(leadCountDetail, error.message, 'error');
+  }
 }
 
 function tagsFromInput(value) {
@@ -760,8 +753,10 @@ async function loadBlogPosts() {
     const payload = await adminRequest('/api/v1/admin/blog/posts');
     blogPosts = payload.posts || [];
     renderBlogList();
-    setStatus($('blog-status'), `Loaded ${payload.total ?? blogPosts.length} database posts.`, 'success');
-    await loadBlogAdminSummary();
+    const total = payload.total ?? blogPosts.length;
+    setStatus($('blog-status'), `Loaded ${total} database posts.`, 'success');
+    setStatus(blogCountValue, String(total), 'success');
+    setStatus(blogCountDetail, 'Updated from the loaded blog list.', 'success');
   } catch (error) {
     setStatus($('blog-status'), error.message, 'error');
   }
@@ -1809,8 +1804,10 @@ async function loadLeads() {
     const payload = await adminRequest(`/api/v1/admin/leads?${params.toString()}`);
     serviceLeads = payload.leads || [];
     renderLeads(filteredLeads());
-    setStatus($('leads-status'), `Loaded ${payload.total ?? serviceLeads.length} service leads.`, 'success');
-    await loadLeadAdminSummary();
+    const total = payload.total ?? serviceLeads.length;
+    setStatus($('leads-status'), `Loaded ${total} service leads.`, 'success');
+    setStatus(leadCountValue, String(total), 'success');
+    setStatus(leadCountDetail, 'Updated from the loaded lead list.', 'success');
   } catch (error) {
     setStatus($('leads-status'), error.message, 'error');
   }

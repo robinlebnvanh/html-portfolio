@@ -9,6 +9,7 @@ from pathlib import Path
 
 from app.database import initialize_database
 from app.lead_repository import (
+    count_leads,
     create_lead,
     create_lead_activity,
     list_lead_activities,
@@ -68,6 +69,7 @@ class LeadRepositoryTests(unittest.TestCase):
         self.assertEqual(result["leads"][1]["id"], first["id"])
         self.assertEqual(first["status"], "new")
         self.assertEqual(first["channel"], "form")
+        self.assertEqual(count_leads(self.session), 2)
 
     def test_update_lead_status_and_filter(self) -> None:
         lead = create_lead(

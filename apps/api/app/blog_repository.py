@@ -192,6 +192,12 @@ def list_admin_posts(
     }
 
 
+def count_admin_posts(session: Session) -> int:
+    """Return the total number of database-backed blog posts."""
+
+    return int(session.scalar(select(func.count()).select_from(blog_posts)) or 0)
+
+
 def blog_slug_exists(session: Session, slug: str, exclude_post_id: int | None = None) -> bool:
     """Return whether another blog post already uses the slug."""
     query = select(func.count()).where(blog_posts.c.slug == slug)

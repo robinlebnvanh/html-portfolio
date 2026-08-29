@@ -44,7 +44,11 @@ class AdminTokenTests(unittest.TestCase):
         self.assertEqual(error.exception.status_code, 503)
 
     def test_private_stock_read_routes_require_admin_token(self):
-        private_paths = {"/api/v1/stocks/portfolio", "/api/v1/stocks/journals"}
+        private_paths = {
+            "/api/v1/admin/summary",
+            "/api/v1/stocks/portfolio",
+            "/api/v1/stocks/journals",
+        }
 
         for route in app.routes:
             if getattr(route, "path", None) in private_paths:

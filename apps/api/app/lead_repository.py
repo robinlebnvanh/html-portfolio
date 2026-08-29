@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import desc, insert, or_, select, update
+from sqlalchemy import desc, func, insert, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.sqlalchemy_tables import service_lead_activities, service_leads
@@ -122,6 +122,12 @@ def list_leads(
     ).mappings().all()
     leads = [_row_to_lead(dict(row)) for row in rows]
     return {"total": len(leads), "leads": leads}
+
+
+def count_leads(session: Session) -> int:
+    """Return the total number of service leads."""
+
+    return int(session.scalar(select(func.count()).select_from(service_leads)) or 0)
 
 
 def _row_to_activity(row: dict[str, Any]) -> dict[str, Any]:

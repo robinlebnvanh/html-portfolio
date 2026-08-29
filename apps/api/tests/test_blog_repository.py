@@ -11,6 +11,7 @@ from sqlalchemy import insert
 
 from app.blog_repository import (
     blog_slug_exists,
+    count_admin_posts,
     create_blog_post,
     delete_blog_post,
     get_published_post,
@@ -108,6 +109,7 @@ class BlogRepositoryTests(unittest.TestCase):
         self.assertEqual(created["tags"], ["FastAPI", "CRUD"])
         self.assertTrue(blog_slug_exists(self.session, "admin-draft"))
         self.assertEqual(list_admin_posts(self.session)["total"], 1)
+        self.assertEqual(count_admin_posts(self.session), 1)
         self.assertEqual(list_published_posts(self.session, limit=4, offset=0)["total"], 0)
 
         updated = update_blog_post(
@@ -134,6 +136,7 @@ class BlogRepositoryTests(unittest.TestCase):
         self.assertTrue(delete_blog_post(self.session, created["id"]))
         self.assertFalse(delete_blog_post(self.session, created["id"]))
         self.assertEqual(list_admin_posts(self.session)["total"], 0)
+        self.assertEqual(count_admin_posts(self.session), 0)
 
 
 if __name__ == "__main__":
