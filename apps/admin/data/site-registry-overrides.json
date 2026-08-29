@@ -1,0 +1,179 @@
+{
+  "/": {
+    "name": "Root redirect",
+    "category": "redirect",
+    "visibility": "public",
+    "owner": "Portfolio",
+    "description": "Redirects visitors to the personal portfolio home."
+  },
+  "/apps/admin/": {
+    "name": "Admin Console",
+    "category": "admin",
+    "visibility": "private",
+    "owner": "Admin",
+    "description": "Private operator surface for content, leads, stocks, and site structure."
+  },
+  "/apps/personal-site/": {
+    "name": "Portfolio home",
+    "category": "portfolio",
+    "visibility": "public",
+    "owner": "Portfolio CMS",
+    "description": "Main public profile, product studio positioning, and selected work."
+  },
+  "/apps/personal-site/blog.html": {
+    "name": "Notes",
+    "category": "portfolio",
+    "visibility": "public",
+    "owner": "Blog CMS",
+    "description": "Public learning notes and database-backed posts."
+  },
+  "/apps/personal-site/case-studies/investment-dashboard.html": {
+    "name": "Investment Dashboard case study",
+    "category": "case-study",
+    "visibility": "public",
+    "owner": "Portfolio CMS",
+    "description": "Case study for the stocks dashboard product demo."
+  },
+  "/apps/personal-site/case-studies/fame-lux-nails.html": {
+    "name": "Fame Lux Nails case study",
+    "category": "case-study",
+    "visibility": "public",
+    "owner": "Portfolio CMS",
+    "description": "Case study for the service landing-page demo."
+  },
+  "/apps/personal-site/case-studies/personal-ai-agent.html": {
+    "name": "Personal AI Agent case study",
+    "category": "case-study",
+    "visibility": "public",
+    "owner": "Portfolio CMS",
+    "description": "Case study for the AI assistant workflow."
+  },
+  "/apps/personal-site/case-studies/service-business-kit.html": {
+    "name": "Service Business Kit case study",
+    "category": "case-study",
+    "visibility": "public",
+    "owner": "Portfolio CMS",
+    "description": "Case study for reusable booking-ready service websites."
+  },
+  "/apps/personal-site/case-studies/photography-studio.html": {
+    "name": "Photography Studio case study",
+    "category": "case-study",
+    "visibility": "public",
+    "owner": "Portfolio CMS",
+    "description": "Case study for wedding, baby, and maternity studio positioning."
+  },
+  "/apps/personal-site/case-studies/wedding-planner.html": {
+    "name": "Wedding Planner case study",
+    "category": "case-study",
+    "visibility": "public",
+    "owner": "Portfolio CMS",
+    "description": "Case study for inquiry and proposal planning workflow."
+  },
+  "/apps/photoshop-retouching/": {
+    "name": "Photoshop Retouching",
+    "category": "redirect",
+    "visibility": "public",
+    "owner": "Robin Retouch Studio",
+    "description": "Market selector redirect for Photoshop service pages."
+  },
+  "/apps/photoshop-retouching/vi/": {
+    "name": "Photoshop Vietnam",
+    "category": "service",
+    "visibility": "public",
+    "owner": "Robin Retouch Studio",
+    "description": "Vietnamese Photoshop quote page with VND pricing."
+  },
+  "/apps/photoshop-retouching/au/": {
+    "name": "Photoshop Australia",
+    "category": "service",
+    "visibility": "public",
+    "owner": "Robin Retouch Studio",
+    "description": "English Photoshop quote page with AUD pricing."
+  },
+  "/apps/service-business-kit/": {
+    "name": "Service Business Kit",
+    "category": "service",
+    "visibility": "public",
+    "owner": "Service demos",
+    "description": "Reusable service-business landing page and inquiry pattern."
+  },
+  "/apps/photography-studio-demo/": {
+    "name": "Photography Studio Demo",
+    "category": "service",
+    "visibility": "public",
+    "owner": "Service demos",
+    "description": "Photography studio demo for wedding, baby, and maternity clients."
+  },
+  "/apps/wedding-planner-demo/": {
+    "name": "Wedding Planner Demo",
+    "category": "service",
+    "visibility": "public",
+    "owner": "Service demos",
+    "description": "Wedding planning inquiry and proposal demo."
+  },
+  "/apps/nail-landing-page/": {
+    "name": "Nail Landing Page",
+    "category": "demo",
+    "visibility": "public",
+    "owner": "Service demos",
+    "description": "Fame Lux Nails landing-page demo."
+  },
+  "/apps/stocks-app/": {
+    "name": "Stocks dashboard",
+    "category": "demo",
+    "visibility": "public",
+    "owner": "Stocks operations",
+    "description": "Public shell for investment dashboard views."
+  },
+  "/apps/stocks-app/journal.html": {
+    "name": "Stocks journal",
+    "category": "demo",
+    "visibility": "public",
+    "owner": "Stocks operations",
+    "description": "Stock thesis and journal reading surface."
+  },
+  "/apps/stocks-app/portfolio.html": {
+    "name": "Stocks portfolio",
+    "category": "demo",
+    "visibility": "public",
+    "owner": "Stocks operations",
+    "description": "Portfolio dashboard reading surface."
+  },
+  "/health": {
+    "name": "API health",
+    "category": "api",
+    "visibility": "system",
+    "owner": "FastAPI",
+    "description": "Render backend health endpoint.",
+    "urlType": "api",
+    "method": "GET"
+  },
+  "/openapi.json": {
+    "name": "OpenAPI schema",
+    "category": "api",
+    "visibility": "system",
+    "owner": "FastAPI",
+    "description": "Machine-readable API contract.",
+    "urlType": "api",
+    "method": "GET"
+  },
+  "/api/v1/leads": {
+    "name": "Lead intake API",
+    "category": "api",
+    "visibility": "system",
+    "owner": "FastAPI",
+    "description": "Public write endpoint used by service booking forms.",
+    "urlType": "api",
+    "checkMode": "contract"
+  },
+  "/api/v1/admin/leads": {
+    "name": "Admin leads API",
+    "category": "api",
+    "visibility": "private",
+    "owner": "FastAPI",
+    "description": "Authenticated lead management endpoint.",
+    "urlType": "api",
+    "method": "GET",
+    "requiresAuth": true
+  }
+}

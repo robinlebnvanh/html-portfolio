@@ -50,7 +50,7 @@ const leadStatuses = ['new', 'contacted', 'proposal_sent', 'booked', 'closed'];
 const jobStages = ['awaiting_files', 'editing', 'review', 'revision', 'delivered', 'paid'];
 const publicBaseUrl = new URL('../../', window.location.href);
 
-const siteRegistry = [
+const fallbackSiteRegistry = [
   {
     name: 'Root redirect',
     category: 'redirect',
@@ -273,6 +273,7 @@ const siteRegistry = [
     requiresAuth: true,
   },
 ];
+let siteRegistry = [...fallbackSiteRegistry];
 
 const leadStatusLabels = {
   new: 'New',
@@ -320,6 +321,34 @@ function todayIso() {
 
 function publicUrl(route) {
   return new URL(String(route || '').replace(/^\//, ''), publicBaseUrl).href;
+}
+
+function siteUrl(site) {
+  if (site.url) return site.url;
+  if (site.urlType === 'api') return `${apiBaseUrl}${site.route}`;
+  return publicUrl(site.route);
+}
+
+function normalizeSite(site) {
+  return {
+    ...site,
+    url: siteUrl(site),
+  };
+}
+
+async function loadSiteRegistry() {
+  try {
+    const response = await fetch('data/site-registry.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Registry returned ${response.status}`);
+    const payload = await response.json();
+    if (!Array.isArray(payload.sites)) throw new Error('Registry has no sites array.');
+    siteRegistry = payload.sites.map(normalizeSite);
+    setStatus($('sites-status'), `Loaded ${siteRegistry.length} generated site entries.`, 'success');
+  } catch (error) {
+    siteRegistry = fallbackSiteRegistry.map(normalizeSite);
+    setStatus($('sites-status'), `Using fallback site map: ${error.message}`, 'warning');
+  }
+  renderSites();
 }
 
 function moneyLabel(amount, currency) {
@@ -2104,7 +2133,7 @@ resetTradeForm();
 showStockPanel('holdings');
 showPortfolioPanel('hero');
 apiBaseUrlValue.textContent = apiBaseUrl;
-renderSites();
+loadSiteRegistry();
 
 if (adminToken()) {
   validateSession().then(showDashboard).catch(() => {

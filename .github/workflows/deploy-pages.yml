@@ -29,6 +29,9 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Generate site registry
+        run: node scripts/generate-site-registry.mjs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
