@@ -70,12 +70,10 @@ class PortfolioContentRepositoryTests(unittest.TestCase):
                     "tech": ["FastAPI"],
                     "category": "tool",
                     "link": "case-studies/investment-dashboard.html",
-                    "demoLink": "../stocks-app/",
                     "github": "https://github.com/robinlebnvanh",
                     "date": "Managed",
                     "visual": "dashboard",
                     "linkLabel": "Read case study",
-                    "demoLabel": "Open demo",
                 }
             ],
         }
@@ -98,12 +96,10 @@ class PortfolioContentRepositoryTests(unittest.TestCase):
             "outcome": "Shows managed portfolio content.",
             "tech": ["FastAPI"],
             "link": "case-studies/investment-dashboard.html",
-            "demoLink": "../stocks-app/",
             "github": "https://github.com/robinlebnvanh",
             "date": "Managed",
             "visual": "dashboard",
             "linkLabel": "Read case study",
-            "demoLabel": "Open demo",
         }
 
         for category in ("tool", "frontend", "backend", "full-stack", "automation"):

@@ -74,12 +74,10 @@ DEFAULT_PORTFOLIO_CONTENT: dict[str, Any] = {
             "tech": ["JavaScript", "FastAPI", "PostgreSQL"],
             "category": "tool",
             "link": "case-studies/investment-dashboard.html",
-            "demoLink": "../stocks-app/",
             "github": "https://github.com/robinlebnvanh",
-            "date": "Live demo",
+            "date": "Private admin app",
             "visual": "dashboard",
             "linkLabel": "Read case study",
-            "demoLabel": "Open demo",
         },
         {
             "id": 2,
