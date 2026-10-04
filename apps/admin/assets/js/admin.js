@@ -587,6 +587,10 @@ function showSection(name) {
     if (isActive) item.setAttribute('aria-current', 'page');
     else item.removeAttribute('aria-current');
   });
+
+  if (target === 'stocks' && !stockState.portfolio && adminToken()) {
+    loadStockData();
+  }
 }
 
 function showStockPanel(name) {
