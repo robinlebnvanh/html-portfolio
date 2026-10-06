@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.admin_auth import create_access_token
-from app.auth import require_admin_token, require_stock_read_token
+from app.auth import require_admin_token, require_stock_read_token, require_stock_write_token
 from app.main import app, signed_cloudinary_upload_params
 
 
@@ -49,6 +49,7 @@ class AdminTokenTests(unittest.TestCase):
             "/api/v1/admin/uploads/cloudinary-signature",
             "/api/v1/stocks/portfolio",
             "/api/v1/stocks/journals",
+            "/api/v1/stocks/analysis-history",
         }
 
         for route in app.routes:
@@ -95,6 +96,44 @@ class AdminTokenTests(unittest.TestCase):
                 self.assertIn(require_stock_read_token, dependency_calls)
                 return
         self.fail("analysis context route was not registered")
+
+    def test_stock_write_token_is_accepted_for_write_dependency(self):
+        with patch.dict(
+            "os.environ",
+            {"STOCK_ANALYSIS_WRITE_TOKEN": "write-only", "ADMIN_API_TOKEN": "admin"},
+            clear=True,
+        ):
+            self.assertIsNone(
+                require_stock_write_token(self.credentials("write-only"))
+            )
+
+    def test_stock_read_token_cannot_satisfy_stock_write_dependency(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "STOCK_ANALYSIS_API_TOKEN": "read-only",
+                "STOCK_ANALYSIS_WRITE_TOKEN": "write-only",
+                "ADMIN_API_TOKEN": "admin",
+            },
+            clear=True,
+        ):
+            with self.assertRaises(HTTPException) as error:
+                require_stock_write_token(self.credentials("read-only"))
+        self.assertEqual(error.exception.status_code, 401)
+
+    def test_analysis_learning_routes_use_stock_write_dependency(self):
+        expected_paths = {
+            "/api/v1/stocks/analysis-reviews",
+            "/api/v1/stocks/analysis-lessons",
+        }
+        for route in app.routes:
+            if getattr(route, "path", None) in expected_paths:
+                dependency_calls = [
+                    dependency.dependency for dependency in route.dependencies
+                ]
+                self.assertIn(require_stock_write_token, dependency_calls)
+                expected_paths.remove(route.path)
+        self.assertEqual(expected_paths, set())
 
     def test_cloudinary_signature_requires_server_configuration(self):
         with patch.dict("os.environ", {}, clear=True):

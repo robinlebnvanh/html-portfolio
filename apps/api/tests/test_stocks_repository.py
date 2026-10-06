@@ -23,6 +23,8 @@ from app.sqlalchemy_tables import (
     trades,
 )
 from app.stocks_repository import (
+    create_analysis_lesson,
+    create_analysis_review,
     create_holding,
     create_trade,
     create_watchlist_item,
@@ -30,6 +32,7 @@ from app.stocks_repository import (
     delete_holding,
     delete_trade,
     delete_watchlist_item,
+    get_analysis_history,
     get_holding,
     get_journals,
     get_portfolio,
@@ -331,6 +334,76 @@ class StocksRepositoryTests(unittest.TestCase):
 
         self.assertTrue(delete_journal(self.session, "ABC"))
         self.assertNotIn("ABC", get_journals(self.session))
+
+    def test_analysis_review_is_idempotent_and_queryable(self) -> None:
+        payload = {
+            "ticker": "ABC",
+            "prior_report_path": "output/ABC_20261001_0900.md",
+            "review_timestamp": "2026-10-06T09:00:00+07:00",
+            "evaluation_window": "2026-10-01 to 2026-10-06",
+            "outcome_class": "PARTIAL",
+            "process_grade": "MIXED",
+            "error_tags": ["DATA", "SETUP"],
+            "ticker_lesson": "Wait for volume confirmation.",
+            "payload": {"return": 1.2},
+            "idempotency_key": "abc-review-20261006",
+        }
+
+        created = create_analysis_review(self.session, payload)
+        repeated = create_analysis_review(self.session, payload)
+
+        self.assertEqual(created["id"], repeated["id"])
+        self.assertEqual(created["ticker"], "ABC")
+        self.assertEqual(created["error_tags"], ["DATA", "SETUP"])
+        self.assertEqual(created["payload"], {"return": 1.2})
+
+        history = get_analysis_history(self.session, "ABC")
+        self.assertEqual(history["ticker"], "ABC")
+        self.assertEqual(history["reviews"][0]["id"], created["id"])
+
+    def test_analysis_lessons_support_ticker_and_shared_scope(self) -> None:
+        ticker_lesson = create_analysis_lesson(
+            self.session,
+            {
+                "scope": "ticker",
+                "ticker": "ABC",
+                "lesson": "ABC needs a tighter invalidation level.",
+                "evidence": [{"review_id": 1}],
+                "idempotency_key": "abc-lesson-1",
+            },
+        )
+        shared_lesson = create_analysis_lesson(
+            self.session,
+            {
+                "scope": "shared",
+                "lesson": "Do not upgrade a setup without fresh volume evidence.",
+                "status": "validated",
+                "severity": "high",
+                "evidence_count": 2,
+                "evidence": [{"ticker": "ABC"}, {"ticker": "DEF"}],
+                "idempotency_key": "shared-lesson-1",
+            },
+        )
+
+        self.assertEqual(ticker_lesson["scope"], "ticker")
+        self.assertEqual(ticker_lesson["ticker"], "ABC")
+        self.assertEqual(shared_lesson["status"], "validated")
+        self.assertEqual(shared_lesson["evidence_count"], 2)
+
+        history = get_analysis_history(self.session, "ABC")
+        lesson_ids = {lesson["id"] for lesson in history["lessons"]}
+        self.assertIn(ticker_lesson["id"], lesson_ids)
+        self.assertIn(shared_lesson["id"], lesson_ids)
+
+        with self.assertRaisesRegex(ValueError, "ticker lesson requires ticker"):
+            create_analysis_lesson(
+                self.session,
+                {
+                    "scope": "ticker",
+                    "lesson": "Missing ticker should fail.",
+                    "idempotency_key": "bad-lesson",
+                },
+            )
 
 
 if __name__ == "__main__":

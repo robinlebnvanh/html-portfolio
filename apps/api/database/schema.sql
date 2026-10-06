@@ -69,6 +69,53 @@ CREATE TABLE IF NOT EXISTS trades (
     note TEXT
 );
 
+CREATE TABLE IF NOT EXISTS stock_analysis_reviews (
+    id INTEGER PRIMARY KEY,
+    ticker TEXT NOT NULL REFERENCES stocks(ticker),
+    prior_report_path TEXT NOT NULL,
+    review_timestamp TEXT NOT NULL,
+    evaluation_window TEXT,
+    prior_strategy_mode TEXT,
+    prior_recommendation TEXT,
+    prior_levels TEXT,
+    trigger_result TEXT,
+    stop_target_order TEXT,
+    return_mfe_mae TEXT,
+    relative_return TEXT,
+    outcome_class TEXT NOT NULL CHECK (outcome_class IN ('CORRECT', 'PARTIAL', 'WRONG', 'UNRESOLVED')),
+    process_grade TEXT NOT NULL CHECK (process_grade IN ('GOOD', 'MIXED', 'POOR', 'N/A')),
+    correct_items TEXT,
+    gaps TEXT,
+    error_tags TEXT NOT NULL DEFAULT '[]',
+    explanation TEXT,
+    ticker_lesson TEXT,
+    next_analysis_change TEXT,
+    shared_lesson_candidate TEXT,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    idempotency_key TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS ix_stock_analysis_reviews_ticker_created_at
+ON stock_analysis_reviews(ticker, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS stock_analysis_lessons (
+    id INTEGER PRIMARY KEY,
+    scope TEXT NOT NULL CHECK (scope IN ('ticker', 'shared')),
+    ticker TEXT REFERENCES stocks(ticker),
+    status TEXT NOT NULL DEFAULT 'candidate' CHECK (status IN ('candidate', 'validated', 'rejected')),
+    severity TEXT NOT NULL DEFAULT 'medium' CHECK (severity IN ('low', 'medium', 'high')),
+    lesson TEXT NOT NULL,
+    evidence_count INTEGER NOT NULL DEFAULT 1 CHECK (evidence_count >= 1),
+    evidence_json TEXT NOT NULL DEFAULT '[]',
+    idempotency_key TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS ix_stock_analysis_lessons_ticker_status
+ON stock_analysis_lessons(ticker, status);
+
 CREATE TABLE IF NOT EXISTS admin_audit_logs (
     id INTEGER PRIMARY KEY,
     actor TEXT NOT NULL,

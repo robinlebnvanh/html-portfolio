@@ -20,6 +20,8 @@ from app.sqlalchemy_tables import (
     journals,
     portfolios,
     stocks,
+    stock_analysis_lessons,
+    stock_analysis_reviews,
     trades,
     watchlist_items,
 )
@@ -30,6 +32,15 @@ HOLDING_ADJUSTMENT_NOTE = "[HOLDING_ADJUSTMENT] Snapshot created from manual hol
 
 def _as_dict(row: Mapping[str, Any]) -> dict[str, Any]:
     return dict(row)
+
+
+def _json_loads(value: str | None, fallback: Any) -> Any:
+    if not value:
+        return fallback
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return fallback
 
 
 def _is_buy_trade(trade_type: str) -> bool:
@@ -809,6 +820,148 @@ def get_stock_audit_logs(session: Session, limit: int = 100) -> list[dict[str, A
         .limit(limit)
     ).mappings().all()
     return [_as_dict(row) for row in rows]
+
+
+def _analysis_review_from_row(row: Mapping[str, Any]) -> dict[str, Any]:
+    review = _as_dict(row)
+    review["error_tags"] = _json_loads(review.get("error_tags"), [])
+    review["payload"] = _json_loads(review.pop("payload_json", None), {})
+    return review
+
+
+def _analysis_lesson_from_row(row: Mapping[str, Any]) -> dict[str, Any]:
+    lesson = _as_dict(row)
+    lesson["evidence"] = _json_loads(lesson.pop("evidence_json", None), [])
+    return lesson
+
+
+def create_analysis_review(
+    session: Session,
+    values: Mapping[str, Any],
+) -> dict[str, Any]:
+    ticker = str(values["ticker"]).strip().upper()
+    _ensure_stock(session, ticker)
+    payload = dict(values.get("payload") or {})
+    error_tags = list(values.get("error_tags") or [])
+    insert_values = {
+        "ticker": ticker,
+        "prior_report_path": values["prior_report_path"],
+        "review_timestamp": values["review_timestamp"],
+        "evaluation_window": values.get("evaluation_window"),
+        "prior_strategy_mode": values.get("prior_strategy_mode"),
+        "prior_recommendation": values.get("prior_recommendation"),
+        "prior_levels": values.get("prior_levels"),
+        "trigger_result": values.get("trigger_result"),
+        "stop_target_order": values.get("stop_target_order"),
+        "return_mfe_mae": values.get("return_mfe_mae"),
+        "relative_return": values.get("relative_return"),
+        "outcome_class": values["outcome_class"],
+        "process_grade": values["process_grade"],
+        "correct_items": values.get("correct_items"),
+        "gaps": values.get("gaps"),
+        "error_tags": json.dumps(error_tags, ensure_ascii=False),
+        "explanation": values.get("explanation"),
+        "ticker_lesson": values.get("ticker_lesson"),
+        "next_analysis_change": values.get("next_analysis_change"),
+        "shared_lesson_candidate": values.get("shared_lesson_candidate"),
+        "payload_json": json.dumps(payload, ensure_ascii=False, sort_keys=True),
+        "idempotency_key": values["idempotency_key"],
+    }
+
+    existing = session.execute(
+        select(stock_analysis_reviews).where(
+            stock_analysis_reviews.c.idempotency_key == insert_values["idempotency_key"]
+        )
+    ).mappings().first()
+    if existing:
+        return _analysis_review_from_row(existing)
+
+    result = session.execute(insert(stock_analysis_reviews).values(**insert_values))
+    session.commit()
+    row = session.execute(
+        select(stock_analysis_reviews).where(
+            stock_analysis_reviews.c.id == result.inserted_primary_key[0]
+        )
+    ).mappings().one()
+    return _analysis_review_from_row(row)
+
+
+def create_analysis_lesson(
+    session: Session,
+    values: Mapping[str, Any],
+) -> dict[str, Any]:
+    scope = str(values["scope"]).strip().lower()
+    ticker = str(values["ticker"]).strip().upper() if values.get("ticker") else None
+    if scope == "ticker" and not ticker:
+        raise ValueError("ticker lesson requires ticker")
+    if ticker:
+        _ensure_stock(session, ticker)
+    evidence = list(values.get("evidence") or [])
+    insert_values = {
+        "scope": scope,
+        "ticker": ticker,
+        "status": values.get("status") or "candidate",
+        "severity": values.get("severity") or "medium",
+        "lesson": values["lesson"],
+        "evidence_count": values.get("evidence_count") or max(len(evidence), 1),
+        "evidence_json": json.dumps(evidence, ensure_ascii=False, sort_keys=True),
+        "idempotency_key": values["idempotency_key"],
+    }
+
+    existing = session.execute(
+        select(stock_analysis_lessons).where(
+            stock_analysis_lessons.c.idempotency_key == insert_values["idempotency_key"]
+        )
+    ).mappings().first()
+    if existing:
+        return _analysis_lesson_from_row(existing)
+
+    result = session.execute(insert(stock_analysis_lessons).values(**insert_values))
+    session.commit()
+    row = session.execute(
+        select(stock_analysis_lessons).where(
+            stock_analysis_lessons.c.id == result.inserted_primary_key[0]
+        )
+    ).mappings().one()
+    return _analysis_lesson_from_row(row)
+
+
+def get_analysis_history(
+    session: Session,
+    ticker: str | None = None,
+    *,
+    limit: int = 50,
+) -> dict[str, Any]:
+    normalized_ticker = ticker.strip().upper() if ticker else None
+
+    review_query = select(stock_analysis_reviews).order_by(
+        stock_analysis_reviews.c.id.desc()
+    )
+    lesson_query = select(stock_analysis_lessons).order_by(
+        stock_analysis_lessons.c.id.desc()
+    )
+    if normalized_ticker:
+        review_query = review_query.where(stock_analysis_reviews.c.ticker == normalized_ticker)
+        lesson_query = lesson_query.where(
+            or_(
+                stock_analysis_lessons.c.scope == "shared",
+                stock_analysis_lessons.c.ticker == normalized_ticker,
+            )
+        )
+
+    reviews = [
+        _analysis_review_from_row(row)
+        for row in session.execute(review_query.limit(limit)).mappings().all()
+    ]
+    lessons = [
+        _analysis_lesson_from_row(row)
+        for row in session.execute(lesson_query.limit(limit)).mappings().all()
+    ]
+    return {
+        "ticker": normalized_ticker,
+        "reviews": reviews,
+        "lessons": lessons,
+    }
 
 
 def get_journals(session: Session) -> dict[str, Any]:

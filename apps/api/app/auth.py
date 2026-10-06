@@ -81,6 +81,32 @@ def require_stock_read_token(
     require_admin_token(credentials)
 
 
+def require_stock_write_token(
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None,
+        Depends(bearer_scheme),
+    ],
+) -> None:
+    """Allow a dedicated stock-analysis write token or an existing admin token."""
+    configured_token = os.getenv("STOCK_ANALYSIS_WRITE_TOKEN")
+
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="stock write bearer token required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if configured_token and hmac.compare_digest(
+        credentials.credentials,
+        configured_token,
+    ):
+        return
+
+    # Admin credentials remain accepted for manual recovery and compatibility.
+    require_admin_token(credentials)
+
+
 def get_admin_actor(
     credentials: Annotated[
         HTTPAuthorizationCredentials | None,

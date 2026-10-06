@@ -30,6 +30,7 @@ from app.auth import (
     get_admin_actor,
     require_admin_token,
     require_stock_read_token,
+    require_stock_write_token,
 )
 from app.database import initialize_database
 from app.lead_repository import (
@@ -51,6 +52,8 @@ from app.portfolio_content_repository import (
 )
 from app.sqlalchemy_database import get_session
 from app.stocks_repository import (
+    create_analysis_lesson,
+    create_analysis_review,
     create_holding,
     create_trade,
     create_watchlist_item,
@@ -58,6 +61,7 @@ from app.stocks_repository import (
     delete_holding,
     delete_trade,
     delete_watchlist_item,
+    get_analysis_history,
     get_journals,
     get_portfolio,
     get_stock_audit_logs,
@@ -145,6 +149,46 @@ class TradeUpdate(BaseModel):
     stop_loss: int | None = Field(default=None, ge=0)
     pnl: str | None = None
     note: str | None = None
+
+
+class AnalysisReviewCreate(BaseModel):
+    """Validated payload for storing an analysis review."""
+
+    ticker: str = Field(min_length=1, max_length=12)
+    prior_report_path: str = Field(min_length=1)
+    review_timestamp: str = Field(min_length=1)
+    evaluation_window: str | None = None
+    prior_strategy_mode: str | None = None
+    prior_recommendation: str | None = None
+    prior_levels: str | None = None
+    trigger_result: str | None = None
+    stop_target_order: str | None = None
+    return_mfe_mae: str | None = None
+    relative_return: str | None = None
+    outcome_class: Literal["CORRECT", "PARTIAL", "WRONG", "UNRESOLVED"]
+    process_grade: Literal["GOOD", "MIXED", "POOR", "N/A"]
+    correct_items: str | None = None
+    gaps: str | None = None
+    error_tags: list[str] = Field(default_factory=list)
+    explanation: str | None = None
+    ticker_lesson: str | None = None
+    next_analysis_change: str | None = None
+    shared_lesson_candidate: str | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str = Field(min_length=8, max_length=160)
+
+
+class AnalysisLessonCreate(BaseModel):
+    """Validated payload for storing a ticker or shared analysis lesson."""
+
+    scope: Literal["ticker", "shared"]
+    ticker: str | None = Field(default=None, max_length=12)
+    status: Literal["candidate", "validated", "rejected"] = "candidate"
+    severity: Literal["low", "medium", "high"] = "medium"
+    lesson: str = Field(min_length=1)
+    evidence_count: int = Field(default=1, ge=1)
+    evidence: list[dict[str, Any]] = Field(default_factory=list)
+    idempotency_key: str = Field(min_length=8, max_length=160)
 
 
 class BlogPostCreate(BaseModel):
@@ -437,18 +481,68 @@ def journals() -> dict[str, Any]:
     dependencies=[Depends(require_stock_read_token)],
     tags=["stocks"],
 )
-def stock_analysis_context() -> dict[str, Any]:
+def stock_analysis_context(ticker: str | None = None) -> dict[str, Any]:
     """Return a consistent read-only snapshot for stock analysis clients."""
     with get_session() as session:
         portfolio_data = get_portfolio(session)
         journals_data = get_journals(session)
+        analysis_history = get_analysis_history(session, ticker, limit=50)
     return {
         "schema_version": 1,
         "source": "prj008-database",
         "generated_at": int(time.time()),
         "portfolio": portfolio_data,
         "journals": journals_data,
+        "analysis_history": analysis_history,
     }
+
+
+@app.get(
+    "/api/v1/stocks/analysis-history",
+    dependencies=[Depends(require_stock_read_token)],
+    tags=["stocks"],
+)
+def stock_analysis_history(
+    ticker: str | None = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> dict[str, Any]:
+    """Return stored stock-analysis reviews and lessons."""
+    with get_session() as session:
+        return get_analysis_history(session, ticker, limit=limit)
+
+
+@app.post(
+    "/api/v1/stocks/analysis-reviews",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_stock_write_token)],
+    tags=["stocks"],
+)
+def create_stock_analysis_review(payload: AnalysisReviewCreate) -> dict[str, Any]:
+    """Store an idempotent review of a prior stock analysis."""
+    values = payload.model_dump()
+    values["ticker"] = values["ticker"].strip().upper()
+    if not values["ticker"]:
+        raise HTTPException(status_code=422, detail="ticker must not be blank")
+    with get_session() as session:
+        return {"review": create_analysis_review(session, values)}
+
+
+@app.post(
+    "/api/v1/stocks/analysis-lessons",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_stock_write_token)],
+    tags=["stocks"],
+)
+def create_stock_analysis_lesson(payload: AnalysisLessonCreate) -> dict[str, Any]:
+    """Store an idempotent ticker-specific or shared analysis lesson."""
+    values = payload.model_dump()
+    if values.get("ticker"):
+        values["ticker"] = values["ticker"].strip().upper()
+    with get_session() as session:
+        try:
+            return {"lesson": create_analysis_lesson(session, values)}
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @app.get("/api/v1/blog/posts", tags=["blog"])

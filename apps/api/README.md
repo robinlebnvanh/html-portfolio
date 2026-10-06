@@ -34,6 +34,7 @@ The API accepts these environment variables:
 ```text
 ADMIN_API_TOKEN       required for write endpoints
 STOCK_ANALYSIS_API_TOKEN dedicated read-only token for stock analysis clients
+STOCK_ANALYSIS_WRITE_TOKEN dedicated token for stock-analysis review/lesson writes
 API_ALLOWED_ORIGINS   comma-separated frontend origins; local defaults are allowed
 PORT                  server port; hosting platforms usually provide this
 DATABASE_URL          SQLAlchemy database URL; SQLite is the local default
@@ -87,13 +88,14 @@ fixture used by the seed step:
 For Render, its startup command runs `alembic upgrade head` before Uvicorn.
 A migration failure stops the release, preventing an API version from starting
 against an outdated database schema. Current required revision is
-`0009_blog_post_images`.
+`0010_stock_analysis_learning`.
 
 ```bash
 docker build -f apps/api/Dockerfile -t prj008-api .
 docker run --rm -p 8001:8001 \
   -e ADMIN_API_TOKEN="replace-with-a-long-random-token" \
   -e STOCK_ANALYSIS_API_TOKEN="replace-with-a-different-random-token" \
+  -e STOCK_ANALYSIS_WRITE_TOKEN="replace-with-another-random-token" \
   -e ADMIN_EMAIL="admin@example.com" \
   -e ADMIN_PASSWORD="replace-with-a-strong-password" \
   -e ADMIN_AUTH_SECRET="replace-with-a-random-signing-secret" \
@@ -162,6 +164,25 @@ Stock analysis clients should use a separate `STOCK_ANALYSIS_API_TOKEN` with
 `GET /api/v1/stocks/analysis-context`. The read token is accepted only by
 private stock read endpoints and cannot authorize writes. Existing admin
 tokens remain valid for those reads for backward compatibility.
+
+For the analyzer learning loop, use a separate `STOCK_ANALYSIS_WRITE_TOKEN`.
+It can create idempotent rows through:
+
+```text
+POST /api/v1/stocks/analysis-reviews
+POST /api/v1/stocks/analysis-lessons
+```
+
+The read token can also fetch stored learning data with:
+
+```text
+GET /api/v1/stocks/analysis-history?ticker=VIC
+GET /api/v1/stocks/analysis-context?ticker=VIC
+```
+
+Do not reuse the read token for writes. Admin tokens are still accepted for
+manual recovery, but automated analyzer writes should use the dedicated write
+token.
 
 Run the authentication unit checks from the `apps/api` directory:
 

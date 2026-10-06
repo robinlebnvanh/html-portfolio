@@ -111,6 +111,71 @@ trades = sa.Table(
     sa.CheckConstraint("stop_loss IS NULL OR stop_loss >= 0", name="ck_trades_stop_loss_nonnegative"),
 )
 
+stock_analysis_reviews = sa.Table(
+    "stock_analysis_reviews",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("ticker", sa.String(length=12), sa.ForeignKey("stocks.ticker"), nullable=False),
+    sa.Column("prior_report_path", sa.Text, nullable=False),
+    sa.Column("review_timestamp", sa.Text, nullable=False),
+    sa.Column("evaluation_window", sa.Text),
+    sa.Column("prior_strategy_mode", sa.Text),
+    sa.Column("prior_recommendation", sa.Text),
+    sa.Column("prior_levels", sa.Text),
+    sa.Column("trigger_result", sa.Text),
+    sa.Column("stop_target_order", sa.Text),
+    sa.Column("return_mfe_mae", sa.Text),
+    sa.Column("relative_return", sa.Text),
+    sa.Column("outcome_class", sa.String(length=20), nullable=False),
+    sa.Column("process_grade", sa.String(length=20), nullable=False),
+    sa.Column("correct_items", sa.Text),
+    sa.Column("gaps", sa.Text),
+    sa.Column("error_tags", sa.Text, nullable=False, server_default="[]"),
+    sa.Column("explanation", sa.Text),
+    sa.Column("ticker_lesson", sa.Text),
+    sa.Column("next_analysis_change", sa.Text),
+    sa.Column("shared_lesson_candidate", sa.Text),
+    sa.Column("payload_json", sa.Text, nullable=False, server_default="{}"),
+    sa.Column("idempotency_key", sa.String(length=160), nullable=False),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+    sa.CheckConstraint(
+        "outcome_class IN ('CORRECT', 'PARTIAL', 'WRONG', 'UNRESOLVED')",
+        name="ck_stock_analysis_reviews_outcome",
+    ),
+    sa.CheckConstraint(
+        "process_grade IN ('GOOD', 'MIXED', 'POOR', 'N/A')",
+        name="ck_stock_analysis_reviews_process",
+    ),
+    sa.UniqueConstraint("idempotency_key", name="uq_stock_analysis_reviews_idempotency"),
+)
+
+stock_analysis_lessons = sa.Table(
+    "stock_analysis_lessons",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("scope", sa.String(length=20), nullable=False),
+    sa.Column("ticker", sa.String(length=12), sa.ForeignKey("stocks.ticker")),
+    sa.Column("status", sa.String(length=20), nullable=False, server_default="candidate"),
+    sa.Column("severity", sa.String(length=20), nullable=False, server_default="medium"),
+    sa.Column("lesson", sa.Text, nullable=False),
+    sa.Column("evidence_count", sa.Integer, nullable=False, server_default="1"),
+    sa.Column("evidence_json", sa.Text, nullable=False, server_default="[]"),
+    sa.Column("idempotency_key", sa.String(length=160), nullable=False),
+    sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+    sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+    sa.CheckConstraint("scope IN ('ticker', 'shared')", name="ck_stock_analysis_lessons_scope"),
+    sa.CheckConstraint(
+        "status IN ('candidate', 'validated', 'rejected')",
+        name="ck_stock_analysis_lessons_status",
+    ),
+    sa.CheckConstraint(
+        "severity IN ('low', 'medium', 'high')",
+        name="ck_stock_analysis_lessons_severity",
+    ),
+    sa.CheckConstraint("evidence_count >= 1", name="ck_stock_analysis_lessons_evidence_count"),
+    sa.UniqueConstraint("idempotency_key", name="uq_stock_analysis_lessons_idempotency"),
+)
+
 admin_audit_logs = sa.Table(
     "admin_audit_logs",
     metadata,
