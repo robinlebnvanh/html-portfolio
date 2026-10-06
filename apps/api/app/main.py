@@ -25,7 +25,12 @@ from app.blog_repository import (
     seed_default_blog_posts,
     update_blog_post,
 )
-from app.auth import bearer_scheme, get_admin_actor, require_admin_token
+from app.auth import (
+    bearer_scheme,
+    get_admin_actor,
+    require_admin_token,
+    require_stock_read_token,
+)
 from app.database import initialize_database
 from app.lead_repository import (
     VALID_LEAD_CHANNELS,
@@ -407,7 +412,7 @@ def admin_logout() -> Response:
 
 @app.get(
     "/api/v1/stocks/portfolio",
-    dependencies=[Depends(require_admin_token)],
+    dependencies=[Depends(require_stock_read_token)],
     tags=["stocks"],
 )
 def portfolio() -> dict[str, Any]:
@@ -418,13 +423,32 @@ def portfolio() -> dict[str, Any]:
 
 @app.get(
     "/api/v1/stocks/journals",
-    dependencies=[Depends(require_admin_token)],
+    dependencies=[Depends(require_stock_read_token)],
     tags=["stocks"],
 )
 def journals() -> dict[str, Any]:
     """Return private ticker journals read through SQLAlchemy."""
     with get_session() as session:
         return get_journals(session)
+
+
+@app.get(
+    "/api/v1/stocks/analysis-context",
+    dependencies=[Depends(require_stock_read_token)],
+    tags=["stocks"],
+)
+def stock_analysis_context() -> dict[str, Any]:
+    """Return a consistent read-only snapshot for stock analysis clients."""
+    with get_session() as session:
+        portfolio_data = get_portfolio(session)
+        journals_data = get_journals(session)
+    return {
+        "schema_version": 1,
+        "source": "prj008-database",
+        "generated_at": int(time.time()),
+        "portfolio": portfolio_data,
+        "journals": journals_data,
+    }
 
 
 @app.get("/api/v1/blog/posts", tags=["blog"])

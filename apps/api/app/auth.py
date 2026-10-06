@@ -55,6 +55,32 @@ def require_admin_token(
     )
 
 
+def require_stock_read_token(
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | None,
+        Depends(bearer_scheme),
+    ],
+) -> None:
+    """Allow a dedicated read-only stock token or an existing admin token."""
+    configured_token = os.getenv("STOCK_ANALYSIS_API_TOKEN")
+
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="stock read bearer token required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if configured_token and hmac.compare_digest(
+        credentials.credentials,
+        configured_token,
+    ):
+        return
+
+    # Keep Admin Console and existing integrations backward compatible.
+    require_admin_token(credentials)
+
+
 def get_admin_actor(
     credentials: Annotated[
         HTTPAuthorizationCredentials | None,

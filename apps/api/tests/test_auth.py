@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.admin_auth import create_access_token
-from app.auth import require_admin_token
+from app.auth import require_admin_token, require_stock_read_token
 from app.main import app, signed_cloudinary_upload_params
 
 
@@ -56,10 +56,45 @@ class AdminTokenTests(unittest.TestCase):
                 dependency_calls = [
                     dependency.dependency for dependency in route.dependencies
                 ]
-                self.assertIn(require_admin_token, dependency_calls)
+                expected_dependency = (
+                    require_stock_read_token
+                    if route.path.startswith("/api/v1/stocks/")
+                    else require_admin_token
+                )
+                self.assertIn(expected_dependency, dependency_calls)
                 private_paths.remove(route.path)
 
         self.assertEqual(private_paths, set())
+
+    def test_stock_read_token_is_accepted_for_read_dependency(self):
+        with patch.dict(
+            "os.environ",
+            {"STOCK_ANALYSIS_API_TOKEN": "read-only", "ADMIN_API_TOKEN": "admin"},
+            clear=True,
+        ):
+            self.assertIsNone(
+                require_stock_read_token(self.credentials("read-only"))
+            )
+
+    def test_stock_read_token_cannot_satisfy_admin_dependency(self):
+        with patch.dict(
+            "os.environ",
+            {"STOCK_ANALYSIS_API_TOKEN": "read-only", "ADMIN_API_TOKEN": "admin"},
+            clear=True,
+        ):
+            with self.assertRaises(HTTPException) as error:
+                require_admin_token(self.credentials("read-only"))
+        self.assertEqual(error.exception.status_code, 401)
+
+    def test_analysis_context_route_uses_stock_read_dependency(self):
+        for route in app.routes:
+            if getattr(route, "path", None) == "/api/v1/stocks/analysis-context":
+                dependency_calls = [
+                    dependency.dependency for dependency in route.dependencies
+                ]
+                self.assertIn(require_stock_read_token, dependency_calls)
+                return
+        self.fail("analysis context route was not registered")
 
     def test_cloudinary_signature_requires_server_configuration(self):
         with patch.dict("os.environ", {}, clear=True):

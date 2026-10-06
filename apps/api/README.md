@@ -33,6 +33,7 @@ The API accepts these environment variables:
 
 ```text
 ADMIN_API_TOKEN       required for write endpoints
+STOCK_ANALYSIS_API_TOKEN dedicated read-only token for stock analysis clients
 API_ALLOWED_ORIGINS   comma-separated frontend origins; local defaults are allowed
 PORT                  server port; hosting platforms usually provide this
 DATABASE_URL          SQLAlchemy database URL; SQLite is the local default
@@ -92,6 +93,7 @@ against an outdated database schema. Current required revision is
 docker build -f apps/api/Dockerfile -t prj008-api .
 docker run --rm -p 8001:8001 \
   -e ADMIN_API_TOKEN="replace-with-a-long-random-token" \
+  -e STOCK_ANALYSIS_API_TOKEN="replace-with-a-different-random-token" \
   -e ADMIN_EMAIL="admin@example.com" \
   -e ADMIN_PASSWORD="replace-with-a-strong-password" \
   -e ADMIN_AUTH_SECRET="replace-with-a-random-signing-secret" \
@@ -155,6 +157,11 @@ curl -X POST http://localhost:8001/api/v1/stocks/holdings \
 Missing or invalid credentials return `401`. If the server was started
 without `ADMIN_API_TOKEN` or `ADMIN_AUTH_SECRET`, an otherwise valid write
 request returns `503`.
+
+Stock analysis clients should use a separate `STOCK_ANALYSIS_API_TOKEN` with
+`GET /api/v1/stocks/analysis-context`. The read token is accepted only by
+private stock read endpoints and cannot authorize writes. Existing admin
+tokens remain valid for those reads for backward compatibility.
 
 Run the authentication unit checks from the `apps/api` directory:
 
